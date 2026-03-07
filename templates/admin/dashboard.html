@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Admin Dashboard</title>
+    <link rel="stylesheet" href="/../../static/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .header{
+            background:linear-gradient(135deg,#4facfe,#00f2fe);
+            color:white;
+            text-align:center;
+            padding:25px;
+        }
+
+
+        .dashboard{
+            max-width:1200px;
+            margin:auto;
+            padding:30px;
+        }
+
+
+        .cards{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:20px;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            transition:0.2s;
+            border: 1px solid;
+        }
+
+        .card:hover{
+            transform:translateY(-5px);
+        }
+
+        .card h3{
+            margin:0;
+            font-size:16px;
+        }
+
+        .number{
+            font-size:28px;
+            font-weight:bold;
+            color:#0077ff;
+        }
+
+        .icon{
+            width:60px;
+            height:60px;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:24px;
+            background:#e8f2ff;
+            color:#0077ff;
+        }
+
+
+        .actions{
+            margin:30px 0;
+        }
+
+        .actions button{
+            padding:10px 18px;
+            margin-right:10px;
+            border:none;
+            border-radius:8px;
+            background:#0077ff;
+            color:white;
+            cursor:pointer;
+        }
+
+        .actions button:hover{
+            background:#005fcc;
+        }
+
+
+        .chart-box{
+            background:white;
+            padding:20px;
+            border-radius:12px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom:30px;
+        }
+
+
+        .table-box{
+            background:white;
+            padding:20px;
+            border-radius:12px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th,td{
+            padding:12px;
+            text-align:left;
+        }
+
+        th{
+            background:#f0f4ff;
+        }
+
+        tr:nth-child(even){
+            background:#fafafa;
+        }
+
+        .active{
+            color:green;
+            font-weight:bold;
+        }
+
+        .exit{
+            color:red;
+            font-weight:bold;
+        }
+
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logos">
+            <div class="logo">
+                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
+            </div>
+            <h2>GSD PArking monitoring</h2>
+        </div>
+        <div class="butt">
+            <p class="sml">OVERVIEW</p>
+            <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
+            <p class="sml">MANAGEMENT</p>
+            <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
+            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
+            <p class="sml">ANALYTICS</p>
+            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+        </div>
+    </aside>
+
+    <div class="right">
+            <div class="header">
+            <h2>Admin Dashboard</h2>
+            <p>Parking System Overview</p>
+        </div>
+
+        <div class="dashboard">
+
+
+            <div class="cards">
+
+                <div class="card">
+                    <div>
+                        <h3>Parking Slots</h3>
+                        <div class="number">50</div>
+                    </div>
+                    <div class="icon">P</div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Entered Today</h3>
+                        <div class="number">32</div>
+                    </div>
+                    <div class="icon">E</div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Occupied</h3>
+                        <div class="number">18</div>
+                        </div>
+                    <div class="icon">O</div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Active QR</h3>
+                        <div class="number">12</div>
+                    </div>
+                    <div class="icon">Q</div>
+                </div>
+
+            </div>
+
+
+            <div class="actions">
+                <button>Add Parking Slot</button>
+                <button>Generate QR</button>
+                <button>View Reports</button>
+            </div>
+
+
+            <div class="chart-box">
+                <h3>Weekly Parking Activity</h3>
+                <canvas id="parkingChart"></canvas>
+            </div>
+
+
+            <div class="table-box">
+
+                <h3>Recent Parking Activity</h3>
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Plate Number</th>
+                            <th>Time In</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>ABC-123</td>
+                            <td>10:45 AM</td>
+                            <td class="active">Inside</td>
+                        </tr>
+
+                        <tr>
+                            <td>XYZ-421</td>
+                            <td>11:02 AM</td>
+                            <td class="exit">Exited</td>
+                        </tr>
+
+                        <tr>
+                            <td>JKL-555</td>
+                            <td>11:10 AM</td>
+                            <td class="active">Inside</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    
+
+    <script>
+
+    const ctx = document.getElementById('parkingChart');
+    new Chart(ctx,{
+            type:'line',data:{
+            labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+            datasets:[{
+            label:'Cars Entered',
+            data:[12,19,7,15,22,30,18],
+            borderColor:'#0077ff',
+            tension:0.4
+        }]
+    },
+        options:{
+            responsive:true
+        }
+    });
+
+    </script>
+
+</body>
+</html>

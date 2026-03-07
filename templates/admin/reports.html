@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/../../static/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .header{
+            background:linear-gradient(135deg,#4facfe,#00f2fe);
+            color:white;
+            padding:25px;
+        }
+        .containers{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            gap: 10px;
+        }
+
+        .container {
+            width: 300px;
+            height: 150px;
+            border: 1px solid blue;
+            background: lightblue;
+            display: grid;
+            grid-template-rows: 50px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .circle{
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            opacity: 50%;
+        }
+
+        .reports,.recents{
+            padding: 20px;
+            height: 500px;
+        }
+
+        .reportcon{
+            background: lightblue;
+        }
+
+        .title{
+            display: flex;
+            justify-content: space-between;
+            background: darkblue;
+            color: white;
+            padding: 10px;
+        }
+
+        .title > div{
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            align-items: center;      
+        }
+
+        .title div p{
+            border: 1px solid;
+            padding: 10px;
+            background: blue;
+            
+        }
+
+        .rep{
+            width: 100%;
+            height: 300px;
+            background: blue;
+        }
+
+        .rep tr{
+            display: grid;
+            grid-template-columns: 50px 100px 1fr repeat(4,100px);
+            grid-column-gap: 1px;
+
+        }
+
+        .rep th{
+            background: lightgreen;
+            padding: 5px;
+        }
+
+        .q{
+            background: lightblue;
+        }
+
+        .q h2{
+            background: darkblue;
+            color: white;
+            padding: 10px;
+        }
+
+        
+        .q tr{
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px;
+            grid-column-gap: 1px;
+        }
+
+        .q table{
+            width: 100%;
+            height: 300px;
+        }
+
+        .q th{
+            background: blue;
+            color: white;
+            padding: 5px;
+        }
+
+        .q td{
+            background:cadetblue;
+            padding: 10px;
+        }
+
+        
+    </style>
+    
+    
+</head>
+<body>
+    <aside>
+        <div class="logos">
+            <div class="logo">
+                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
+            </div>
+            <h2>GSD PArking monitoring</h2>
+        </div>
+        <div class="butt">
+            <p class="sml">OVERVIEW</p>
+            <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
+            <p class="sml">MANAGEMENT</p>
+            <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
+            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
+            <p class="sml">ANALYTICS</p>
+            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+        </div>
+    </aside>
+
+    
+
+    <div class="right">
+        <div class="header">
+            <h1><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports and Logs</h1>
+        </div>
+        <div class="containers">
+            <div class="container">
+                <h2>Today Entries</h2>
+                <p>-</p>
+
+                <div class="circle" style="background-color: aqua;">
+                    <p>0</p>
+                </div>
+            </div>
+            <div class="container">
+                <h2>Today Entries</h2>
+                <p>-</p>
+
+                <div class="circle" style="background-color: aqua;">
+                    <p>0</p>
+                </div>
+            </div>
+            <div class="container">
+                <h2>Today Entries</h2>
+                <p>-</p>
+
+                <div class="circle" style="background-color: aqua;">
+                    <p>0</p>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="reports">
+            <div class="reportcon">
+                <div class="title">
+                    <h1><i class="bi bi-newspaper"></i> Reports Logs</h1>
+
+                    <div>
+                        <p style="color: red;">Failed</p>
+                        <p style="color: yellow;">Expired</p>
+                        <p style="color: lime;">Success</p>
+                    </div>
+                </div>
+
+                <table class="rep">
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Guard</th>
+                        <th>Plate</th>
+                        <th>QRcode</th>
+                        <th>Action</th>
+                        <th>Scan results</th>
+                    </tr>
+                </table>
+
+
+
+            </div>
+        </div>
+
+        <div class="recents">
+            <div class="q">
+                <h2><i class="bi bi-qr-code-scan"></i> Recently Created QR</h2>
+                <table>
+                    <tr>
+                        <th>#</th>
+                        <th> data</th>
+                        <th>created at</th>
+                        <th>by</th>
+                    </tr>
+                    <tr>
+                        <td>s</td>
+                        <td>s</td>
+                        <td>s</td>
+                        <td>s</td>
+                    </tr>
+                </table>
+
+
+            </div>
+        </div>
+
+        
+        
+    </div> <!--right-->
+
+
+   
+    
+</body>
+</html>

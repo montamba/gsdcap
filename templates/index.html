@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Document</title>
+    <link rel="stylesheet" href="/../static/css/style.css">
+    <style>
+        body{
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .maincontainer{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            width: 400px;
+            height: 500px;
+            border: 2px solid aqua;
+            background: grey;
+            display: grid;
+            grid-template-rows: 100px 1fr;
+            padding: 20px 50px;
+        }
+
+
+        .logos,.logos div:last-child,.forform .submit{
+            display: grid;
+            place-items: center;
+            
+
+        }
+
+        .logos .logo{
+            font-size: 40px;
+        }
+
+        .forform{
+            margin-top: 20px;
+            display: grid;
+        }
+
+        .forform .role{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-column-gap: 10px;
+        }
+
+        .role button{
+            height: 50px;
+
+            background: grey;
+            border: 2px solid;
+        }
+
+        .role button.active{
+            background: rgba(0, 255, 255, 0.3);
+            border: 3px solid aqua;
+        }
+
+        .forform .con{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .forform .con label{
+            color: aqua;
+
+        }
+
+        .forform .con input{
+            padding: 10px 20px;
+            border: 1px solid aqua;
+        }
+
+        .forform .submit{
+            margin-top: 10px;
+        }
+
+       
+
+        .forform .submit button{
+            padding: 10px;
+            font-size: 30px;
+            width: 70%;
+            background: aqua;
+            border: black;
+            
+        }
+
+        .rotate{
+            animation: rotate 2s infinite linear;
+        }
+
+        @keyframes rotate {
+            0%{
+                transform: rotate(0deg);
+            }100%{
+                transform: rotate(360deg);
+            }
+            
+        }
+
+    </style>
+</head>
+<body>
+    <div class="maincontainer">
+        <div class="logos">
+            <div class="logo">
+                <i class="bi bi-car-front"></i>
+            </div>
+            <div>
+                <h3 style="color: white;font-size:20px;">Parking System</h3>
+                <p style="color: white;">Vehicle management system</p>
+            </div>
+
+        </div>
+        <div class="forform">
+            <div class="role">
+                <button class="admin active" onclick="changeRole('admin')">👑 Admin</button>
+                <button class="staff" onclick="changeRole('staff')"><i class="bi bi-people-fill"></i>&nbsp;Staff</button>
+                <button class="guard" onclick="changeRole('guard')"><i class="bi bi-shield-fill"></i>&nbsp;Guard</button>
+            </div>
+
+            <div class="con">
+                <label for="email">Email</label>
+                <input id="email" type="email" placeholder="Email" required>
+            </div>
+
+            <div class="con">
+                <label for="password">Password</label>
+                <input id="password" type="password" placeholder="password" required>
+            </div>
+            
+            <div>
+                <label for="passhow">Show Password</label>
+                <input id="passhow" onclick="showPassword()" type="checkbox">
+            </div>
+            <div class="submit" >
+                <button onclick="login(this)">
+                    <div class="in">
+                        <i class="bi bi-box-arrow-in-right"></i>&nbsp;Submit
+                    </div>
+                    
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    
+
+
+    <script src="/../static/scripts/scrit.js"></script>
+    <script>
+       
+        function showPassword(){
+            let checkbox = document.getElementById("passhow");
+            document.getElementById("password").type = (checkbox.checked) ? "text":"password";
+        }
+
+        let selectedrole = "admin"
+        function changeRole(role){
+            let buttons = document.querySelectorAll(".role button")
+            buttons.forEach((element)=>{element.classList.remove("active")})
+
+            selectedrole = role
+            let tar = document.querySelector(".role button."+role)
+            tar.classList.add("active")
+        }
+
+        async function login(element){
+            let email = document.getElementById("email").value.trim()
+            let password = document.getElementById("password").value
+
+            if(!email){
+                alert("Eneter email")
+                return
+            }
+
+            if(password.length < 3){
+                alert(":password too short")
+                return
+            }
+
+            
+            let data = {
+                'email' : email,
+                'password' : password,
+                'role' : selectedrole
+            }
+
+            let inner = element.querySelector(".in")
+
+            inner.innerHTML = `<i class="bi bi-arrow-clockwise"></i>`
+            inner.classList.add("rotate")
+            element.disabled
+
+            console.log(data)
+            let res = await API.login(data);
+
+            inner.innerHTML = `<i class="bi bi-box-arrow-in-right"></i>&nbsp;Submit`
+            inner.classList.remove("rotate")
+            element.disabled
+            showMessageModal(res.message,res.status)
+        }
+    </script>
+</body>
+</html>
