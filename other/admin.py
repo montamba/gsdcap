@@ -1,12 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify
 import json,os
-import mysql.connector
 
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
 
 class Admin:
-    def __init__(self, sql:mysql.connector):
+    def __init__(self, sql):
         self.admin = Blueprint('admin', __name__, url_prefix="/admin")
         self.sql = sql
         
@@ -51,31 +50,58 @@ class Admin:
                 
             return message
         
-        @self.admin.route("/setparking", methods=["POST"])
-        def setParking(self):
+        #==============================================================
+        
+       
+        
+        @self.admin.route("/setparking", methods=["PUT"])
+        def setParking():
             redata = request.get_json()
-            # total = redata["total"]
+            total = int(redata["total"])
             
-            # message = {
-            #     "status":"failed",
-            #     "message":"sorry "
-            # }
+            message = {
+                "status":"failed",
+                "message":"sorry "
+            }
             
-            # jdata = None
-            # with open(file_path, "r") as file:
-            #     jdata = json.load(file)
+            jdata = None
+            with open(file_path, "r") as file:
+                jdata = json.load(file)
                 
-            # jdata["total"] = total
+            jdata["total"] = total
             
-            # with open(file_path, "w") as file:
-            #     json.dump(jdata, file, indent=4)
+            with open(file_path, "w") as file:
+                json.dump(jdata, file, indent=4)
                 
-            # if jdata:
-            #     message["status"] = "ok"
-            #     message["message"] = "all goood"
+            if jdata:
+                message["status"] = "ok"
+                message["message"] = "all goood"
+                message["total"] = total
                 
-            return jsonify({"data":"00","dar":"op"})
+            return message
+        #===================================================
+        
+        @self.admin.route("/getusers", methods=["GET"])
+        def getUsers():
+            cur = self.sql.cursor()
+            cur.execute("SELECT id,username, role, created_at FROM users")
+            users = cur.fetchall()
+            
+            message = {
+                "status":"bad",
+                "message":"no data availabe"
+            }
+            
+            
+            if users:
+                return {
+                    "status":"good",
+                    "data":users
+                }
                 
+            return message
+            
+        
             
             
             

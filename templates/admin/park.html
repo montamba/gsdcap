@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="/../../static/scripts/scrit.js"></script>
 
@@ -67,7 +68,7 @@
 
         .slots > div:last-child{
             display: grid;
-            grid-template-columns: auto auto;
+            grid-template-columns: auto auto auto;
             padding: 20px;
             grid-column-gap: 20px;
         }
@@ -174,13 +175,19 @@
                 <div>
                     <div class="con">
                         <h4>Available</h4>
-                        <p>-</p>
-                        <p class="bigtext">-</p>
+                        <p class="available">-</p>
+                        <p class="bigtext available">-</p>
                     </div>
                     <div class="con">
                         <h4>Occupied</h4>
-                        <p>-</p>
-                        <p class="bigtext">-</p>
+                        <p class="occupied">-</p>
+                        <p class="bigtext occupied" >-</p>
+
+                    </div>
+                    <div class="con">
+                        <h4>Occupied</h4>
+                        <p class="total">-</p>
+                        <p class="bigtext total" >-</p>
 
                     </div>
 
@@ -226,9 +233,33 @@
             }
 
             console.log(ndata)
-            let response = await API.post("/admin/setparking", ndata)
-            console.log(response)
+            let response = await API.put("/admin/setparking", ndata)
+            let total = document.querySelectorAll(".total");
+            showMessageModal(response.message,"Update status: "+response.status)
+            total.forEach(tot => {tot.innerText = response.total})
+
         }
+
+
+        async function getParkdata(){
+            let available = document.querySelectorAll(".available");
+            let occupied = document.querySelectorAll(".occupied");
+            let total = document.querySelectorAll(".total");
+
+            let response = await API.get("/admin/parking")
+            
+            let data = response.data
+
+            available.forEach(avail => {avail.innerText = data.available})
+            occupied.forEach(occu => {occu.innerText = data.occupied})
+            total.forEach(tot => {tot.innerText = data.total})
+
+        }
+        getParkdata()
+        
+
+        setInterval(getParkdata, 10000)
+
     </script>
 
 

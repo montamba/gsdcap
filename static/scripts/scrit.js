@@ -16,7 +16,6 @@ let API = {
         }
 
         let res = await resdata.json()
-        console.log(res)
 
         return res;
     },
