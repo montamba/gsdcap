@@ -105,6 +105,100 @@
             font-size: larger;
             color: white;
         }
+
+        .nouser{
+            position: absolute;
+            text-align:center;
+            height: 100px;
+            width:inherit;
+
+            display:grid;
+            place-items:center;
+        }
+
+        .nouser > div{
+            width:100px;
+            height:100px;
+            border-radius: 50%;
+            border:2px solid;
+
+        }
+
+        .btnadduser{
+            background: lightblue;
+            border: 1px solid;
+            padding: 10px;
+            margin: 5px;
+            font-size: larger;
+            color: darkblue;
+        }
+
+        #useradd{
+            position: fixed;
+            top: 50%;left: 50%;
+            transform: translate(-50%,-50%);
+        }
+
+        #useradd > form{
+            padding: 20px;
+            width: 500px;
+
+        }
+
+         .usecon{
+            display: grid;
+         }
+
+        .usecon > select{
+            margin: 10px;
+            padding: 10px;
+            font-size: 10px;
+        }
+        .usecon > label{
+            padding: 10px;
+            font-size: 20px;
+            color: darkblue;
+        }
+
+        .usecon input{
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .shwpass{
+            display: flex;
+            gap:10px;
+        }
+
+        .userbtn{
+            padding:10px;
+            display: flex;
+            justify-content: space-evenly;
+
+        }
+
+        .userbtn > button{
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid;
+            width: 100px;
+            transition:300ms;
+        }
+
+        .userbtn > button:hover{
+            scale:1.1;
+        }
+
+        .userbtn > button.cancel{
+            color: red;
+        }
+        
+        .userbtn > button.clear{
+            color: lightblue;
+        }
+        .userbtn > button.add{
+            color: darkblue;
+        }
     </style>
     
 </head>
@@ -172,6 +266,7 @@
                 <h2><i class="bi bi-people-fill"></i> USERS</h2>
 
                 <input type="search" placeholder='🔍 Search...'>
+                <button class="btnadduser" onclick="showmodal()">Add user</button>
             </div>
             <table>
                 <thead>
@@ -184,26 +279,103 @@
                     </tr>
                 </thead>
                 <tbody id="users">
-                    <tr>
-                        <td>n</td>
-                        <td>nlkjd</td>
-                        <td>model</td>
-                        <td>today</td>
-                        <td><button><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
-
-                    </tr>
-                </tbody>
+                    
+                    
+                </tbody> 
             </table>
-
         </div>
+
+
+        <dialog id="useradd">
+            <form onsubmit="adduser(event)">
+                <div class="head">
+                    <h2><i class="bi bi-people"></i> ADD USER</h2>
+                </div>
+                <div class="usecon">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="username" required>
+                </div>
+                <div class="usecon">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" placeholder="Email" required>
+                </div>
+                <div class="usecon">
+                    <label for="role">Role</label>
+                    <select id="role">
+                        <option value="guard">Guard</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <div class="usecon">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="password" required>
+                </div>
+                <div class="shwpass">
+                    <label for="chckpass">Show password: </label>
+                    <input id="chckpass" onclick=" showpassword()" type="checkbox" id="">
+                </div>
+
+                <div class="userbtn">
+                    <button type="submit" class="add">Add</button>
+                    <button type="reset" class="clear">Clear</button>
+                    <button type="button" class="cancel" commandfor="useradd" command="close">Cancel</button>
+                    
+                </div>
+
+
+
+            </form>
+
+        </dialog>
         
 
         <script>
+
+            async function adduser(e){
+                e.preventDefault()
+                let user ={
+                    username:document.getElementById("username").value,
+                    email: document.getElementById("email").value,
+                    role: document.getElementById("role").value,
+                    password: document.getElementById("password").value
+                }
+
+                if(user.password.length < 8){
+                    alert("Password must have 8 characters")
+                    return
+                }
+
+                let res = await API.post("/admin/add_user", user)
+
+                getUsers()
+            }
+
+            function showmodal(){
+                document.getElementById("useradd").show()
+            }
+
+            function showpassword(){
+                let ischecked = document.getElementById("chckpass").checked
+                document.getElementById("password").type = (ischecked) ? "text": "password";
+            }
+
             async function getUsers(){
                 let data = await API.get("/admin/getusers")
                 console.log(data)
 
                 let inhtml = ""
+
+                if(data.status == "bad"){
+                    document.getElementById("users").innerHTML = `
+                    <tr style=" width:100%;">
+                        <div class="nouser">
+                            <div>?</div>
+                            <h2>No user</h2>
+                        </div>
+                    </tr>
+                    `
+                    return
+                }
 
                 data.data.forEach(users=>{
                     inhtml += `
@@ -212,18 +384,28 @@
                         <td>${users[1]}</td>
                         <td>${users[2]}</td>
                         <td>${users[3]}</td>
-                        <td><button><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
-
+                        <td><button onclick="deleteUsers(${users[0]})"><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
                     </tr>
                     `
                 })
 
-                if inhtml:
-                    document.getElementById("users").innerHTML += html
+                if( inhtml){
+                    document.getElementById("users").innerHTML = inhtml
+                }
 
+                
+            }
 
+            async function deleteUsers(id){
+                if(confirm("Are you sure to delete user?")){
+                    let result = API.delete(`/admin/delete_user/${id}`)
+                    console.log(result)
+                }
 
             }
+
+            getUsers()
+            setInterval(getUsers, 30000)
         </script>
 
         

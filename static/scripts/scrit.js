@@ -5,12 +5,13 @@ let API = {
         
         if(method == "GET"){
             resdata = await fetch(url)
-        }else{
+        }else if(method=="DELETE"){
+            resdata = await fetch(url, {"method":method})
+        }
+        else{
             resdata = await fetch(url, {
                 "method":method,
-                headers: {
-                    'Content-Type': 'application/json' 
-                },
+                headers: {'Content-Type': 'application/json'},
                 body:JSON.stringify(data)
             })
         }

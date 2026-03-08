@@ -1,13 +1,14 @@
 from flask import Blueprint, render_template, request, jsonify
 import json,os
+from other.mysql_ import SQL
 
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
 
 class Admin:
-    def __init__(self, sql):
+    def __init__(self):
         self.admin = Blueprint('admin', __name__, url_prefix="/admin")
-        self.sql = sql
+        self.sql = SQL()
         
         self.routes()
         
@@ -83,9 +84,9 @@ class Admin:
         
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
-            cur = self.sql.cursor()
-            cur.execute("SELECT id,username, role, created_at FROM users")
-            users = cur.fetchall()
+            users = self.sql.getalluser()
+            
+            print(users)
             
             message = {
                 "status":"bad",
@@ -100,6 +101,44 @@ class Admin:
                 }
                 
             return message
+        
+        #=================================
+        
+        @self.admin.route("/delete_user/<int:id>", methods=["DELETE"])
+        def deleteUser(id):
+            self.sql.deleteuser(id)
+            return {
+                "status":"ok",
+                "message":"succesfull deleted user"
+            }
+            
+        @self.admin.route("/add_user", methods=["POST"])
+        def add_user():
+            message = {
+                "status":"bad",
+                "message":"sorry cant add usr at the moment"
+            }
+            
+            data = request.get_json()
+            username = data["username"]
+            email = data["email"]
+            password = data["password"]
+            role = data["role"]
+            
+            if len(password) < 8:
+                message["message"] = "password too short"
+                return message
+            
+            
+            
+            self.sql.adduser(username,email,password,role)
+            
+            message["message"] = "successfully added"
+            message["status"] = "good"
+            
+            return message
+            
+            
             
         
             

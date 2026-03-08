@@ -9,7 +9,7 @@ import mysql.connector as mysql
 class Main:
     def __init__(self):
         self.app = Flask(__name__)
-        self.sql:mysql = mysql.connect(
+        self.sql = mysql.connect(
             user="root",
             host="localhost",
             database="gsdparking",
@@ -48,10 +48,8 @@ class Main:
                     "status":"Success"}
             else:
                 return {"message":"Failed Please try again",
-                        "status":"failed"}
-                
-                
-
+                        "status":"failed"
+                        }
             
         
         @self.app.route("/auth/test", methods=["POST"])
@@ -59,9 +57,8 @@ class Main:
             return jsonify({"success":True})
         
     def blueprints(self):
-        admin = Admin(self.sql)
         
-        self.app.register_blueprint(admin.admin)  
+        self.app.register_blueprint(Admin().admin)  
         
     def run(self):
         self.app.run(debug=True)
