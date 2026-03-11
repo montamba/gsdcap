@@ -303,7 +303,7 @@
                     <label for="role">Role</label>
                     <select id="role">
                         <option value="guard">Guard</option>
-                        <option value="staff">Staff</option>
+                        <option value="user">Staff</option>
                     </select>
                 </div>
                 <div class="usecon">
@@ -382,7 +382,7 @@
                     <tr>
                         <td>${users[0]}</td>
                         <td>${users[1]}</td>
-                        <td>${users[2]}</td>
+                        <td>${(users[2]=='user')?'staff':users[2]}</td>
                         <td>${users[3]}</td>
                         <td><button onclick="deleteUsers(${users[0]})"><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
                     </tr>
