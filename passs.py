@@ -1,1 +1,0 @@
-PASSW = "7M2oanbTma*"

@@ -4,183 +4,265 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/../../static/css/staff.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
+    <script src="/../../static/scripts/scrit.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <title>Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>History — GSD Parking</title>
 
     <style>
-        .header{
-            background: linear-gradient(136deg, lightblue, blue);
-            padding: 10px;
+        .header {
+            background: linear-gradient(135deg, #0d1f3c, #040912);
+            border-bottom: 1px solid #162040;
+            padding: 24px 32px;
+            position: relative;
         }
-
-        .containers{
-            display: flex;
-            gap: 10px;
-            padding: 20px;
-            justify-content: center;
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, #00d4ff44, transparent);
         }
+        .header h1 { font-size: 20px; font-weight: 800; color: #e0eaff; }
+        .header p { font-size: 11px; color: #3a4e72; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; }
+        .header .bi { color: #00d4ff; margin-right: 8px; }
 
-        .containers .con{
-            border: 2px solid;
-            border-left: 10px solid;
-            box-shadow: 0 0 10px grey;
-            padding: 20px;
-            border-radius: 10px;
-            background-color: grey;
-        }
-
-        .recently{
-            background-color: azure;
-            padding: 20px;
+        /* ─── STAT ROW ─── */
+        .stat-row {
             display: grid;
-            place-items: center;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #162040;
+            margin: 28px 32px 0;
         }
-
-        .recently>div{
-            width: 100%;
-            border: 2px solid;
-            padding: 10px;
-            background-color: darkblue;
-            color: white;
+        .stat-item {
+            background: #0b1428;
+            padding: 22px 20px;
+            position: relative;
         }
-
-        .recently table{
-            width: 900px;
-            background: darkblue;
-            height: 300px;
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
         }
+        .stat-item:nth-child(1)::before { background: #00d4ff; }
+        .stat-item:nth-child(2)::before { background: #ff4d6d; }
+        .stat-item:nth-child(3)::before { background: #ffaa00; }
+        .stat-item:nth-child(4)::before { background: #00ff88; }
 
-        .recently tr{
-            width: 100%;
-            display: grid;
-            grid-template-columns: 50px 1fr 150px repeat(3, 100px);
-            grid-column-gap: 2px;
+        .stat-item h4 {
+            font-size: 10px; font-weight: 700; color: #3a4e72;
+            text-transform: uppercase; letter-spacing: 0.14em;
+            font-family: 'Space Mono', monospace; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
         }
-
-        .recently th{
-            background: blue;
-            color: white;
-            padding: 10px;
-
+        .stat-item .num {
+            font-size: 36px; font-weight: 800;
+            font-family: 'Space Mono', monospace; line-height: 1;
         }
+        .stat-item:nth-child(1) .num { color: #00d4ff; }
+        .stat-item:nth-child(2) .num { color: #ff4d6d; }
+        .stat-item:nth-child(3) .num { color: #ffaa00; }
+        .stat-item:nth-child(4) .num { color: #00ff88; }
 
-        .recently td{
-            padding: 5px;
-            background: white;
+        /* ─── SECTIONS ─── */
+        .section { margin: 24px 32px; background: #0b1428; border: 1px solid #162040; }
+        .section-head {
+            padding: 14px 20px;
+            background: #040912;
+            border-bottom: 1px solid #162040;
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 16px; flex-wrap: wrap;
         }
+        .section-head-left { display: flex; align-items: center; gap: 8px; }
+        .section-head-left::before {
+            content: '';
+            width: 3px; height: 14px;
+            background: #00d4ff;
+        }
+        .section-head h2 {
+            font-size: 12px; font-weight: 700; color: #6b82a8;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+        .section-head .bi { color: #00d4ff; }
 
-        .head{
-            background-color: darkblue;
-            color: white;
-            margin-top: 20px;
+        .search-input {
+            padding: 7px 12px;
+            background: #070d1a; border: 1px solid #162040;
+            color: #e0eaff; font-family: 'Space Mono', monospace; font-size: 11px;
+            outline: none; width: 200px; transition: border-color 0.2s;
         }
+        .search-input:focus { border-color: #00d4ff44; }
+        .search-input::placeholder { color: #2a3a52; }
 
-        .head input{
-            padding: 10px;
-            width: 100%;
-            border-radius: 5px;
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; font-size: 12px; }
+        th {
+            background: #040912; color: #3a4e72;
+            font-family: 'Space Mono', monospace; font-size: 10px;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            border-bottom: 1px solid #162040;
         }
+        td { color: #a0b4d0; border-bottom: 1px solid #0f1d36; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #0f1e38; }
+
+        .recent-table tr { display: grid; grid-template-columns: 50px 80px 1fr 120px 100px 120px; }
+        .all-table tr { display: grid; grid-template-columns: 50px 1fr 120px 100px 120px 100px; }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; font-size: 10px; font-weight: 700;
+            font-family: 'Space Mono', monospace; letter-spacing: 0.06em;
+        }
+        .badge.active { background: #00ff8818; color: #00ff88; border: 1px solid #00ff8833; }
+        .badge.expired { background: #ffaa0018; color: #ffaa00; border: 1px solid #ffaa0033; }
+        .badge.rejected { background: #ff4d6d18; color: #ff4d6d; border: 1px solid #ff4d6d33; }
+
+        .btn-sm {
+            padding: 4px 9px; border: 1px solid #162040;
+            background: transparent; color: #6b82a8; cursor: pointer;
+            font-size: 12px; transition: all 0.2s;
+        }
+        .btn-sm:hover { border-color: #00d4ff44; color: #00d4ff; }
     </style>
 </head>
 <body>
     <aside>
         <div class="logos">
-            <div class="circle">
-                P
-            </div>
-            STAFF
+            <div class="circle">P</div>
+            <span>STAFF PORTAL</span>
         </div>
-
         <div class="buttons">
-            <a href="generate.html" ><i class="bi bi-qr-code"></i>  Generator</a>
-            <a href="history.html" class="active"><i class="bi bi-stopwatch"> </i> history</a>
-            <a href="search.html"><i class="bi bi-search"> </i>Search</a>
-            <a href="profile.html"><i class="bi bi-people"> </i>Profile</a>
+            <a href="/staff/generate"><i class="bi bi-qr-code"></i> Generator</a>
+            <a href="/staff/history" class="active"><i class="bi bi-stopwatch"></i> History</a>
+            <a href="/staff/search"><i class="bi bi-search"></i> Search</a>
+            <a href="/staff/profile"><i class="bi bi-people"></i> Profile</a>
         </div>
-
         <div class="logout">
-            <button>Logout</button>
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
         </div>
     </aside>
 
     <div class="right">
-         <div class="header">
-            <h1>History</h1>
-        </div>
-            <div class="containers">
-
-            <div class="con">
-                <h2><i class="bi bi-qr-code"></i> Generate QR</h2>
-                <p>0</p>
-            </div>
-
-            <div class="con" style="color: pink;">
-                <h2><i class="bi bi-qr-code"></i> Reject QR</h2>
-                <p>0</p>
-            </div>
-
-            <div class="con" style="color:yellow;">
-                <h2><i class="bi bi-qr-code"></i> Expired QR</h2>
-                <p>0</p>
-            </div>
-
-            <div class="con" style="color: aquamarine;">
-                <h2><i class="bi bi-qr-code"></i> Active QR</h2>
-                <p>0</p>
-            </div>
-
+        <div class="header">
+            <h1><i class="bi bi-stopwatch-fill"></i>QR History</h1>
+            <p>YOUR GENERATED AND SCANNED QR ACTIVITY</p>
         </div>
 
-        <div class="recently">
-            <div>
-                <h2>Recently Created</h2>
+        <div class="stat-row">
+            <div class="stat-item">
+                <h4><i class="bi bi-qr-code"></i> Generated</h4>
+                <div class="num">0</div>
             </div>
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>img</th>
-                    <th>data</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                    <th>Created at</th>
-                </tr>
+            <div class="stat-item">
+                <h4><i class="bi bi-x-circle"></i> Rejected</h4>
+                <div class="num">0</div>
+            </div>
+            <div class="stat-item">
+                <h4><i class="bi bi-hourglass-bottom"></i> Expired</h4>
+                <div class="num">0</div>
+            </div>
+            <div class="stat-item">
+                <h4><i class="bi bi-check-circle"></i> Active</h4>
+                <div class="num">0</div>
+            </div>
+        </div>
 
-                <tr>
-                    <td>shshsh</td>
-                    <td>shshsh</td>
-                    <td>shshsh</td>
-                    <td>shshsh</td>
-                    <td>shshsh</td>
-                    <td>shshsh</td>
-                </tr>
-
-            </table>
-
-            <div class="head">
-                    <h2>All QR</h2>
-                    <input type="text" placeholder="Search">
+        <div class="section">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <i class="bi bi-clock-history"></i>
+                    <h2>Recently Created</h2>
                 </div>
+            </div>
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Image</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color:#3a4e72;font-family:'Space Mono',monospace;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">No recent records</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-            <table>
-                
-                <tr>
-                    <th>#</th>
-                    <th>data</th>
-                    <th>Plate</th>
-                    <th>status</th>
-                    <th>Created By</th>
-                    <th>Action</th>
-                </tr>
+        <div class="section">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <i class="bi bi-table"></i>
+                    <h2>All QR Codes</h2>
+                </div>
+                <input type="text" class="search-input" placeholder="🔍 Search...">
+            </div>
+            <table class="all-table" id="qrtab">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Data</th>
+                        <th>Plate</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color:#3a4e72;font-family:'Space Mono',monospace;">—</td>
+                        <td style="color:#3a4e72;">No records yet</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
+    <script>
+        async function getQrdata(){
+            let response = await API.get("/staff/my_qr")
+            console.log(response)
+
+            let html = ""
+
+            if(!response)return;
+            response.data.forEach((d,i)=>{
+                html += `
+                <tr>
+                    <td style="color:#3a4e72;font-family:'Space Mono',monospace;">${i}</td>
+                    <td style="color:#3a4e72;">${d[1]}</td>
+                    <td style="color:#3a4e72;">${d[2]}</td>
+                    <td style="color:#3a4e72;">${d[5]}</td>
+                    <td style="color:#3a4e72;">${d[6]}</td>
+                    <td style="color:#3a4e72;">dd</td>
+                </tr>
+                `
+
+            })
+
+            document.querySelector("#qrtab > tbody").innerHTML = html
+        }
+
+        getQrdata()
+        setInterval(getQrdata, 30000)
 
 
-    
-        
-
-    
-    
+    </script>
 </body>
 </html>

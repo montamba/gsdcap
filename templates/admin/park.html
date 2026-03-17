@@ -3,267 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Parking — GSD Parking</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="/../../static/scripts/scrit.js"></script>
-
     <style>
-        .header{
-            background:linear-gradient(135deg,#4facfe,#00f2fe);
-            color:white;
-            padding:25px;
+        .page-header {
+            background:linear-gradient(135deg,#0d1f3c,#040912);
+            border-bottom:1px solid #162040; padding:28px 36px; position:relative;
         }
-        .maincon{
-            display: grid;
-            grid-template-columns: repeat(2, 50%);
-            padding: 20px;
+        .page-header::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+            background:linear-gradient(90deg,transparent,#00d4ff55,transparent);
         }
+        .page-header h1 { font-size:22px; font-weight:800; color:#e0eaff; display:flex; align-items:center; gap:10px; }
+        .page-header h1 i { color:#00d4ff; }
+        .page-header p { font-size:11px; color:#3a4e72; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
 
-        .maincon > div:first-child{
-            display: grid;
-            place-items: center;
+        .inner { padding:28px 36px; }
+
+        /* ── TWO-COL GRID ── */
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
+
+        /* ── CARD ── */
+        .card { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        .card-head {
+            padding:15px 22px; background:#040912; border-bottom:1px solid #162040;
+            display:flex; align-items:center; gap:10px;
         }
+        .card-head::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
+        .card-head h3 { font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
+        .card-head i { color:#00d4ff; }
+        .card-body { padding:24px; display:flex; flex-direction:column; gap:16px; }
 
-        .maincon div form{
-            width: 80%;
-            border: 2px solid;
-            padding: 20px;
-            display: grid;
-            grid-template-rows: 30px auto 20px;
-            grid-row-gap: 10px;
-            background: #00f2fe;
-            
+        /* ── FORM ── */
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:10px; font-weight:700; color:#3a4e72; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
+        .form-group input {
+            padding:12px 16px; background:#040912; border:1px solid #162040;
+            color:#e0eaff; font-family:'Space Mono',monospace; font-size:14px;
+            outline:none; transition:border-color .2s, box-shadow .2s;
         }
-
-        form h3{
-            border-bottom: 3px solid blue;
-            background: darkblue;
-            color: white;
-            padding: 5px;
+        .form-group input:focus { border-color:#00d4ff44; box-shadow:0 0 0 3px #00d4ff0a; }
+        .form-group input::placeholder { color:#2a3a52; }
+        .btn-update {
+            align-self:flex-start; padding:11px 24px;
+            background:linear-gradient(135deg,#0057ff,#00d4ff); border:none;
+            color:#040912; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
+            cursor:pointer; letter-spacing:.06em; text-transform:uppercase;
+            display:flex; align-items:center; gap:7px; transition:opacity .2s;
         }
+        .btn-update:hover { opacity:.88; }
 
-        form div{
-            display: flex;
-            flex-direction: column;
+        /* ── SLOTS ── */
+        .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#162040; margin:24px; }
+        .slot {
+            background:#0b1428; padding:26px 16px; text-align:center; position:relative; overflow:hidden;
         }
+        .slot::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+        .slot-available::before { background:#00ff88; }
+        .slot-occupied::before  { background:#ff4d6d; }
+        .slot-total::before     { background:#00d4ff; }
+        .slot-label { font-size:10px; font-weight:700; color:#3a4e72; letter-spacing:.15em; text-transform:uppercase; font-family:'Space Mono',monospace; margin-bottom:10px; }
+        .slot-num { font-size:44px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .slot-available .slot-num { color:#00ff88; }
+        .slot-occupied  .slot-num { color:#ff4d6d; }
+        .slot-total     .slot-num { color:#00d4ff; }
 
-        form input{
-            padding: 20px;
-            border: 1px solid;
-        }
-
-        .slots{
-            display: grid;
-            grid-template-rows: 30% 70%;
-            background: #00f2fe;
-        }
-
-        .slots h2{
-            padding: 20px 10px;
-            background: darkblue;
-            color: white;
-        }
-
-        .slots > div:last-child{
-            display: grid;
-            grid-template-columns: auto auto auto;
-            padding: 20px;
-            grid-column-gap: 20px;
-        }
-
-        .slots .con{
-            background: skyblue;
-            padding: 20px;
-            display: grid;
-            grid-template-rows: 20px auto;
-            justify-items: center;
-            position: relative;
-            align-items: center;
-
-        }
-
-        .bigtext{
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            font-size: 50px;
-            opacity: 50%;
-        }
-
-        .his{
-            padding: 20px;
-            width: 100%;
-            display: grid;
-            place-items: center;
-            
-        }
-
-        .his > h1{
-            color: #4facfe;
-        }
-
-        .his table{
-            background: #4facfe;
-            padding: 20px;
-            min-height: 300px;
-        }
-
-        .his table tr{
-            display: grid;
-            width:900px;
-            grid-template-columns: 50px repeat(3, minmax(100px, 1fr));
-        }
-
-        .his table td, table th{
-            border: 1px solid;
-            padding: 10px;
-            background: white;
-        }
-
-        .bi{
-            color: #00f2fe;
-        }
-
-
+        /* ── HISTORY TABLE ── */
+        .history-box { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:13px 22px; text-align:left; font-size:13px; }
+        th { background:#040912; color:#3a4e72; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #162040; }
+        td { color:#a0b4d0; border-bottom:1px solid #0f1d36; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#0f1e38; }
+        .hist-table tr { display:grid; grid-template-columns:60px 1fr 1fr 140px; }
+        .btn-sm { padding:5px 10px; border:1px solid #162040; background:transparent; color:#6b82a8; cursor:pointer; font-size:13px; transition:all .2s; margin-right:4px; }
+        .btn-sm:hover { border-color:#00d4ff44; color:#00d4ff; }
+        .btn-sm.danger:hover { border-color:#ff4d6d44; color:#ff4d6d; }
     </style>
 </head>
 <body>
     <aside>
         <div class="logos">
-            <div class="logo">
-                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
-            </div>
-            <h2>GSD PArking monitoring</h2>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
         <div class="butt">
-            <p class="sml">OVERVIEW</p>
+            <p class="sml">Overview</p>
             <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
-            <p class="sml">MANAGEMENT</p>
-            <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
-            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
-            <p class="sml">ANALYTICS</p>
-            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+            <p class="sml">Management</p>
+            <button class="active-nav" onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
+            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
+            <p class="sml">Analytics</p>
+            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
+
     <div class="right">
-            <div class="header">
-            <h1>Parking page</h1>
-            <p>manage your parking space</p>
-
-        </div>
-
-        <div class="maincon">
+        <div class="page-header">
             <div>
-                <form onsubmit="updateParking(event)">
-                    <h3><i class="bi bi-check-circle-fill"></i> Parking Configuration</h3>
-
-                    <div>
-                        <label>Parking space</label>
-                        <input type="number" id="park" placeholder="Enter a number of pakning space">
-                    </div>
-                    <button><i class="bi bi-arrow-repeat"></i> Update</button>
-
-                </form>
+                <h1><i class="bi bi-p-circle-fill"></i> Parking Management</h1>
+                <p>Configure and Monitor Parking Space</p>
             </div>
-            <div class="slots">
-                <div>
-                    <h2><i class="bi bi-card-checklist"></i> Slots</h2>
-
-                </div>
-                <div>
-                    <div class="con">
-                        <h4>Available</h4>
-                        <p class="available">-</p>
-                        <p class="bigtext available">-</p>
-                    </div>
-                    <div class="con">
-                        <h4>Occupied</h4>
-                        <p class="occupied">-</p>
-                        <p class="bigtext occupied" >-</p>
-
-                    </div>
-                    <div class="con">
-                        <h4>Occupied</h4>
-                        <p class="total">-</p>
-                        <p class="bigtext total" >-</p>
-
-                    </div>
-
-                </div>
-                    
-            </div>
-
         </div>
 
-        <div class="his">
-            <h1>History</h1>
+        <div class="inner">
+            <div class="grid-2">
+                <!-- Config Form -->
+                <div class="card">
+                    <div class="card-head"><i class="bi bi-gear-fill"></i><h3>Parking Configuration</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Total Parking Spaces</label>
+                            <input type="number" id="park" placeholder="Enter number of spaces">
+                        </div>
+                        <button class="btn-update" onclick="updateParking(event)">
+                            <i class="bi bi-arrow-repeat"></i> Update Slots
+                        </button>
+                    </div>
+                </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>id</th>
-                        <th>name</th>
-                        <th>qr</th>
-                        <th>action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>qrpass</td>
-                        <td>hsjms</td>
-                        <td><button><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
+                <!-- Slot Status -->
+                <div class="card">
+                    <div class="card-head"><i class="bi bi-card-checklist"></i><h3>Slot Status</h3></div>
+                    <div class="slots-grid">
+                        <div class="slot slot-available">
+                            <div class="slot-label">Available</div>
+                            <div class="slot-num available">—</div>
+                        </div>
+                        <div class="slot slot-occupied">
+                            <div class="slot-label">Occupied</div>
+                            <div class="slot-num occupied">—</div>
+                        </div>
+                        <div class="slot slot-total">
+                            <div class="slot-label">Total</div>
+                            <div class="slot-num total">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-
-
+            <!-- History -->
+            <div class="history-box">
+                <div class="card-head" style="padding:15px 22px; background:#040912; border-bottom:1px solid #162040; display:flex; align-items:center; gap:10px;">
+                    <span style="width:3px;height:14px;background:#00d4ff;display:inline-block;flex-shrink:0;"></span>
+                    <i class="bi bi-clock-history" style="color:#00d4ff;"></i>
+                    <h3 style="font-size:12px;font-weight:700;color:#6b82a8;text-transform:uppercase;letter-spacing:.12em;font-family:'Space Mono',monospace;">Parking History</h3>
+                </div>
+                <table class="hist-table">
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>QR Code</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family:'Space Mono',monospace;color:#3a4e72;">01</td>
+                            <td>qrpass</td>
+                            <td style="font-family:'Space Mono',monospace;color:#00d4ff;">hsjms</td>
+                            <td>
+                                <button class="btn-sm danger"><i class="bi bi-trash"></i></button>
+                                <button class="btn-sm"><i class="bi bi-pencil-square"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-    </div> <!--right-->
+    </div>
 
     <script>
         async function updateParking(e){
             e.preventDefault()
-            let ndata = {
-                "total":document.getElementById("park").value
-            }
-
-            console.log(ndata)
+            let ndata = { "total": document.getElementById("park").value }
             let response = await API.put("/admin/setparking", ndata)
-            let total = document.querySelectorAll(".total");
-            showMessageModal(response.message,"Update status: "+response.status)
-            total.forEach(tot => {tot.innerText = response.total})
-
+            document.querySelectorAll(".total").forEach(t => t.innerText = response.total)
+            showMessageModal(response.message, "Update: " + response.status)
         }
-
 
         async function getParkdata(){
-            let available = document.querySelectorAll(".available");
-            let occupied = document.querySelectorAll(".occupied");
-            let total = document.querySelectorAll(".total");
-
             let response = await API.get("/admin/parking")
-            
             let data = response.data
-
-            available.forEach(avail => {avail.innerText = data.available})
-            occupied.forEach(occu => {occu.innerText = data.occupied})
-            total.forEach(tot => {tot.innerText = data.total})
-
+            document.querySelectorAll(".available").forEach(el => el.innerText = data.available)
+            document.querySelectorAll(".occupied").forEach(el => el.innerText = data.occupied)
+            document.querySelectorAll(".total").forEach(el => el.innerText = data.total)
         }
+
         getParkdata()
-        
-
         setInterval(getParkdata, 10000)
-
     </script>
-
-
-   
-    
 </body>
 </html>

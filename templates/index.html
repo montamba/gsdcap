@@ -4,170 +4,340 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <title>Document</title>
-    <link rel="stylesheet" href="/../static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>GSD Parking — Login</title>
     <style>
-        body{
-            background: rgba(0, 0, 0, 0.8);
-            height:100vh;
+        * { padding: 0; margin: 0; box-sizing: border-box; }
+
+        body {
+            background: #040912;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            overflow: hidden;
+            position: relative;
         }
-        .maincontainer{
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(#00d4ff08 1px, transparent 1px),
+                linear-gradient(90deg, #00d4ff08 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* Glow blobs */
+        .blob1, .blob2 {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.12;
+        }
+        .blob1 {
+            width: 500px; height: 500px;
+            background: #00d4ff;
+            top: -150px; left: -150px;
+            animation: pulse 6s ease-in-out infinite;
+        }
+        .blob2 {
+            width: 400px; height: 400px;
+            background: #0057ff;
+            bottom: -100px; right: -100px;
+            animation: pulse 8s ease-in-out infinite reverse;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.12; }
+            50% { transform: scale(1.1); opacity: 0.18; }
+        }
+
+        .maincontainer {
+            position: relative;
+            width: 420px;
+            background: #0b1428;
+            border: 1px solid #162040;
+            box-shadow: 0 0 60px #00d4ff12, 0 30px 80px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* Top accent bar */
+        .maincontainer::before {
+            content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            width: 400px;
-            height: 500px;
-            border: 2px solid aqua;
-            background: grey;
-            display: grid;
-            grid-template-rows: 100px 1fr;
-            padding: 20px 50px;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
         }
 
-
-        .logos,.logos div:last-child,.forform .submit{
-            display: grid;
-            place-items: center;
-            
-
-        }
-
-        .logos .logo{
-            font-size: 40px;
-        }
-
-        .forform{
-            margin-top: 20px;
-            display: grid;
-        }
-
-        .forform .role{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-column-gap: 10px;
-        }
-
-        .role button{
-            height: 50px;
-
-            background: grey;
-            border: 2px solid;
-        }
-
-        .role button.active{
-            background: rgba(0, 255, 255, 0.3);
-            border: 3px solid aqua;
-        }
-
-        .forform .con{
+        .logos {
+            padding: 32px 40px 24px;
+            background: #040912;
+            border-bottom: 1px solid #162040;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
 
-        .forform .con label{
-            color: aqua;
-
+        .logo-icon {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff22, #0057ff22);
+            border: 2px solid #00d4ff44;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            color: #00d4ff;
+            box-shadow: 0 0 20px #00d4ff22;
+            margin-bottom: 4px;
         }
 
-        .forform .con input{
-            padding: 10px 20px;
-            border: 1px solid aqua;
+        .logos h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #e0eaff;
+            letter-spacing: 0.03em;
         }
 
-        .forform .submit{
-            margin-top: 10px;
+        .logos p {
+            font-size: 12px;
+            color: #3a4e72;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.08em;
         }
 
-       
-
-        .forform .submit button{
-            padding: 10px;
-            font-size: 30px;
-            width: 70%;
-            background: aqua;
-            border: black;
-            
+        .forform {
+            padding: 28px 40px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .rotate{
-            animation: rotate 2s infinite linear;
+        /* Role selector */
+        .role {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background: #040912;
+            padding: 6px;
+            border: 1px solid #162040;
         }
+
+        .role button {
+            padding: 10px 6px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #3a4e72;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            letter-spacing: 0.02em;
+        }
+
+        .role button:hover {
+            color: #a0b4d0;
+            background: #0f1e3822;
+        }
+
+        .role button.active {
+            background: #00d4ff15;
+            border: 1px solid #00d4ff44;
+            color: #00d4ff;
+        }
+
+        /* Form fields */
+        .con {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .con label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #3a4e72;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .con input {
+            padding: 12px 16px;
+            background: #040912;
+            border: 1px solid #162040;
+            color: #e0eaff;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .con input:focus {
+            border-color: #00d4ff44;
+            box-shadow: 0 0 0 3px #00d4ff0a;
+        }
+
+        .con input::placeholder { color: #2a3a52; }
+
+        /* Show password */
+        .showpass {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .showpass label {
+            font-size: 12px;
+            color: #3a4e72;
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .showpass input[type=checkbox] {
+            width: 14px; height: 14px;
+            accent-color: #00d4ff;
+            cursor: pointer;
+        }
+
+        /* Submit button */
+        .submit {
+            margin-top: 4px;
+        }
+
+        .submit button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0057ff, #00d4ff);
+            border: none;
+            color: #040912;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .submit button:hover::before { opacity: 0.08; }
+        .submit button:active { transform: scale(0.99); }
+
+        .submit button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .in {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .rotate { animation: rotate 0.8s infinite linear; }
 
         @keyframes rotate {
-            0%{
-                transform: rotate(0deg);
-            }100%{
-                transform: rotate(360deg);
-            }
-            
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
+        /* Bottom tag */
+        .tag {
+            text-align: center;
+            padding: 12px;
+            background: #040912;
+            border-top: 1px solid #162040;
+            font-size: 10px;
+            color: #1e2e48;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.1em;
+        }
     </style>
 </head>
 <body>
+    <div class="blob1"></div>
+    <div class="blob2"></div>
+
     <div class="maincontainer">
         <div class="logos">
-            <div class="logo">
-                <i class="bi bi-car-front"></i>
+            <div class="logo-icon">
+                <i class="bi bi-car-front-fill"></i>
             </div>
-            <div>
-                <h3 style="color: white;font-size:20px;">Parking System</h3>
-                <p style="color: white;">Vehicle management system</p>
-            </div>
-
+            <h3>GSD Parking System</h3>
+            <p>VEHICLE MONITORING SYSTEM</p>
         </div>
+
         <div class="forform">
             <div class="role">
                 <button class="admin active" onclick="changeRole('admin')">👑 Admin</button>
-                <button class="staff" onclick="changeRole('staff')"><i class="bi bi-people-fill"></i>&nbsp;Staff</button>
-                <button class="guard" onclick="changeRole('guard')"><i class="bi bi-shield-fill"></i>&nbsp;Guard</button>
+                <button class="staff" onclick="changeRole('staff')"><i class="bi bi-people-fill"></i> Staff</button>
+                <button class="guard" onclick="changeRole('guard')"><i class="bi bi-shield-fill"></i> Guard</button>
             </div>
 
             <div class="con">
-                <label for="email">Email</label>
-                <input id="email" type="email" placeholder="Email" required>
+                <label for="email">Email Address</label>
+                <input id="email" type="email" placeholder="Enter your email" required>
             </div>
 
             <div class="con">
                 <label for="password">Password</label>
-                <input id="password" type="password" placeholder="password" required>
+                <input id="password" type="password" placeholder="Enter your password" required>
             </div>
-            
-            <div>
-                <label for="passhow">Show Password</label>
+
+            <div class="showpass">
                 <input id="passhow" onclick="showPassword()" type="checkbox">
+                <label for="passhow">Show password</label>
             </div>
-            <div class="submit" >
+
+            <div class="submit">
                 <button onclick="login(this)">
                     <div class="in">
-                        <i class="bi bi-box-arrow-in-right"></i>&nbsp;Submit
+                        <i class="bi bi-box-arrow-in-right"></i>&nbsp;Sign In
                     </div>
-                    
                 </button>
             </div>
-
         </div>
+
+        <div class="tag">GSD PARKING MONITORING v1.0 — SECURE ACCESS</div>
     </div>
-
-    
-
 
     <script src="/../static/scripts/scrit.js"></script>
     <script>
-       
         function showPassword(){
             let checkbox = document.getElementById("passhow");
-            document.getElementById("password").type = (checkbox.checked) ? "text":"password";
+            document.getElementById("password").type = (checkbox.checked) ? "text" : "password";
         }
 
         let selectedrole = "admin"
         function changeRole(role){
             let buttons = document.querySelectorAll(".role button")
-            buttons.forEach((element)=>{element.classList.remove("active")})
-
+            buttons.forEach((element) => { element.classList.remove("active") })
             selectedrole = role
-            let tar = document.querySelector(".role button."+role)
+            let tar = document.querySelector(".role button." + role)
             tar.classList.add("active")
         }
 
@@ -175,36 +345,35 @@
             let email = document.getElementById("email").value.trim()
             let password = document.getElementById("password").value
 
-            if(!email){
-                alert("Eneter email")
-                return
-            }
+            if(!email){ alert("Enter email"); return }
+            if(password.length < 3){ alert("Password too short"); return }
 
-            if(password.length < 3){
-                alert(":password too short")
-                return
-            }
-
-            
             let data = {
-                'email' : email,
-                'password' : password,
-                'role' : selectedrole
+                'email': email,
+                'password': password,
+                'role': selectedrole
             }
 
             let inner = element.querySelector(".in")
-
             inner.innerHTML = `<i class="bi bi-arrow-clockwise"></i>`
             inner.classList.add("rotate")
-            element.disabled
+            element.disabled = true
 
-            console.log(data)
             let res = await API.login(data);
 
-            inner.innerHTML = `<i class="bi bi-box-arrow-in-right"></i>&nbsp;Submit`
+            inner.innerHTML = `<i class="bi bi-box-arrow-in-right"></i>&nbsp;Sign In`
             inner.classList.remove("rotate")
-            element.disabled
-            showMessageModal(res.message,res.status)
+            element.disabled = false
+
+            if(res.status === "Success"){
+                if(selectedrole === "admin"){
+                    window.location.href = "/admin/dashboard";
+                } else {
+                    window.location.href = "/staff/generate";
+                }
+            } else {
+                showMessageModal(res.message, res.status)
+            }
         }
     </script>
 </body>

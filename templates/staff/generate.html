@@ -5,204 +5,352 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/../../static/css/staff.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <title>Generator</title>
+    <script src="/../../static/scripts/scrit.js"></script>
+    <title>Generator — GSD Parking</title>
 
     <style>
-        .header{
-            background: linear-gradient(136deg, lightblue, blue);
-            padding: 10px;
+        .header {
+            background: linear-gradient(135deg, #0d1f3c, #040912);
+            border-bottom: 1px solid #162040;
+            padding: 24px 32px;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, #00d4ff44, transparent);
+        }
+        .header h1 { font-size: 20px; font-weight: 800; color: #e0eaff; }
+        .header p { font-size: 11px; color: #3a4e72; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; }
+        .header .bi { color: #00d4ff; margin-right: 8px; }
+
+        /* ─── GEN LAYOUT ─── */
+        .gen-wrap {
+            display: flex;
+            gap: 20px;
+            padding: 28px 32px;
+            align-items: flex-start;
         }
 
-        .container{
+        .gen-form {
+            background: #0b1428;
+            border: 1px solid #162040;
+            width: 360px;
+            flex-shrink: 0;
+        }
+
+        .card-header {
+            padding: 14px 20px;
+            background: #040912;
+            border-bottom: 1px solid #162040;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 30px;
-            padding: 20px;
-            
+            gap: 8px;
         }
-
-        .con{
-            background: lightblue;
-            display: grid;
-            grid-row-gap: 10px;
-            width: 350px;
-            padding: 20px;
+        .card-header::before {
+            content: '';
+            width: 3px; height: 14px;
+            background: #00d4ff;
         }
-
-        .con > div{
-            padding: 20px;
-            border-bottom: 2px solid black;
+        .card-header h2 {
+            font-size: 12px; font-weight: 700; color: #6b82a8;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
         }
+        .card-header .bi { color: #00d4ff; }
 
-        .con h2{
-            color: darkblue;
+        .form-body {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
-
-        .con input{
-            padding: 10px;
-            border: 2px solid blue;
-            border-radius: 10px;
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-
-        .butt{
-            display: grid;
+        .form-group label {
+            font-size: 10px; font-weight: 700; color: #3a4e72;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            font-family: 'Space Mono', monospace;
         }
-
-        .butt button{
-            padding: 10px;
+        .form-group input {
+            padding: 11px 14px;
+            background: #040912; border: 1px solid #162040;
+            color: #e0eaff; font-family: 'Syne', sans-serif;
+            font-size: 13px; outline: none; transition: border-color 0.2s;
         }
+        .form-group input:focus { border-color: #00d4ff44; box-shadow: 0 0 0 3px #00d4ff08; }
+        .form-group input::placeholder { color: #2a3a52; }
 
-        .view{
-            width: 350px;
-            border: 1px solid;
-            padding: 20px;
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .btn-gen {
+            padding: 11px;
+            background: linear-gradient(135deg, #0057ff, #00d4ff);
+            border: none; color: #040912;
+            font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+            cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.2s;
+        }
+        .btn-gen:hover { opacity: 0.9; }
+        .btn-done {
+            padding: 11px;
+            background: transparent;
+            border: 1px solid #162040; color: #6b82a8;
+            font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
+        }
+        .btn-done:hover { border-color: #00d4ff44; color: #00d4ff; }
+
+        /* QR preview */
+        .qr-preview {
+            background: #0b1428;
+            border: 1px solid #162040;
+            flex: 1;
+        }
+        .qr-inner {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .qr-box {
+            width: 210px; height: 210px;
+            border: 1px solid #162040;
+            background: #040912;
             display: grid;
             place-items: center;
-            grid-gap: 5px;
-            background: lightblue;
+            position: relative;
+        }
+        .qr-box .placeholder-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: #2a3a52;
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+        #qrcode { display: flex; align-items: center; justify-content: center; }
+        #qrcode img, #qrcode canvas { max-width: 200px; max-height: 200px; }
+
+        .qr-label {
+            font-size: 11px;
+            color: #3a4e72;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.1em;
+            text-align: center;
         }
 
-        .view h2{
-            border-bottom: 2px solid;
-            width: 80%;
-            color: darkblue;
+        /* ─── TABLE ─── */
+        .table-section {
+            padding: 0 32px 32px;
+        }
+        .section-header {
+            display: flex; align-items: center; gap: 8px;
+            border-top: 1px solid #162040;
+            padding: 20px 0 16px;
+        }
+        .section-header::before {
+            content: '';
+            width: 3px; height: 14px;
+            background: #00d4ff;
+        }
+        .section-header h3 {
+            font-size: 12px; font-weight: 700; color: #6b82a8;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        table { width: 100%; border-collapse: collapse; background: #0b1428; border: 1px solid #162040; }
+        th, td { padding: 12px 16px; text-align: left; font-size: 12px; }
+        th {
+            background: #040912; color: #3a4e72;
+            font-family: 'Space Mono', monospace; font-size: 10px;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            border-bottom: 1px solid #162040;
+        }
+        td { color: #a0b4d0; border-bottom: 1px solid #0f1d36; }
+        tbody tr:hover td { background: #0f1e38; }
+
+        .qr-row { grid-template-columns: 50px 1fr 120px 120px; }
+        table.qr-row-table tr { display: grid; grid-template-columns: 50px 1fr 120px 120px; }
+
+        /* Hide everything by default when printing */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .qr-box, .qr-box * {
+                visibility: visible;
+            }
+
             
+            .qr-box {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                border: 1px solid #162040;
+                background: #040912;
+                width: 300px;
+                height: 300px;
+                display: grid;
+                place-items: center;
+            }
+            .qr-box img{
+                width:inherit;
+                height:inherit;
+
+            }
         }
-
-        .view > div{
-            width: 200px;
-            height: 200px;
-            border: 2px solid;
-        }
-
-        .view > div img{
-            width: 100%;
-            height: 100%;
-        }
-
-        .ta{
-            background-color: beige;
-            display: grid;
-            place-items: center;
-            padding: 20px;
-        }
-
-        .ta table{
-            background: darkblue;
-            width: 900px;
-            color: aliceblue;
-            height: 300px;
-        }
-
-        .ta tr{
-            width: 100%;
-            display: grid;
-            grid-template-columns: 50px 1fr 100px 100px;
-            grid-column-gap: 1px;
-        }
-
-        .ta th{
-            padding: 10px;
-            background: blue;
-
-        }
-
-        
     </style>
 </head>
 <body>
     <aside>
         <div class="logos">
-            <div class="circle">
-                P
-            </div>
-            STAFF
+            <div class="circle">P</div>
+            <span>STAFF PORTAL</span>
         </div>
-
         <div class="buttons">
-            <a href="generate.html" class="active"><i class="bi bi-qr-code"></i>  Generator</a>
-            <a href="history.html"><i class="bi bi-stopwatch"> </i> history</a>
-            <a href="search.html"><i class="bi bi-search"> </i>Search</a>
-            <a href="profile.html"><i class="bi bi-people"> </i>Profile</a>
+            <a href="/staff/generate" class="active"><i class="bi bi-qr-code"></i> Generator</a>
+            <a href="/staff/history"><i class="bi bi-stopwatch"></i> History</a>
+            <a href="/staff/search"><i class="bi bi-search"></i> Search</a>
+            <a href="/staff/profile"><i class="bi bi-people"></i> Profile</a>
         </div>
-
         <div class="logout">
-            <button>Logout</button>
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
         </div>
     </aside>
 
     <div class="right">
-
         <div class="header">
-            <h1>Genrate QR</h1>
-            <p>generate your own qr</p>
+            <h1><i class="bi bi-qr-code"></i>QR Generator</h1>
+            <p>GENERATE AND MANAGE VEHICLE QR CODES</p>
         </div>
 
-
-        <div class="container">
-            <div class="con">
-                <div>
-                    <h2><i class="bi bi-qr-code"></i> Generate QR</h2>
+        <div class="gen-wrap">
+            <div class="gen-form">
+                <div class="card-header">
+                    <i class="bi bi-qr-code-scan"></i>
+                    <h2>Generate QR Code</h2>
                 </div>
-                <input type="text" id="text" placeholder="Enter text" >
-                <input type="text" id="plate" placeholder="Enter Plate(Optional)" >
-
-                <div>
-                    <label for="">Valid until</label>
-                    <input type="date" name="" id="">
+                <div class="form-body">
+                    <div class="form-group">
+                        <label>QR Data / Name</label>
+                        <input type="text" id="text" placeholder="Enter data or name">
+                    </div>
+                    <div class="form-group">
+                        <label>Plate Number (Optional)</label>
+                        <input type="text" id="plate" placeholder="e.g. ABC-123">
+                    </div>
+                    <div class="form-group">
+                        <label>Valid Until</label>
+                        <input type="date" id="validuntil">
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn-gen" onclick="generateQR()"><i class="bi bi-qr-code"></i> Generate</button>
+                        <button class="btn-done" onclick="saveQR()">Done</button>
+                    </div>
                 </div>
-
-                <div class="butt">
-                    <button onclick="generateQR()">Generate</button>
-                    <button onclick="">Done</button>
-
-                </div>
-                
             </div>
 
-            <div class="view">
-                <h2>QR here</h2>
-                <div id="qrcode"></div>
-
+            <div class="qr-preview">
+                <div class="card-header">
+                    <i class="bi bi-eye"></i>
+                    <h2>Preview</h2>
+                </div>
+                <div class="qr-inner">
+                    <div class="qr-box">
+                        <div id="qrcode">
+                            <span class="placeholder-text">QR CODE<br>APPEARS<br>HERE</span>
+                        </div>
+                    </div>
+                    <div class="qr-label">GENERATED QR WILL DISPLAY ABOVE</div>
+                    <button onclick="window.print()">print</button>
+                    
+                </div>
             </div>
         </div>
 
-        <div class="ta">
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Data</th>
-                    <th>Plate</th>
-                    <th>created at</th>
-                </tr>
-                
+        <div class="table-section">
+            <div class="section-header">
+                <h3>Recently Generated QR Codes</h3>
+            </div>
+            <table class="qr-row-table" id="qrtab">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Data</th>
+                        <th>Plate</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color:#3a4e72;font-family:'Space Mono',monospace;">—</td>
+                        <td style="color:#3a4e72;">No records yet</td>
+                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#3a4e72;">—</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
-
-
-
-
-
-
     </div>
-        
 
     <script>
+        async function saveQR(){
+            qrcode = {
+                "data":document.getElementById("text").value,
+                "plate":document.getElementById("plate").value,
+                "valid_until":document.getElementById("validuntil").value,
+            }
+
+            console.log(qrcode)
+
+            data = await API.post("/staff/save_qr", qrcode)
+            console.log(data)
+            showMessageModal(data.message, data.status)
+            
+        }
         function generateQR() {
             const text = document.getElementById("text").value;
             const plate = document.getElementById("plate").value;
-
             document.getElementById("qrcode").innerHTML = "";
-
             new QRCode(document.getElementById("qrcode"), {
                 text: text,
                 width: 200,
                 height: 200
             });
         }
+
+        async function getQrdata(){
+            let response = await API.get("/staff/my_qr")
+            console.log(response)
+
+            let html = ""
+
+            if(!response)return;
+            response.data.forEach((d,i)=>{
+                html += `
+                <tr>
+                    <td style="color:#3a4e72;font-family:'Space Mono',monospace;">${i+1}</td>
+                    <td style="color:#3a4e72;">${d[1]}</td>
+                    <td style="color:#3a4e72;">${d[2]}</td>
+                    <td style="color:#3a4e72;">${d[7]}</td>
+                </tr>
+                `
+            })
+
+            document.querySelector("#qrtab > tbody").innerHTML = html
+        }
+
+        
     </script>
-    
 </body>
 </html>

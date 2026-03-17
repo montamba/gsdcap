@@ -1,98 +1,187 @@
-*{
-    padding: 0%;
-    margin: 0%;
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
     box-sizing: border-box;
-    font-family: Garamond, serif;
+    font-family: 'Syne', sans-serif;
 }
 
-body{
+body {
     display: flex;
+    background: #070d1a;
+    color: #e0eaff;
     position: relative;
-
+    min-height: 100vh;
 }
 
-.right{
+.right {
     flex: 1;
+    overflow-x: hidden;
 }
 
-aside{
+/* ─── SIDEBAR ─────────────────────────────────────────── */
+
+aside {
     position: sticky;
     height: 100vh;
     top: 0;
     left: 0;
-    border-right: 4px solid blue;
+    width: 260px;
+    min-width: 260px;
+    background: #0b1428;
+    border-right: 1px solid #162040;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
 }
 
-aside .logos{
-    width: 100%;
-    background: lightblue;
-    display: grid;
-    place-items: center;
-    padding: 20px;
+aside .logos {
+    padding: 28px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #040912;
+    border-bottom: 1px solid #162040;
 }
 
-
-aside .logos .logo{
-    width: 100px;
-
+aside .logos .logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
 }
 
-aside .bi{
-    color: blue;
-}
-
-aside .logos .logo img{
+aside .logos .logo img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px #00d4ff88);
 }
 
-.butt{
-    padding-left: 30px;
-    display: grid;
+aside .logos h2 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #00d4ff;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    text-transform: uppercase;
 }
 
-.butt .sml{
-    padding: 20px;
-    font-size: 10px;
+.butt {
+    padding: 16px 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
-.butt button{
-    padding: 10px;
-    background: lightblue;
+.butt .sml {
+    padding: 14px 22px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #3a4e72;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+}
+
+.butt button {
+    padding: 11px 22px;
+    background: transparent;
     border: none;
-    text-align: start;
-    font-size: large;
+    border-left: 3px solid transparent;
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    color: #6b82a8;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.01em;
+    width: 100%;
 }
 
-#message-modal{
-    border: 5px solid blue;
-    background-color: beige;
-    padding: 20px;
+.butt button:hover {
+    background: #0f1e38;
+    color: #00d4ff;
+    border-left-color: #00d4ff44;
+}
+
+.butt button.active-nav {
+    background: linear-gradient(90deg, #00d4ff12, transparent);
+    color: #00d4ff;
+    border-left-color: #00d4ff;
+}
+
+.butt .bi {
+    font-size: 16px;
+    color: inherit;
+}
+
+/* ─── MESSAGE MODAL ───────────────────────────────────── */
+
+#message-modal {
+    border: 1px solid #00d4ff44;
+    background: #0b1428;
+    padding: 0;
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 300px;
-    transform: translate(-50%,-50%);
+    width: 340px;
+    transform: translate(-50%, -50%);
     overflow: visible;
-
+    box-shadow: 0 0 40px #00d4ff22, 0 20px 60px rgba(0,0,0,0.6);
+    border-radius: 4px;
 }
 
-#message-modal button.messagex{
-    border: 2px solid red;
-    padding: 10px;
+#message-modal::backdrop {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+}
+
+#message-modal button.messagex {
+    border: 1px solid #ff4d6d;
+    background: #0b1428;
+    padding: 8px;
     position: absolute;
-    right: 0;
-    top: 0;
-    color: red;
+    right: -14px;
+    top: -14px;
+    color: #ff4d6d;
     border-radius: 50%;
-    transform: translate(50%, -50%)
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
 }
 
-#message-modal div h1{
-    min-height: 50px;
-    border-bottom: 2px solid;
+#message-modal button.messagex:hover {
+    background: #ff4d6d;
+    color: white;
 }
 
-#message-modal p{
-    min-height: 100px;
+#message-modal div h1 {
+    min-height: 52px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #162040;
+    font-size: 16px;
+    font-weight: 700;
+    color: #00d4ff;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.05em;
+    background: #040912;
+}
+
+#message-modal p {
+    min-height: 80px;
+    padding: 20px;
+    font-size: 14px;
+    color: #a0b4d0;
+    line-height: 1.6;
 }

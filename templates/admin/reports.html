@@ -3,243 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Reports — GSD Parking</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="/../../static/scripts/scrit.js"></script>
     <style>
-        .header{
-            background:linear-gradient(135deg,#4facfe,#00f2fe);
-            color:white;
-            padding:25px;
+        .page-header {
+            background:linear-gradient(135deg,#0d1f3c,#040912);
+            border-bottom:1px solid #162040; padding:28px 36px; position:relative;
         }
-        .containers{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-            gap: 10px;
+        .page-header::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+            background:linear-gradient(90deg,transparent,#00d4ff55,transparent);
         }
+        .page-header h1 { font-size:22px; font-weight:800; color:#e0eaff; display:flex; align-items:center; gap:10px; }
+        .page-header h1 i { color:#00d4ff; }
+        .page-header p { font-size:11px; color:#3a4e72; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
 
-        .container {
-            width: 300px;
-            height: 150px;
-            border: 1px solid blue;
-            background: lightblue;
-            display: grid;
-            grid-template-rows: 50px;
-            padding: 20px;
-            position: relative;
+        .inner { padding:28px 36px; }
+
+        /* ── STAT STRIP ── */
+        .stat-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#162040; margin-bottom:28px; }
+        .stat { background:#0b1428; padding:24px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; }
+        .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+        .stat:nth-child(1)::before { background:#00d4ff; }
+        .stat:nth-child(2)::before { background:#ffaa00; }
+        .stat:nth-child(3)::before { background:#00ff88; }
+        .stat-label { font-size:10px; font-weight:700; color:#3a4e72; text-transform:uppercase; letter-spacing:.15em; font-family:'Space Mono',monospace; margin-bottom:8px; }
+        .stat-num { font-size:40px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .stat:nth-child(1) .stat-num { color:#00d4ff; }
+        .stat:nth-child(2) .stat-num { color:#ffaa00; }
+        .stat:nth-child(3) .stat-num { color:#00ff88; }
+        .stat-icon { width:50px; height:50px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+        .stat:nth-child(1) .stat-icon { background:#00d4ff0d; border:1px solid #00d4ff22; color:#00d4ff; }
+        .stat:nth-child(2) .stat-icon { background:#ffaa000d; border:1px solid #ffaa0022; color:#ffaa00; }
+        .stat:nth-child(3) .stat-icon { background:#00ff880d; border:1px solid #00ff8822; color:#00ff88; }
+
+        /* ── SECTION ── */
+        .section { background:#0b1428; border:1px solid #162040; margin-bottom:24px; overflow:hidden; }
+        .section-head {
+            padding:15px 22px; background:#040912; border-bottom:1px solid #162040;
+            display:flex; align-items:center; justify-content:space-between;
         }
+        .section-head-left { display:flex; align-items:center; gap:10px; }
+        .section-head-left::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
+        .section-head h2 { font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
+        .section-head i { color:#00d4ff; }
 
-        .circle{
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            opacity: 50%;
-        }
+        /* Legend */
+        .legend { display:flex; gap:14px; }
+        .leg { font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.08em; display:flex; align-items:center; gap:5px; }
+        .leg::before { content:'●'; font-size:9px; }
+        .leg-fail { color:#ff4d6d; } .leg-fail::before { color:#ff4d6d; }
+        .leg-exp  { color:#ffaa00; } .leg-exp::before  { color:#ffaa00; }
+        .leg-ok   { color:#00ff88; } .leg-ok::before   { color:#00ff88; }
 
-        .reports,.recents{
-            padding: 20px;
-            height: 500px;
-        }
+        /* Table */
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:13px 22px; text-align:left; font-size:12px; }
+        th { background:#040912; color:#3a4e72; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #162040; }
+        td { color:#a0b4d0; border-bottom:1px solid #0f1d36; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#0f1e38; }
+        .rep-table tr { display:grid; grid-template-columns:50px 130px 1fr 110px 100px 100px 120px; }
+        .qr-table tr  { display:grid; grid-template-columns:50px 1fr 150px 110px; }
 
-        .reportcon{
-            background: lightblue;
-        }
+        .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; }
+        .badge-ok  { background:#00ff8818; color:#00ff88; border:1px solid #00ff8833; }
+        .badge-fail{ background:#ff4d6d18; color:#ff4d6d; border:1px solid #ff4d6d33; }
+        .badge-exp { background:#ffaa0018; color:#ffaa00; border:1px solid #ffaa0033; }
 
-        .title{
-            display: flex;
-            justify-content: space-between;
-            background: darkblue;
-            color: white;
-            padding: 10px;
-        }
-
-        .title > div{
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            align-items: center;      
-        }
-
-        .title div p{
-            border: 1px solid;
-            padding: 10px;
-            background: blue;
-            
-        }
-
-        .rep{
-            width: 100%;
-            height: 300px;
-            background: blue;
-        }
-
-        .rep tr{
-            display: grid;
-            grid-template-columns: 50px 100px 1fr repeat(4,100px);
-            grid-column-gap: 1px;
-
-        }
-
-        .rep th{
-            background: lightgreen;
-            padding: 5px;
-        }
-
-        .q{
-            background: lightblue;
-        }
-
-        .q h2{
-            background: darkblue;
-            color: white;
-            padding: 10px;
-        }
-
-        
-        .q tr{
-            display: grid;
-            grid-template-columns: 50px 1fr 100px 100px;
-            grid-column-gap: 1px;
-        }
-
-        .q table{
-            width: 100%;
-            height: 300px;
-        }
-
-        .q th{
-            background: blue;
-            color: white;
-            padding: 5px;
-        }
-
-        .q td{
-            background:cadetblue;
-            padding: 10px;
-        }
-
-        
+        .empty-row td { color:#3a4e72; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.08em; }
     </style>
-    
-    
 </head>
 <body>
     <aside>
         <div class="logos">
-            <div class="logo">
-                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
-            </div>
-            <h2>GSD PArking monitoring</h2>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
         <div class="butt">
-            <p class="sml">OVERVIEW</p>
+            <p class="sml">Overview</p>
             <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
-            <p class="sml">MANAGEMENT</p>
+            <p class="sml">Management</p>
             <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
-            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
-            <p class="sml">ANALYTICS</p>
-            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
+            <p class="sml">Analytics</p>
+            <button class="active-nav" onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
 
-    
-
     <div class="right">
-        <div class="header">
-            <h1><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports and Logs</h1>
-        </div>
-        <div class="containers">
-            <div class="container">
-                <h2>Today Entries</h2>
-                <p>-</p>
-
-                <div class="circle" style="background-color: aqua;">
-                    <p>0</p>
-                </div>
+        <div class="page-header">
+            <div>
+                <h1><i class="bi bi-file-earmark-bar-graph-fill"></i> Reports & Logs</h1>
+                <p>Analytics — Scan History and QR Activity</p>
             </div>
-            <div class="container">
-                <h2>Today Entries</h2>
-                <p>-</p>
-
-                <div class="circle" style="background-color: aqua;">
-                    <p>0</p>
-                </div>
-            </div>
-            <div class="container">
-                <h2>Today Entries</h2>
-                <p>-</p>
-
-                <div class="circle" style="background-color: aqua;">
-                    <p>0</p>
-                </div>
-            </div>
-
-
         </div>
 
-        <div class="reports">
-            <div class="reportcon">
-                <div class="title">
-                    <h1><i class="bi bi-newspaper"></i> Reports Logs</h1>
+        <div class="inner">
+            <div class="stat-strip">
+                <div class="stat">
+                    <div><div class="stat-label">Today Entries</div><div class="stat-num">0</div></div>
+                    <div class="stat-icon"><i class="bi bi-arrow-bar-down"></i></div>
+                </div>
+                <div class="stat">
+                    <div><div class="stat-label">Today Exits</div><div class="stat-num">0</div></div>
+                    <div class="stat-icon"><i class="bi bi-arrow-bar-up"></i></div>
+                </div>
+                <div class="stat">
+                    <div><div class="stat-label">QR Scanned</div><div class="stat-num">0</div></div>
+                    <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
+                </div>
+            </div>
 
-                    <div>
-                        <p style="color: red;">Failed</p>
-                        <p style="color: yellow;">Expired</p>
-                        <p style="color: lime;">Success</p>
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-head-left">
+                        <i class="bi bi-newspaper"></i>
+                        <h2>Report Logs</h2>
+                    </div>
+                    <div class="legend">
+                        <span class="leg leg-fail">Failed</span>
+                        <span class="leg leg-exp">Expired</span>
+                        <span class="leg leg-ok">Success</span>
                     </div>
                 </div>
-
-                <table class="rep">
-                    <tr>
-                        <th>#</th>
-                        <th>Date</th>
-                        <th>Guard</th>
-                        <th>Plate</th>
-                        <th>QRcode</th>
-                        <th>Action</th>
-                        <th>Scan results</th>
-                    </tr>
+                <table class="rep-table">
+                    <thead>
+                        <tr><th>#</th><th>Date</th><th>Guard</th><th>Plate</th><th>QR Code</th><th>Action</th><th>Scan Result</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty-row">
+                            <td>—</td><td colspan="6" style="color:#3a4e72;">No records yet</td>
+                        </tr>
+                    </tbody>
                 </table>
+            </div>
 
-
-
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-head-left">
+                        <i class="bi bi-qr-code-scan"></i>
+                        <h2>Recently Created QR</h2>
+                    </div>
+                </div>
+                <table class="qr-table">
+                    <thead>
+                        <tr><th>#</th><th>Data</th><th>Created At</th><th>By</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty-row">
+                            <td>—</td><td>No records yet</td><td>—</td><td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
 
-        <div class="recents">
-            <div class="q">
-                <h2><i class="bi bi-qr-code-scan"></i> Recently Created QR</h2>
-                <table>
-                    <tr>
-                        <th>#</th>
-                        <th> data</th>
-                        <th>created at</th>
-                        <th>by</th>
+    <script>
+        async function getRecentQR(){
+            let data = await API.get("/admin/get_qr")
+            console.log(data)
+            let tbody = document.querySelector(".qr-table > tbody")
+            let html = ""
+            
+            if(data.status == "good"){
+                data.data.forEach((users,index)=>{
+                html += `
+                    <tr class="empty-row">
+                        <td>${index}</td><td>${users[0]}</td><td>${users[1]}</td><td>${users[2]}</td>
                     </tr>
-                    <tr>
-                        <td>s</td>
-                        <td>s</td>
-                        <td>s</td>
-                        <td>s</td>
+                ` 
+                })
+
+            }else{
+                html = `
+                    <tr class="empty-row">
+                        <td>-</td><td>no data</td><td>=</td><td>-</td>
                     </tr>
-                </table>
+                ` 
+            }
 
+            tbody.innerHTML = html
 
-            </div>
-        </div>
+        }
 
-        
-        
-    </div> <!--right-->
+       
 
-
-   
-    
+        getRecentQR()
+    </script>
 </body>
 </html>

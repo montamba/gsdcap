@@ -1,33 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700&display=swap');
 
-#message-modal{
-    border: 5px solid blue;
-    background-color: beige;
-    padding: 20px;
+#message-modal {
+    border: 1px solid #00d4ff44;
+    background: #0b1428;
+    padding: 0;
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 300px;
-    transform: translate(-50%,-50%);
+    width: 340px;
+    transform: translate(-50%, -50%);
     overflow: visible;
-
+    box-shadow: 0 0 40px #00d4ff22, 0 20px 60px rgba(0,0,0,0.6);
+    border-radius: 4px;
 }
 
-#message-modal button.messagex{
-    border: 2px solid red;
-    padding: 10px;
+#message-modal::backdrop {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+}
+
+#message-modal button.messagex {
+    border: 1px solid #ff4d6d;
+    background: #0b1428;
+    padding: 0;
     position: absolute;
-    right: 0;
-    top: 0;
-    color: red;
+    right: -14px;
+    top: -14px;
+    color: #ff4d6d;
     border-radius: 50%;
-    transform: translate(50%, -50%)
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
 }
 
-#message-modal div h1{
-    min-height: 50px;
-    border-bottom: 2px solid;
+#message-modal button.messagex:hover {
+    background: #ff4d6d;
+    color: white;
 }
 
-#message-modal p{
-    min-height: 100px;
+#message-modal div h1 {
+    min-height: 52px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #162040;
+    font-size: 15px;
+    font-weight: 700;
+    color: #00d4ff;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.05em;
+    background: #040912;
+    display: flex;
+    align-items: center;
+}
+
+#message-modal p {
+    min-height: 80px;
+    padding: 20px;
+    font-size: 14px;
+    color: #a0b4d0;
+    line-height: 1.6;
+    font-family: 'Syne', sans-serif;
 }

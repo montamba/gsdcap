@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qr Scan</title>
+    <script src="/../../static/scripts/scrit.js"></script>
+    <style>
+        #video{
+            border: 2px solid;
+            padding: 20px;
+            border-radius: 10px;
+            
+        }
+    </style>
+</head>
+<body>
+    <video id="video" width="600" height="500" autoplay></video>
+    <button onclick="takePicture()">Take Picture</button>
+    <canvas id="pic" width="600" height="500" style="display:none;"></canvas>
+    <img src="" alt="Captured Image" id="poc">
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("pic");
+        const poc = document.getElementById("poc");
+        const ctx = canvas.getContext("2d");
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+            }
+        }
+
+        function takePicture() {
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(video, 0, 0, width, height);
+
+            const data = canvas.toDataURL("image/png");
+            poc.src = data;
+
+            poc.onload = () => detectQRCode();
+        }
+
+        async function detectQRCode() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                console.log("QR Code detected:", code.data);
+                let response = await API.post("/guard/check_qr", code.data);
+                
+
+                
+            } else {
+                console.log("No QR code found");
+                alert("No QR code detected.");
+            }
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>

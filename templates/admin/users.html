@@ -3,417 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Users — GSD Parking</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="/../../static/scripts/scrit.js"></script>
     <style>
-        .header{
-            background:linear-gradient(135deg,#4facfe,#00f2fe);
-            color:white;
-            padding:25px;
+        .page-header {
+            background:linear-gradient(135deg,#0d1f3c,#040912);
+            border-bottom:1px solid #162040; padding:28px 36px; position:relative;
         }
-
-        .containers{
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            height: 200px;
+        .page-header::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+            background:linear-gradient(90deg,transparent,#00d4ff55,transparent);
         }
+        .page-header h1 { font-size:22px; font-weight:800; color:#e0eaff; display:flex; align-items:center; gap:10px; }
+        .page-header h1 i { color:#00d4ff; }
+        .page-header p { font-size:11px; color:#3a4e72; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
 
-        .containers .con{
-            position: relative;
-            width: 250px;
-            display: grid;
-            grid-template-rows: 30px auto;
-            padding: 20px;
-            align-items: center;
-            justify-items: center;
-            background: skyblue;
-            box-shadow: 0 0 10px lightgray;
+        .inner { padding:28px 36px; }
+
+        /* ── STAT STRIP ── */
+        .stat-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#162040; margin-bottom:28px; }
+        .stat { background:#0b1428; padding:22px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; }
+        .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+        .stat:nth-child(1)::before { background:#ffaa00; }
+        .stat:nth-child(2)::before { background:#00ff88; }
+        .stat:nth-child(3)::before { background:#00d4ff; }
+        .stat-label { font-size:10px; font-weight:700; color:#3a4e72; text-transform:uppercase; letter-spacing:.15em; font-family:'Space Mono',monospace; margin-bottom:8px; }
+        .stat-num { font-size:38px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .stat:nth-child(1) .stat-num { color:#ffaa00; }
+        .stat:nth-child(2) .stat-num { color:#00ff88; }
+        .stat:nth-child(3) .stat-num { color:#00d4ff; }
+        .stat-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+        .stat:nth-child(1) .stat-icon { background:#ffaa000d; border:1px solid #ffaa0022; color:#ffaa00; }
+        .stat:nth-child(2) .stat-icon { background:#00ff880d; border:1px solid #00ff8822; color:#00ff88; }
+        .stat:nth-child(3) .stat-icon { background:#00d4ff0d; border:1px solid #00d4ff22; color:#00d4ff; }
+
+        /* ── TABLE BOX ── */
+        .table-box { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        .table-top {
+            padding:14px 22px; background:#040912; border-bottom:1px solid #162040;
+            display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
         }
+        .table-top-left { display:flex; align-items:center; gap:10px; }
+        .table-top-left::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
+        .table-top h2 { font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
+        .table-top i { color:#00d4ff; }
+        .table-top-right { display:flex; align-items:center; gap:10px; }
 
-        .circle{
-            padding: 20px;
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            display: grid;
-            place-items: center;opacity: 50%;
+        .search-input {
+            padding:8px 14px; background:#070d1a; border:1px solid #162040;
+            color:#e0eaff; font-family:'Space Mono',monospace; font-size:12px;
+            outline:none; width:210px; transition:border-color .2s;
         }
+        .search-input:focus { border-color:#00d4ff44; }
+        .search-input::placeholder { color:#2a3a52; }
 
-        .bigtext{
-            font-size: 30px;
-            opacity: 60%;
-
+        .btn-add {
+            padding:9px 18px; background:linear-gradient(135deg,#0057ff,#00d4ff); border:none;
+            color:#040912; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
+            cursor:pointer; letter-spacing:.04em; text-transform:uppercase;
+            display:flex; align-items:center; gap:6px; transition:opacity .2s;
         }
-        .container{
-            display: grid;
-            padding: 0px 50px;
-            
+        .btn-add:hover { opacity:.88; }
 
-        }
-        table{
-            background: darkblue;
-            border-top: 1px solid white;
-            height: 500px;
-            margin-bottom: 20px;
-        }
+        /* Table */
+        table { width:100%; border-collapse:collapse; }
+        tr { display:grid; grid-template-columns:60px 2fr repeat(3,1fr); gap:1px; }
+        th,td { padding:13px 16px; text-align:left; font-size:13px; }
+        th { background:#040912; color:#3a4e72; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #162040; }
+        td { color:#a0b4d0; border-bottom:1px solid #0f1d36; background:#0b1428; }
+        tbody tr:hover td { background:#0f1e38; }
 
-        tr{
-            display: grid;
-            grid-template-columns: 50px 2fr repeat(3, 1fr);
-            grid-column-gap: 2px;
-        }
+        .role-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.08em; }
+        .role-guard { background:#ffaa0018; color:#ffaa00; border:1px solid #ffaa0033; }
+        .role-staff { background:#00ff8818; color:#00ff88; border:1px solid #00ff8833; }
 
-        thead tr{
-            background: white;
-        }
+        .btn-sm { padding:5px 10px; border:1px solid #162040; background:transparent; color:#6b82a8; cursor:pointer; font-size:13px; transition:all .2s; margin-right:3px; }
+        .btn-sm:hover { border-color:#00d4ff44; color:#00d4ff; }
+        .btn-sm.danger:hover { border-color:#ff4d6d44; color:#ff4d6d; }
 
-    
-        td, th{
-            background: white;
-            padding: 10px;
-            
-        }
-        th{
-            background: darkblue;
-            color: white;
-        }
-
-        .head{
-            display: grid;
-            background: darkblue;
-            padding: 20px;
-        }
-
-        .head h2{
-            margin-bottom: 10px;
-            color: white;
-            padding: 10px;
-            border-bottom: 1px solid;
-        }
-
-        .head input{
-            padding: 10px;
-            background: rgb(0, 0, 56);
-            font-size: larger;
-            color: white;
-        }
-
-        .nouser{
-            position: absolute;
-            text-align:center;
-            height: 100px;
-            width:inherit;
-
-            display:grid;
-            place-items:center;
-        }
-
-        .nouser > div{
-            width:100px;
-            height:100px;
-            border-radius: 50%;
-            border:2px solid;
-
-        }
-
-        .btnadduser{
-            background: lightblue;
-            border: 1px solid;
-            padding: 10px;
-            margin: 5px;
-            font-size: larger;
-            color: darkblue;
-        }
-
-        #useradd{
+        /* ── DIALOG ── */
+        #useradd { 
+            background:#0b1428; 
+            border:1px solid #162040; 
+            padding:0; width:480px; 
+            box-shadow:0 0 60px rgba(0,0,0,.7); 
             position: fixed;
-            top: 50%;left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%,-50%);
         }
-
-        #useradd > form{
-            padding: 20px;
-            width: 500px;
-
+        #useradd::backdrop { background:rgba(0,0,0,.75); backdrop-filter:blur(4px); }
+        .dialog-head {
+            padding:18px 24px; background:#040912; border-bottom:1px solid #162040;
+            display:flex; align-items:center; gap:10px;
         }
-
-         .usecon{
-            display: grid;
-         }
-
-        .usecon > select{
-            margin: 10px;
-            padding: 10px;
-            font-size: 10px;
+        .dialog-head::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
+        .dialog-head h2 { font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
+        .dialog-head i { color:#00d4ff; }
+        .dialog-body { padding:24px; display:flex; flex-direction:column; gap:14px; }
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:10px; font-weight:700; color:#3a4e72; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
+        .form-group input, .form-group select {
+            padding:11px 14px; background:#040912; border:1px solid #162040;
+            color:#e0eaff; font-family:'Syne',sans-serif; font-size:14px; outline:none; transition:border-color .2s;
         }
-        .usecon > label{
-            padding: 10px;
-            font-size: 20px;
-            color: darkblue;
+        .form-group input:focus, .form-group select:focus { border-color:#00d4ff44; }
+        .form-group input::placeholder { color:#2a3a52; }
+        .form-group select option { background:#0b1428; }
+        .shwpass { display:flex; align-items:center; gap:8px; }
+        .shwpass label { font-size:11px; color:#3a4e72; cursor:pointer; font-family:'Space Mono',monospace; }
+        .shwpass input[type=checkbox] { width:14px; height:14px; accent-color:#00d4ff; cursor:pointer; }
+        .dialog-foot {
+            padding:16px 24px; background:#040912; border-top:1px solid #162040;
+            display:flex; justify-content:flex-end; gap:8px;
         }
-
-        .usecon input{
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .shwpass{
-            display: flex;
-            gap:10px;
-        }
-
-        .userbtn{
-            padding:10px;
-            display: flex;
-            justify-content: space-evenly;
-
-        }
-
-        .userbtn > button{
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid;
-            width: 100px;
-            transition:300ms;
-        }
-
-        .userbtn > button:hover{
-            scale:1.1;
-        }
-
-        .userbtn > button.cancel{
-            color: red;
-        }
-        
-        .userbtn > button.clear{
-            color: lightblue;
-        }
-        .userbtn > button.add{
-            color: darkblue;
-        }
+        .btn-dlg { padding:9px 18px; border:1px solid #162040; background:transparent; color:#6b82a8; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:.04em; transition:all .2s; }
+        .btn-dlg.primary { background:linear-gradient(135deg,#0057ff,#00d4ff); border:none; color:#040912; font-weight:800; }
+        .btn-dlg.primary:hover { opacity:.88; }
+        .btn-dlg.cancel { color:#ff4d6d; border-color:#ff4d6d33; }
+        .btn-dlg.cancel:hover { background:#ff4d6d18; border-color:#ff4d6d; }
+        .btn-dlg:not(.primary):not(.cancel):hover { border-color:#00d4ff44; color:#00d4ff; }
     </style>
-    
 </head>
 <body>
     <aside>
         <div class="logos">
-            <div class="logo">
-                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
-            </div>
-            <h2>GSD PArking monitoring</h2>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
         <div class="butt">
-            <p class="sml">OVERVIEW</p>
+            <p class="sml">Overview</p>
             <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
-            <p class="sml">MANAGEMENT</p>
+            <p class="sml">Management</p>
             <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
-            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
-            <p class="sml">ANALYTICS</p>
-            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+            <button class="active-nav" onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
+            <p class="sml">Analytics</p>
+            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
 
     <div class="right">
-        <div class="header">
-            <h1>Manage users</h1>
-            <p>Staff and guards</p>
-        </div>
-        <div class="containers">
-            <div class="con" >
-                <h3>🔒 Guards</h3>
-                <p>-</p>
-                <div class="circle" style="background-color: yellow;">
-                    <p class="bigtext">
-                    -
-                    </p>
-
-                </div>
-                
-            </div>
-
-            <div class="con">
-                <h3>👥 Staff</h3>
-                <p>-</p>
-                <div class="circle" style="background-color: green;">
-                    <p class="bigtext">
-                    -
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="con">
-                <h3>Total</h3>
-                <p>-</p>
-                <div class="circle" style="background-color: blue;">
-                    <p class="bigtext">
-                    -
-                    </p>
-                </div>
+        <div class="page-header">
+            <div>
+                <h1><i class="bi bi-people-fill"></i> Manage Users</h1>
+                <p>Staff and Guards — User Management</p>
             </div>
         </div>
 
-        <div class="container">
-            <div class="head">
-                <h2><i class="bi bi-people-fill"></i> USERS</h2>
-
-                <input type="search" placeholder='🔍 Search...'>
-                <button class="btnadduser" onclick="showmodal()">Add user</button>
+        <div class="inner">
+            <div class="stat-strip">
+                <div class="stat">
+                    <div><div class="stat-label">Guards</div><div class="stat-num" id="cnt-guard">—</div></div>
+                    <div class="stat-icon"><i class="bi bi-shield-fill"></i></div>
+                </div>
+                <div class="stat">
+                    <div><div class="stat-label">Staff</div><div class="stat-num" id="cnt-staff">—</div></div>
+                    <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                </div>
+                <div class="stat">
+                    <div><div class="stat-label">Total Users</div><div class="stat-num" id="cnt-total">—</div></div>
+                    <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
+                </div>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>id</th>
-                        <th>name</th>
-                        <th>role</th>
-                        <th>created at</th>
-                        <th>action</th>
-                    </tr>
-                </thead>
-                <tbody id="users">
-                    
-                    
-                </tbody> 
-            </table>
-        </div>
 
+            <div class="table-box">
+                <div class="table-top">
+                    <div class="table-top-left">
+                        <i class="bi bi-people-fill"></i>
+                        <h2>All Users</h2>
+                    </div>
+                    <div class="table-top-right">
+                        <input type="search" class="search-input" placeholder="🔍 Search users..." oninput="filterUsers(this.value)">
+                        <button class="btn-add" onclick="showmodal()"><i class="bi bi-plus-lg"></i> Add User</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Username</th><th>Role</th><th>Created At</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="users"></tbody>
+                </table>
+            </div>
+        </div>
 
         <dialog id="useradd">
             <form onsubmit="adduser(event)">
-                <div class="head">
-                    <h2><i class="bi bi-people"></i> ADD USER</h2>
+                <div class="dialog-head">
+                    <i class="bi bi-person-plus"></i>
+                    <h2>Add New User</h2>
                 </div>
-                <div class="usecon">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="username" required>
+                <div class="dialog-body">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="username" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input id="email" type="email" placeholder="Enter email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="role">
+                            <option value="guard">Guard</option>
+                            <option value="user">Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" placeholder="Min. 8 characters" required>
+                    </div>
+                    <div class="shwpass">
+                        <input id="chckpass" onclick="showpassword()" type="checkbox">
+                        <label for="chckpass">Show password</label>
+                    </div>
                 </div>
-                <div class="usecon">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" placeholder="Email" required>
+                <div class="dialog-foot">
+                    <button type="reset"   class="btn-dlg">Clear</button>
+                    <button type="button"  class="btn-dlg cancel" commandfor="useradd" command="close">Cancel</button>
+                    <button type="submit"  class="btn-dlg primary"><i class="bi bi-person-plus"></i> Add User</button>
                 </div>
-                <div class="usecon">
-                    <label for="role">Role</label>
-                    <select id="role">
-                        <option value="guard">Guard</option>
-                        <option value="user">Staff</option>
-                    </select>
-                </div>
-                <div class="usecon">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="password" required>
-                </div>
-                <div class="shwpass">
-                    <label for="chckpass">Show password: </label>
-                    <input id="chckpass" onclick=" showpassword()" type="checkbox" id="">
-                </div>
-
-                <div class="userbtn">
-                    <button type="submit" class="add">Add</button>
-                    <button type="reset" class="clear">Clear</button>
-                    <button type="button" class="cancel" commandfor="useradd" command="close">Cancel</button>
-                    
-                </div>
-
-
-
             </form>
-
         </dialog>
-        
+    </div>
 
-        <script>
+    <script>
+        let allUsers = []
 
-            async function adduser(e){
-                e.preventDefault()
-                let user ={
-                    username:document.getElementById("username").value,
-                    email: document.getElementById("email").value,
-                    role: document.getElementById("role").value,
-                    password: document.getElementById("password").value
-                }
-
-                if(user.password.length < 8){
-                    alert("Password must have 8 characters")
-                    return
-                }
-
-                let res = await API.post("/admin/add_user", user)
-
+        async function adduser(e){
+            e.preventDefault()
+            let user = {
+                username: document.getElementById("username").value,
+                email:    document.getElementById("email").value,
+                role:     document.getElementById("role").value,
+                password: document.getElementById("password").value
+            }
+            if(user.password.length < 8){ alert("Password must have at least 8 characters"); return }
+            let res = await API.post("/admin/add_user", user)
+            showMessageModal(res.message, res.status)
+            if(res.status === "good"){
+                document.getElementById("useradd").close()
                 getUsers()
             }
+        }
 
-            function showmodal(){
-                document.getElementById("useradd").show()
+        function showmodal(){ document.getElementById("useradd").show() }
+
+        function showpassword(){
+            document.getElementById("password").type = document.getElementById("chckpass").checked ? "text" : "password"
+        }
+
+        function renderUsers(users){
+            if(!users.length){
+                document.getElementById("users").innerHTML = `
+                    <tr><td colspan="5" style="padding:36px;text-align:center;color:#3a4e72;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;background:#0b1428;">NO USERS FOUND</td></tr>`
+                return
             }
+            document.getElementById("users").innerHTML = users.map(u => {
+                let roleLabel = u[2] === 'user' ? 'staff' : u[2]
+                let badge = roleLabel === 'guard'
+                    ? `<span class="role-badge role-guard">🔒 Guard</span>`
+                    : `<span class="role-badge role-staff">👥 Staff</span>`
+                return `
+                <tr>
+                    <td style="font-family:'Space Mono',monospace;color:#3a4e72;">${u[0]}</td>
+                    <td style="color:#e0eaff;font-weight:600;">${u[1]}</td>
+                    <td>${badge}</td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;">${u[3]}</td>
+                    <td>
+                        <button class="btn-sm danger" onclick="deleteUsers(${u[0]})"><i class="bi bi-trash"></i></button>
+                        <button class="btn-sm"><i class="bi bi-pencil-square"></i></button>
+                    </td>
+                </tr>`
+            }).join("")
+        }
 
-            function showpassword(){
-                let ischecked = document.getElementById("chckpass").checked
-                document.getElementById("password").type = (ischecked) ? "text": "password";
+        function filterUsers(q){
+            let filtered = allUsers.filter(u =>
+                u[1].toLowerCase().includes(q.toLowerCase()) ||
+                u[2].toLowerCase().includes(q.toLowerCase())
+            )
+            renderUsers(filtered)
+        }
+
+        async function getUsers(){
+            let data = await API.get("/admin/getusers")
+            if(data.status === "bad"){
+                allUsers = []
+                renderUsers([])
+                document.getElementById("cnt-guard").innerText = "0"
+                document.getElementById("cnt-staff").innerText = "0"
+                document.getElementById("cnt-total").innerText = "0"
+                return
             }
+            allUsers = data.data
+            renderUsers(allUsers)
+            let guards = allUsers.filter(u => u[2] === "guard").length
+            let staff  = allUsers.filter(u => u[2] === "user" || u[2] === "staff").length
+            document.getElementById("cnt-guard").innerText = guards
+            document.getElementById("cnt-staff").innerText = staff
+            document.getElementById("cnt-total").innerText = allUsers.length
+        }
 
-            async function getUsers(){
-                let data = await API.get("/admin/getusers")
-                console.log(data)
-
-                let inhtml = ""
-
-                if(data.status == "bad"){
-                    document.getElementById("users").innerHTML = `
-                    <tr style=" width:100%;">
-                        <div class="nouser">
-                            <div>?</div>
-                            <h2>No user</h2>
-                        </div>
-                    </tr>
-                    `
-                    return
-                }
-
-                data.data.forEach(users=>{
-                    inhtml += `
-                    <tr>
-                        <td>${users[0]}</td>
-                        <td>${users[1]}</td>
-                        <td>${(users[2]=='user')?'staff':users[2]}</td>
-                        <td>${users[3]}</td>
-                        <td><button onclick="deleteUsers(${users[0]})"><i class="bi bi-trash"></i></button><button><i class="bi bi-pencil-square"></i></button></td>
-                    </tr>
-                    `
-                })
-
-                if( inhtml){
-                    document.getElementById("users").innerHTML = inhtml
-                }
-
-                
+        async function deleteUsers(id){
+            if(confirm("Are you sure you want to delete this user?")){
+                let result = await API.delete(`/admin/delete_user/${id}`)
+                showMessageModal(result.message, result.status)
+                getUsers()
             }
+        }
 
-            async function deleteUsers(id){
-                if(confirm("Are you sure to delete user?")){
-                    let result = API.delete(`/admin/delete_user/${id}`)
-                    console.log(result)
-                }
-
-            }
-
-            getUsers()
-            setInterval(getUsers, 30000)
-        </script>
-
-        
-
-    </div> <!--right-->
-
-
-   
-    
+        getUsers()
+        setInterval(getUsers, 30000)
+    </script>
 </body>
 </html>

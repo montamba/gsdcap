@@ -3,222 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Admin Dashboard</title>
+    <title>Dashboard — GSD Parking</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        .header{
-            background:linear-gradient(135deg,#4facfe,#00f2fe);
-            color:white;
-            text-align:center;
-            padding:25px;
+        /* ── PAGE HEADER ── */
+        .page-header {
+            background: linear-gradient(135deg, #0d1f3c 0%, #040912 100%);
+            border-bottom: 1px solid #162040;
+            padding: 28px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
         }
-
-
-        .dashboard{
-            max-width:1200px;
-            margin:auto;
-            padding:30px;
+        .page-header::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+            background: linear-gradient(90deg, transparent, #00d4ff55, transparent);
         }
-
-
-        .cards{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-            gap:20px;
+        .page-header h1 { font-size:22px; font-weight:800; color:#e0eaff; display:flex; align-items:center; gap:10px; }
+        .page-header h1 i { color:#00d4ff; }
+        .page-header p { font-size:11px; color:#3a4e72; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
+        .live-badge {
+            font-size:11px; font-family:'Space Mono',monospace; color:#00ff88;
+            background:#00ff8812; border:1px solid #00ff8833; padding:6px 14px; letter-spacing:.1em;
+            display:flex; align-items:center; gap:6px;
         }
+        .live-badge::before { content:''; width:7px; height:7px; background:#00ff88; border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        .card{
-            background:white;
-            padding:20px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            transition:0.2s;
-            border: 1px solid;
+        /* ── INNER LAYOUT ── */
+        .inner { padding:28px 36px; max-width:1300px; }
+
+        /* ── CARDS ── */
+        .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:28px; }
+        .card {
+            background:#0b1428; border:1px solid #162040; padding:22px 22px 18px;
+            display:flex; justify-content:space-between; align-items:flex-start;
+            transition:all .2s; position:relative; overflow:hidden; cursor:default;
         }
+        .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; opacity:0; transition:.2s; }
+        .card:hover { border-color:#00d4ff33; transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,.35); }
+        .card:hover::before { opacity:1; }
+        .card-1::before { background:linear-gradient(90deg,#00d4ff,#0057ff); }
+        .card-2::before { background:linear-gradient(90deg,#00ff88,#00d4ff); }
+        .card-3::before { background:linear-gradient(90deg,#ff4d6d,#ff8c42); }
+        .card-4::before { background:linear-gradient(90deg,#a855f7,#00d4ff); }
+        .card-label { font-size:10px; font-weight:700; color:#3a4e72; text-transform:uppercase; letter-spacing:.15em; font-family:'Space Mono',monospace; margin-bottom:10px; }
+        .card-num { font-size:38px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .card-1 .card-num { color:#00d4ff; }
+        .card-2 .card-num { color:#00ff88; }
+        .card-3 .card-num { color:#ff4d6d; }
+        .card-4 .card-num { color:#a855f7; }
+        .card-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+        .card-1 .card-icon { background:#00d4ff0d; border:1px solid #00d4ff22; color:#00d4ff; }
+        .card-2 .card-icon { background:#00ff880d; border:1px solid #00ff8822; color:#00ff88; }
+        .card-3 .card-icon { background:#ff4d6d0d; border:1px solid #ff4d6d22; color:#ff4d6d; }
+        .card-4 .card-icon { background:#a855f70d; border:1px solid #a855f722; color:#a855f7; }
 
-        .card:hover{
-            transform:translateY(-5px);
+        /* ── ACTIONS ── */
+        .actions { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+        .btn { padding:10px 20px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em; transition:all .2s; display:flex; align-items:center; gap:7px; }
+        .btn-primary { background:linear-gradient(135deg,#0057ff,#00d4ff); border:none; color:#040912; font-weight:800; }
+        .btn-primary:hover { opacity:.88; transform:translateY(-1px); }
+        .btn-ghost { background:transparent; border:1px solid #162040; color:#6b82a8; }
+        .btn-ghost:hover { border-color:#00d4ff44; color:#00d4ff; background:#00d4ff08; }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase;
+            letter-spacing:.12em; font-family:'Space Mono',monospace;
+            padding:18px 22px; border-bottom:1px solid #162040;
+            display:flex; align-items:center; gap:10px;
+            background:#040912;
         }
+        .section-title::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
+        .section-title i { color:#00d4ff; }
 
-        .card h3{
-            margin:0;
-            font-size:16px;
-        }
+        /* ── CHART BOX ── */
+        .chart-box { background:#0b1428; border:1px solid #162040; margin-bottom:24px; }
+        .chart-inner { padding:24px; }
 
-        .number{
-            font-size:28px;
-            font-weight:bold;
-            color:#0077ff;
-        }
-
-        .icon{
-            width:60px;
-            height:60px;
-            border-radius:50%;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:24px;
-            background:#e8f2ff;
-            color:#0077ff;
-        }
-
-
-        .actions{
-            margin:30px 0;
-        }
-
-        .actions button{
-            padding:10px 18px;
-            margin-right:10px;
-            border:none;
-            border-radius:8px;
-            background:#0077ff;
-            color:white;
-            cursor:pointer;
-        }
-
-        .actions button:hover{
-            background:#005fcc;
-        }
-
-
-        .chart-box{
-            background:white;
-            padding:20px;
-            border-radius:12px;
-            box-shadow:0 5px 15px rgba(0,0,0,0.08);
-            margin-bottom:30px;
-        }
-
-
-        .table-box{
-            background:white;
-            padding:20px;
-            border-radius:12px;
-            box-shadow:0 5px 15px rgba(0,0,0,0.08);
-        }
-
-        table{
-            width:100%;
-            border-collapse:collapse;
-        }
-
-        th,td{
-            padding:12px;
-            text-align:left;
-        }
-
-        th{
-            background:#f0f4ff;
-        }
-
-        tr:nth-child(even){
-            background:#fafafa;
-        }
-
-        .active{
-            color:green;
-            font-weight:bold;
-        }
-
-        .exit{
-            color:red;
-            font-weight:bold;
-        }
-
+        /* ── TABLE BOX ── */
+        .table-box { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:13px 22px; text-align:left; font-size:13px; }
+        th { background:#040912; color:#3a4e72; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #162040; }
+        td { color:#a0b4d0; border-bottom:1px solid #0f1d36; }
+        tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#0f1e38; color:#e0eaff; }
+        .plate { font-family:'Space Mono',monospace; color:#e0eaff; font-size:13px; }
+        .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; }
+        .badge-green { background:#00ff8818; color:#00ff88; border:1px solid #00ff8833; }
+        .badge-red   { background:#ff4d6d18; color:#ff4d6d; border:1px solid #ff4d6d33; }
     </style>
 </head>
-
 <body>
     <aside>
         <div class="logos">
-            <div class="logo">
-                <img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo">
-            </div>
-            <h2>GSD PArking monitoring</h2>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
         <div class="butt">
-            <p class="sml">OVERVIEW</p>
-            <button onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
-            <p class="sml">MANAGEMENT</p>
+            <p class="sml">Overview</p>
+            <button class="active-nav" onclick="window.location.href='/admin/dashboard'"><i class="bi bi-clipboard-data"></i> Dashboard</button>
+            <p class="sml">Management</p>
             <button onclick="window.location.href='/admin/park'"><i class="bi bi-p-circle"></i> Parking</button>
-            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage users</button>
-            <p class="sml">ANALYTICS</p>
-            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Report and logs</button>
+            <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
+            <p class="sml">Analytics</p>
+            <button onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
 
     <div class="right">
-            <div class="header">
-            <h2>Admin Dashboard</h2>
-            <p>Parking System Overview</p>
+        <div class="page-header">
+            <div>
+                <h1><i class="bi bi-clipboard-data"></i> Dashboard</h1>
+                <p>Parking System — Command Center</p>
+            </div>
+            <div class="live-badge">Live</div>
         </div>
 
-        <div class="dashboard">
-
-
+        <div class="inner">
             <div class="cards">
-
-                <div class="card">
-                    <div>
-                        <h3>Parking Slots</h3>
-                        <div class="number">50</div>
-                    </div>
-                    <div class="icon">P</div>
+                <div class="card card-1">
+                    <div><div class="card-label">Parking Slots</div><div class="card-num">50</div></div>
+                    <div class="card-icon"><i class="bi bi-p-circle-fill"></i></div>
                 </div>
-
-                <div class="card">
-                    <div>
-                        <h3>Entered Today</h3>
-                        <div class="number">32</div>
-                    </div>
-                    <div class="icon">E</div>
+                <div class="card card-2">
+                    <div><div class="card-label">Entered Today</div><div class="card-num">32</div></div>
+                    <div class="card-icon"><i class="bi bi-arrow-bar-right"></i></div>
                 </div>
-
-                <div class="card">
-                    <div>
-                        <h3>Occupied</h3>
-                        <div class="number">18</div>
-                        </div>
-                    <div class="icon">O</div>
+                <div class="card card-3">
+                    <div><div class="card-label">Occupied</div><div class="card-num">18</div></div>
+                    <div class="card-icon"><i class="bi bi-car-front-fill"></i></div>
                 </div>
-
-                <div class="card">
-                    <div>
-                        <h3>Active QR</h3>
-                        <div class="number">12</div>
-                    </div>
-                    <div class="icon">Q</div>
+                <div class="card card-4">
+                    <div><div class="card-label">Active QR</div><div class="card-num">12</div></div>
+                    <div class="card-icon"><i class="bi bi-qr-code"></i></div>
                 </div>
-
             </div>
-
 
             <div class="actions">
-                <button>Add Parking Slot</button>
-                <button>Generate QR</button>
-                <button>View Reports</button>
+                <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Parking Slot</button>
+                <button class="btn btn-ghost"><i class="bi bi-qr-code-scan"></i> Generate QR</button>
+                <button class="btn btn-ghost" onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> View Reports</button>
             </div>
-
 
             <div class="chart-box">
-                <h3>Weekly Parking Activity</h3>
-                <canvas id="parkingChart"></canvas>
+                <div class="section-title"><i class="bi bi-bar-chart-line"></i> Weekly Parking Activity</div>
+                <div class="chart-inner">
+                    <canvas id="parkingChart" height="80"></canvas>
+                </div>
             </div>
 
-
             <div class="table-box">
-
-                <h3>Recent Parking Activity</h3>
-
+                <div class="section-title"><i class="bi bi-clock-history"></i> Recent Parking Activity</div>
                 <table>
-
                     <thead>
                         <tr>
                             <th>Plate Number</th>
@@ -226,57 +174,41 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-
                     <tbody>
-                        <tr>
-                            <td>ABC-123</td>
-                            <td>10:45 AM</td>
-                            <td class="active">Inside</td>
-                        </tr>
-
-                        <tr>
-                            <td>XYZ-421</td>
-                            <td>11:02 AM</td>
-                            <td class="exit">Exited</td>
-                        </tr>
-
-                        <tr>
-                            <td>JKL-555</td>
-                            <td>11:10 AM</td>
-                            <td class="active">Inside</td>
-                        </tr>
-
+                        <tr><td class="plate">ABC-123</td><td>10:45 AM</td><td><span class="badge badge-green">● Inside</span></td></tr>
+                        <tr><td class="plate">XYZ-421</td><td>11:02 AM</td><td><span class="badge badge-red">● Exited</span></td></tr>
+                        <tr><td class="plate">JKL-555</td><td>11:10 AM</td><td><span class="badge badge-green">● Inside</span></td></tr>
                     </tbody>
-
                 </table>
-
             </div>
-
         </div>
-
     </div>
 
-    
-
     <script>
-
-    const ctx = document.getElementById('parkingChart');
-    new Chart(ctx,{
-            type:'line',data:{
-            labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            datasets:[{
-            label:'Cars Entered',
-            data:[12,19,7,15,22,30,18],
-            borderColor:'#0077ff',
-            tension:0.4
-        }]
-    },
-        options:{
-            responsive:true
-        }
-    });
-
+        new Chart(document.getElementById('parkingChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{
+                    label: 'Cars Entered',
+                    data: [12,19,7,15,22,30,18],
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0,212,255,0.06)',
+                    tension: 0.4, fill: true,
+                    pointBackgroundColor: '#00d4ff',
+                    pointBorderColor: '#040912',
+                    pointBorderWidth: 2, pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color:'#6b82a8', font:{ family:'Space Mono', size:11 } } } },
+                scales: {
+                    x: { ticks:{ color:'#3a4e72', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#162040' } },
+                    y: { ticks:{ color:'#3a4e72', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#162040' } }
+                }
+            }
+        });
     </script>
-
 </body>
 </html>
