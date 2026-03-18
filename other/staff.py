@@ -9,7 +9,7 @@ class Staff:
         self.routes()
 
     def _protect(self):
-        if "user_id" not in session:
+        if "user_id" not in session or session["role"] != "staff":
             if request.is_json:
                 return jsonify({"status": "unauthenticated", "message": "Please log in"}), 401
             return redirect("/")

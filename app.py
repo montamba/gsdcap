@@ -59,6 +59,9 @@ class Main:
             password = data.get("password")
             role = data.get("role")
             
+            print(0000000000000)
+            print(role)
+            
 
             if not email or not password or not role:
                 return jsonify({"status": "failed", "message": "Missing required fields"})
@@ -73,17 +76,19 @@ class Main:
                 )
             elif role in ("users", "guard", "staff"):
                 cur.execute(
-                    "SELECT id, email, password, role FROM users WHERE email=%s",
-                    (email,)
+                    "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
+                    (email,role)
                 )
 
+            
             user = cur.fetchone()
-            if role == "admin":
-                user = user + ('admin',)
-            cur.close()
 
             if not user:
                 return jsonify({"status": "failed", "message": "Invalid credentials"})
+            
+            if role == "admin":
+                user = user + ('admin',)
+            cur.close()
 
             user_id, user_email, hashed_pw, user_role = user
 
@@ -100,7 +105,6 @@ class Main:
             if not password_matches:
                 return jsonify({"status": "failed", "message": "Invalid credentials"})
 
-            # ── Set session ────────────────────────────────
             session.clear()
             session["user_id"] = user_id
             session["email"] = user_email
@@ -109,7 +113,6 @@ class Main:
 
             return jsonify({"status": "Success", "message": "Login successful", "role": user_role})
 
-        # ─── LOGOUT ────────────────────────────────────────
         @self.app.route("/auth/logout")
         def logout():
             session.clear()
@@ -119,7 +122,6 @@ class Main:
         def test():
             return jsonify({"success": True})
 
-        # ─── SESSION INFO ───────────────────
         @self.app.route("/auth/me")
         def me():
             if "user_id" not in session:

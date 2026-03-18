@@ -3,30 +3,453 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qr Scan</title>
+    <title>QR Scanner — GSD Parking</title>
     <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        #video{
-            border: 2px solid;
-            padding: 20px;
-            border-radius: 10px;
-            
+        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
+
+        body {
+            background: #eef4ff;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
         }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            position: sticky;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 240px;
+            min-width: 240px;
+            background: #1e3a8a;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+        }
+
+        .logos {
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: #172e72;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .circle {
+            width: 60px;
+            height: 60px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.2);
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .logos span {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(148,163,184,0.7);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            padding: 14px 0;
+            flex: 1;
+        }
+
+        .buttons a {
+            text-decoration: none;
+            color: rgba(186,210,255,0.75);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 11px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .buttons a:hover {
+            background: rgba(255,255,255,0.07);
+            color: #ffffff;
+            border-left-color: rgba(255,255,255,0.3);
+        }
+
+        .buttons a.active {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            border-left-color: #60a5fa;
+        }
+
+        .logout {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .logout button {
+            width: 100%;
+            padding: 10px;
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        .logout button:hover {
+            background: rgba(239,68,68,0.22);
+            color: #ffffff;
+        }
+
+        /* ─── MAIN ─── */
+        .right {
+            flex: 1;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #c7d9f5;
+            padding: 22px 32px;
+            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 i { color: #2563eb; }
+
+        .header p {
+            font-size: 11px;
+            color: #94a3b8;
+            font-family: 'Space Mono', monospace;
+            margin-top: 3px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .scanner-wrap {
+            padding: 32px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* ─── VIDEO CARD ─── */
+        .video-card {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            flex-shrink: 0;
+        }
+
+        .card-head {
+            padding: 14px 20px;
+            background: #f5f9ff;
+            border-bottom: 1px solid #ddeaff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-head::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .card-head h2 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .card-head i { color: #2563eb; }
+
+        .video-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .video-frame {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #ddeaff;
+            background: #0f172a;
+        }
+
+        /* scanner corner decorations */
+        .video-frame::before,
+        .video-frame::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .video-frame::before {
+            top: 10px; left: 10px;
+            border-top: 3px solid #2563eb;
+            border-left: 3px solid #2563eb;
+            border-radius: 2px 0 0 0;
+        }
+        .video-frame::after {
+            bottom: 10px; right: 10px;
+            border-bottom: 3px solid #2563eb;
+            border-right: 3px solid #2563eb;
+            border-radius: 0 0 2px 0;
+        }
+
+        #video {
+            display: block;
+            width: 480px;
+            height: 360px;
+            object-fit: cover;
+        }
+
+        /* scan line animation */
+        .scan-line {
+            position: absolute;
+            left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #2563eb, transparent);
+            animation: scanMove 2s ease-in-out infinite;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        @keyframes scanMove {
+            0%   { top: 10%; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 90%; opacity: 0; }
+        }
+
+        .btn-capture {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            border: none;
+            color: #ffffff;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            border-radius: 8px;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 3px 12px rgba(37,99,235,0.28);
+        }
+
+        .btn-capture:hover {
+            opacity: 0.92;
+            box-shadow: 0 5px 18px rgba(37,99,235,0.38);
+            transform: translateY(-1px);
+        }
+
+        /* ─── RESULT CARD ─── */
+        .result-card {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .result-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* captured preview */
+        .preview-box {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #f5f9ff;
+            border: 1.5px solid #ddeaff;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-placeholder {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: #94a3b8;
+            letter-spacing: 0.1em;
+            text-align: center;
+            line-height: 2;
+        }
+
+        /* result status */
+        .result-status {
+            padding: 16px;
+            border-radius: 10px;
+            border: 1.5px solid #ddeaff;
+            background: #f5f9ff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .result-status.success {
+            background: #f0fdf4;
+            border-color: #6ee7b7;
+        }
+
+        .result-status.error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .result-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .result-status.success .result-label { color: #059669; }
+        .result-status.error   .result-label { color: #dc2626; }
+
+        .result-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .result-status.success .result-text { color: #065f46; }
+        .result-status.error   .result-text { color: #991b1b; }
+
+        /* hidden canvas */
+        #pic { display: none; }
     </style>
 </head>
 <body>
-    <video id="video" width="600" height="500" autoplay></video>
-    <button onclick="takePicture()">Take Picture</button>
-    <canvas id="pic" width="600" height="500" style="display:none;"></canvas>
-    <img src="" alt="Captured Image" id="poc">
+    <aside>
+        <div class="logos">
+            <div class="circle">G</div>
+            <span>GUARD PORTAL</span>
+        </div>
+        <div class="buttons">
+            <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+        </div>
+        <div class="logout">
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        </div>
+    </aside>
+
+    <div class="right">
+        <div class="header">
+            <h1><i class="bi bi-qr-code-scan"></i> QR Scanner</h1>
+            <p>SCAN VEHICLE QR CODES FOR ENTRY / EXIT</p>
+        </div>
+
+        <div class="scanner-wrap">
+            <!-- Camera -->
+            <div class="video-card">
+                <div class="card-head">
+                    <i class="bi bi-camera-video-fill"></i>
+                    <h2>Live Camera</h2>
+                </div>
+                <div class="video-body">
+                    <div class="video-frame">
+                        <video id="video" autoplay></video>
+                        <div class="scan-line"></div>
+                    </div>
+                    <button class="btn-capture" onclick="takePicture()">
+                        <i class="bi bi-camera"></i> Capture & Scan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result -->
+            <div class="result-card">
+                <div class="card-head">
+                    <i class="bi bi-clipboard-check"></i>
+                    <h2>Scan Result</h2>
+                </div>
+                <div class="result-body">
+                    <div class="preview-box">
+                        <img src="" alt="" id="poc" style="display:none;">
+                        <div class="preview-placeholder" id="previewPlaceholder">
+                            CAPTURE<br>PREVIEW<br>APPEARS HERE
+                        </div>
+                    </div>
+
+                    <div class="result-status" id="resultStatus">
+                        <div class="result-label">Status</div>
+                        <div class="result-text" id="resultText">Waiting for scan...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="pic" width="600" height="500"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-
     <script>
-        const video = document.getElementById("video");
+        const video  = document.getElementById("video");
         const canvas = document.getElementById("pic");
-        const poc = document.getElementById("poc");
-        const ctx = canvas.getContext("2d");
+        const poc    = document.getElementById("poc");
+        const ctx    = canvas.getContext("2d");
 
         async function startCamera() {
             try {
@@ -34,20 +457,21 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error("Error accessing camera: ", err);
+                setResult("error", "Camera access denied or unavailable.");
             }
         }
 
         function takePicture() {
-            const width = video.videoWidth;
+            const width  = video.videoWidth;
             const height = video.videoHeight;
-
-            canvas.width = width;
+            canvas.width  = width;
             canvas.height = height;
-
             ctx.drawImage(video, 0, 0, width, height);
 
             const data = canvas.toDataURL("image/png");
             poc.src = data;
+            poc.style.display = "block";
+            document.getElementById("previewPlaceholder").style.display = "none";
 
             poc.onload = () => detectQRCode();
         }
@@ -57,15 +481,25 @@
             const code = jsQR(imageData.data, imageData.width, imageData.height);
 
             if (code) {
-                console.log("QR Code detected:", code.data);
-                let response = await API.post("/guard/check_qr", code.data);
-                
-
-                
+                setResult("loading", "QR detected — checking...");
+                let response = await API.post("/guard/check_qr", { data: code.data });
+                if (response.status === "good") {
+                    setResult("success", response.message || "Access granted.");
+                } else {
+                    setResult("error", response.message || "QR not recognized.");
+                }
             } else {
-                console.log("No QR code found");
-                alert("No QR code detected.");
+                setResult("error", "No QR code detected in frame.");
             }
+        }
+
+        function setResult(type, message) {
+            const box  = document.getElementById("resultStatus");
+            const text = document.getElementById("resultText");
+            box.className  = "result-status";
+            text.textContent = message;
+            if (type === "success") box.classList.add("success");
+            if (type === "error")   box.classList.add("error");
         }
 
         startCamera();

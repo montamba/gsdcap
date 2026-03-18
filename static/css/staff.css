@@ -9,8 +9,8 @@
 
 body {
     display: flex;
-    background: #070d1a;
-    color: #e0eaff;
+    background: #eef4ff;
+    color: #0f172a;
     min-height: 100vh;
 }
 
@@ -23,45 +23,44 @@ aside {
     height: 100vh;
     width: 240px;
     min-width: 240px;
-    background: #0b1428;
-    border-right: 1px solid #162040;
+    background: #1e3a8a;
+    border-right: none;
     display: flex;
     flex-direction: column;
     z-index: 100;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+    box-shadow: 4px 0 32px rgba(30,58,138,0.18);
 }
 
 .logos {
-    padding: 28px 20px;
+    padding: 26px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    background: #040912;
-    border-bottom: 1px solid #162040;
+    gap: 8px;
+    background: #172e72;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     text-align: center;
 }
 
 .circle {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     display: grid;
     place-items: center;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #00d4ff22, #0077ff22);
-    border: 2px solid #00d4ff44;
-    font-size: 22px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.2);
+    font-size: 20px;
     font-weight: 800;
-    color: #00d4ff;
+    color: #ffffff;
     font-family: 'Space Mono', monospace;
-    box-shadow: 0 0 16px #00d4ff22;
 }
 
 .logos span,
 .logos > *:not(.circle) {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    color: #3a4e72;
+    color: rgba(148,163,184,0.7);
     letter-spacing: 0.2em;
     text-transform: uppercase;
 }
@@ -69,16 +68,16 @@ aside {
 .buttons {
     display: flex;
     flex-direction: column;
-    padding: 16px 0;
+    padding: 14px 0;
     flex: 1;
 }
 
 .buttons a {
     text-decoration: none;
-    color: #6b82a8;
+    color: rgba(186,210,255,0.75);
     font-size: 14px;
     font-weight: 600;
-    padding: 12px 22px;
+    padding: 11px 20px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -88,40 +87,41 @@ aside {
 }
 
 .buttons a:hover {
-    background: #0f1e38;
-    color: #00d4ff;
-    border-left-color: #00d4ff44;
+    background: rgba(255,255,255,0.07);
+    color: #ffffff;
+    border-left-color: rgba(255,255,255,0.3);
 }
 
 .buttons a.active {
-    background: linear-gradient(90deg, #00d4ff12, transparent);
-    color: #00d4ff;
-    border-left-color: #00d4ff;
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
+    border-left-color: #60a5fa;
 }
 
 .logout {
-    padding: 20px;
-    border-top: 1px solid #162040;
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
 }
 
 .logout button {
     width: 100%;
     padding: 10px;
-    background: transparent;
-    border: 1px solid #ff4d6d44;
-    color: #ff4d6d;
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
     font-family: 'Syne', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     transition: all 0.2s;
-    border-radius: 2px;
+    border-radius: 6px;
 }
 
 .logout button:hover {
-    background: #ff4d6d18;
-    border-color: #ff4d6d;
+    background: rgba(239,68,68,0.22);
+    color: #ffffff;
+    border-color: rgba(239,68,68,0.5);
 }
 
 .right {

@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="/../../static/css/staff.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="/../../static/scripts/scrit.js"></script>
@@ -14,200 +13,86 @@
 
     <style>
         .header {
-            background: linear-gradient(135deg, #0d1f3c, #040912);
-            border-bottom: 1px solid #162040;
-            padding: 24px 32px;
-            position: relative;
+            background: #ffffff;
+            border-bottom: 1px solid #c7d9f5;
+            padding: 22px 32px;
+            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
         }
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, #00d4ff44, transparent);
-        }
-        .header h1 { font-size: 20px; font-weight: 800; color: #e0eaff; }
-        .header p { font-size: 11px; color: #3a4e72; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; }
-        .header .bi { color: #00d4ff; margin-right: 8px; }
+        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display:flex; align-items:center; gap:8px; }
+        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; }
+        .header .bi { color: #2563eb; }
 
-        /* ─── GEN LAYOUT ─── */
-        .gen-wrap {
-            display: flex;
-            gap: 20px;
-            padding: 28px 32px;
-            align-items: flex-start;
-        }
+        .gen-wrap { display: flex; gap: 20px; padding: 28px 32px; align-items: flex-start; }
 
-        .gen-form {
-            background: #0b1428;
-            border: 1px solid #162040;
-            width: 360px;
-            flex-shrink: 0;
-        }
+        .gen-form { background: #ffffff; border: 1px solid #c7d9f5; width: 360px; flex-shrink: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(37,99,235,0.07); }
 
         .card-header {
-            padding: 14px 20px;
-            background: #040912;
-            border-bottom: 1px solid #162040;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding: 14px 20px; background: #f5f9ff; border-bottom: 1px solid #ddeaff;
+            display: flex; align-items: center; gap: 8px;
         }
-        .card-header::before {
-            content: '';
-            width: 3px; height: 14px;
-            background: #00d4ff;
-        }
-        .card-header h2 {
-            font-size: 12px; font-weight: 700; color: #6b82a8;
-            text-transform: uppercase; letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
-        .card-header .bi { color: #00d4ff; }
+        .card-header::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; }
+        .card-header h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
+        .card-header .bi { color: #2563eb; }
 
-        .form-body {
-            padding: 22px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .form-group label {
-            font-size: 10px; font-weight: 700; color: #3a4e72;
-            letter-spacing: 0.14em; text-transform: uppercase;
-            font-family: 'Space Mono', monospace;
-        }
+        .form-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.14em; text-transform: uppercase; font-family: 'Space Mono', monospace; }
         .form-group input {
-            padding: 11px 14px;
-            background: #040912; border: 1px solid #162040;
-            color: #e0eaff; font-family: 'Syne', sans-serif;
-            font-size: 13px; outline: none; transition: border-color 0.2s;
+            padding: 11px 14px; background: #f8faff; border: 1.5px solid #c7d9f5;
+            color: #0f172a; font-family: 'Syne', sans-serif; font-size: 13px;
+            outline: none; transition: border-color 0.2s; border-radius: 8px;
         }
-        .form-group input:focus { border-color: #00d4ff44; box-shadow: 0 0 0 3px #00d4ff08; }
-        .form-group input::placeholder { color: #2a3a52; }
+        .form-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); background: #ffffff; }
+        .form-group input::placeholder { color: #cbd5e1; }
 
         .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
         .btn-gen {
-            padding: 11px;
-            background: linear-gradient(135deg, #0057ff, #00d4ff);
-            border: none; color: #040912;
-            font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
-            cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.2s;
+            padding: 11px; background: linear-gradient(135deg, #2563eb, #0ea5e9); border: none;
+            color: #ffffff; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+            cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s; border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(37,99,235,0.25);
         }
-        .btn-gen:hover { opacity: 0.9; }
+        .btn-gen:hover { opacity: 0.9; box-shadow: 0 5px 16px rgba(37,99,235,0.35); }
         .btn-done {
-            padding: 11px;
-            background: transparent;
-            border: 1px solid #162040; color: #6b82a8;
+            padding: 11px; background: #ffffff; border: 1.5px solid #c7d9f5; color: #64748b;
             font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-            cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
+            cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s; border-radius: 8px;
         }
-        .btn-done:hover { border-color: #00d4ff44; color: #00d4ff; }
+        .btn-done:hover { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
 
-        /* QR preview */
-        .qr-preview {
-            background: #0b1428;
-            border: 1px solid #162040;
-            flex: 1;
-        }
-        .qr-inner {
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
+        .qr-preview { background: #ffffff; border: 1px solid #c7d9f5; flex: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(37,99,235,0.07); }
+        .qr-inner { padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
         .qr-box {
-            width: 210px; height: 210px;
-            border: 1px solid #162040;
-            background: #040912;
-            display: grid;
-            place-items: center;
-            position: relative;
+            width: 210px; height: 210px; border: 2px solid #ddeaff;
+            background: #f5f9ff; display: grid; place-items: center; border-radius: 8px;
         }
-        .qr-box .placeholder-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            color: #2a3a52;
-            letter-spacing: 0.1em;
-            text-align: center;
-        }
+        .qr-box .placeholder-text { font-family: 'Space Mono', monospace; font-size: 11px; color: #94a3b8; letter-spacing: 0.1em; text-align: center; }
         #qrcode { display: flex; align-items: center; justify-content: center; }
         #qrcode img, #qrcode canvas { max-width: 200px; max-height: 200px; }
+        .qr-label { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; letter-spacing: 0.1em; text-align: center; }
 
-        .qr-label {
-            font-size: 11px;
-            color: #3a4e72;
-            font-family: 'Space Mono', monospace;
-            letter-spacing: 0.1em;
-            text-align: center;
-        }
-
-        /* ─── TABLE ─── */
-        .table-section {
-            padding: 0 32px 32px;
-        }
+        .table-section { padding: 0 32px 32px; }
         .section-header {
             display: flex; align-items: center; gap: 8px;
-            border-top: 1px solid #162040;
-            padding: 20px 0 16px;
+            border-top: 1px solid #ddeaff; padding: 20px 0 16px;
         }
-        .section-header::before {
-            content: '';
-            width: 3px; height: 14px;
-            background: #00d4ff;
-        }
-        .section-header h3 {
-            font-size: 12px; font-weight: 700; color: #6b82a8;
-            text-transform: uppercase; letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
+        .section-header::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; }
+        .section-header h3 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
 
-        table { width: 100%; border-collapse: collapse; background: #0b1428; border: 1px solid #162040; }
+        table { width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #c7d9f5; border-radius: 12px; overflow: hidden; }
         th, td { padding: 12px 16px; text-align: left; font-size: 12px; }
-        th {
-            background: #040912; color: #3a4e72;
-            font-family: 'Space Mono', monospace; font-size: 10px;
-            letter-spacing: 0.12em; text-transform: uppercase;
-            border-bottom: 1px solid #162040;
-        }
-        td { color: #a0b4d0; border-bottom: 1px solid #0f1d36; }
-        tbody tr:hover td { background: #0f1e38; }
+        th { background: #f5f9ff; color: #64748b; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid #ddeaff; }
+        td { color: #334155; border-bottom: 1px solid #f1f5f9; }
+        tbody tr:hover td { background: #f8faff; }
 
         .qr-row { grid-template-columns: 50px 1fr 120px 120px; }
         table.qr-row-table tr { display: grid; grid-template-columns: 50px 1fr 120px 120px; }
 
-        /* Hide everything by default when printing */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-
-            .qr-box, .qr-box * {
-                visibility: visible;
-            }
-
-            
-            .qr-box {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                border: 1px solid #162040;
-                background: #040912;
-                width: 300px;
-                height: 300px;
-                display: grid;
-                place-items: center;
-            }
-            .qr-box img{
-                width:inherit;
-                height:inherit;
-
-            }
+            body * { visibility: hidden; }
+            .qr-box, .qr-box * { visibility: visible; }
+            .qr-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid #c7d9f5; background: #ffffff; width: 300px; height: 300px; display: grid; place-items: center; }
+            .qr-box img { width:inherit; height:inherit; }
         }
     </style>
 </head>
@@ -230,7 +115,7 @@
 
     <div class="right">
         <div class="header">
-            <h1><i class="bi bi-qr-code"></i>QR Generator</h1>
+            <h1><i class="bi bi-qr-code"></i> QR Generator</h1>
             <p>GENERATE AND MANAGE VEHICLE QR CODES</p>
         </div>
 
@@ -272,8 +157,7 @@
                         </div>
                     </div>
                     <div class="qr-label">GENERATED QR WILL DISPLAY ABOVE</div>
-                    <button onclick="window.print()">print</button>
-                    
+                    <button onclick="window.print()" style="padding:8px 18px;border:1.5px solid #c7d9f5;background:#ffffff;color:#64748b;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;transition:all .2s;" onmouseover="this.style.borderColor='#93c5fd';this.style.color='#2563eb'" onmouseout="this.style.borderColor='#c7d9f5';this.style.color='#64748b'">🖨️ Print</button>
                 </div>
             </div>
         </div>
@@ -284,19 +168,14 @@
             </div>
             <table class="qr-row-table" id="qrtab">
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Data</th>
-                        <th>Plate</th>
-                        <th>Created At</th>
-                    </tr>
+                    <tr><th>#</th><th>Data</th><th>Plate</th><th>Created At</th></tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="color:#3a4e72;font-family:'Space Mono',monospace;">—</td>
-                        <td style="color:#3a4e72;">No records yet</td>
-                        <td style="color:#3a4e72;">—</td>
-                        <td style="color:#3a4e72;">—</td>
+                        <td style="color:#94a3b8;font-family:'Space Mono',monospace;">—</td>
+                        <td style="color:#94a3b8;">No records yet</td>
+                        <td style="color:#94a3b8;">—</td>
+                        <td style="color:#94a3b8;">—</td>
                     </tr>
                 </tbody>
             </table>
@@ -310,47 +189,29 @@
                 "plate":document.getElementById("plate").value,
                 "valid_until":document.getElementById("validuntil").value,
             }
-
-            console.log(qrcode)
-
             data = await API.post("/staff/save_qr", qrcode)
-            console.log(data)
             showMessageModal(data.message, data.status)
-            
         }
         function generateQR() {
             const text = document.getElementById("text").value;
-            const plate = document.getElementById("plate").value;
             document.getElementById("qrcode").innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), {
-                text: text,
-                width: 200,
-                height: 200
-            });
+            new QRCode(document.getElementById("qrcode"), { text: text, width: 200, height: 200 });
         }
-
         async function getQrdata(){
             let response = await API.get("/staff/my_qr")
-            console.log(response)
-
             let html = ""
-
             if(!response)return;
             response.data.forEach((d,i)=>{
                 html += `
                 <tr>
-                    <td style="color:#3a4e72;font-family:'Space Mono',monospace;">${i+1}</td>
-                    <td style="color:#3a4e72;">${d[1]}</td>
-                    <td style="color:#3a4e72;">${d[2]}</td>
-                    <td style="color:#3a4e72;">${d[7]}</td>
-                </tr>
-                `
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i+1}</td>
+                    <td style="color:#334155;">${d[1]}</td>
+                    <td style="color:#334155;">${d[2]}</td>
+                    <td style="color:#64748b;">${d[7]}</td>
+                </tr>`
             })
-
             document.querySelector("#qrtab > tbody").innerHTML = html
         }
-
-        
     </script>
 </body>
 </html>

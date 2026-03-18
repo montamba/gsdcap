@@ -81,15 +81,21 @@ class Admin:
 
         @self.admin.route("/add_user", methods=["POST"])
         def add_user():
-            data     = request.get_json()
+            data = request.get_json()
             username = data.get("username", "").strip()
-            email    = data.get("email", "").strip()
+            email = data.get("email", "").strip()
             password = data.get("password", "")
-            role     = data.get("role", "")
+            role = data.get("role", "")
             
-            user = self.sql.getuserbyemail(email)
-            if user:
+            isemail = self.sql.getuserbyemail(email)
+            username_exist = self.sql.getuserbyusername(username)
+            if isemail:
                 return jsonify({"status": "bad", "message": "Sorry email already register"})
+            
+            if username_exist:
+                return jsonify({"status": "bad", "message": "Sorry username already register"})
+            
+            
             
             if not all([username, email, password, role]):
                 return jsonify({"status": "bad", "message": "All fields are required"})

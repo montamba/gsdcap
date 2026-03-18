@@ -13,14 +13,11 @@ class SQL:
             passwd= os.getenv("PASSW")
         )
 
-    # ─── Helpers ──────────────────────────────────────────
 
     def _hash(self, password: str) -> str:
-        """Return a bcrypt hash of the given plain-text password."""
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     def _check(self, password: str, hashed: str) -> bool:
-        """Verify a plain-text password against a bcrypt hash."""
         try:
             return bcrypt.checkpw(
                 password.encode("utf-8"),
@@ -48,6 +45,13 @@ class SQL:
     def getuserbyemail(self, email: str):
         cur = self.sql.cursor()
         cur.execute("SELECT * FROM users WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        return user
+
+    def getuserbyusername(self, username: str):
+        cur = self.sql.cursor()
+        cur.execute("SELECT * FROM users WHERE username=%s", (username,))
         user = cur.fetchone()
         cur.close()
         return user

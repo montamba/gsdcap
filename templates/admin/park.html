@@ -11,79 +11,74 @@
     <script src="/../../static/scripts/scrit.js"></script>
     <style>
         .page-header {
-            background:linear-gradient(135deg,#0d1f3c,#040912);
-            border-bottom:1px solid #162040; padding:28px 36px; position:relative;
+            background:#ffffff;
+            border-bottom:1px solid #c7d9f5; padding:24px 36px; position:relative;
+            box-shadow:0 1px 8px rgba(37,99,235,0.06);
         }
-        .page-header::after {
-            content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
-            background:linear-gradient(90deg,transparent,#00d4ff55,transparent);
-        }
-        .page-header h1 { font-size:22px; font-weight:800; color:#e0eaff; display:flex; align-items:center; gap:10px; }
-        .page-header h1 i { color:#00d4ff; }
-        .page-header p { font-size:11px; color:#3a4e72; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
+        .page-header h1 { font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:10px; }
+        .page-header h1 i { color:#2563eb; }
+        .page-header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
 
         .inner { padding:28px 36px; }
 
-        /* ── TWO-COL GRID ── */
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
 
-        /* ── CARD ── */
-        .card { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        .card { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         .card-head {
-            padding:15px 22px; background:#040912; border-bottom:1px solid #162040;
+            padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff;
             display:flex; align-items:center; gap:10px;
         }
-        .card-head::before { content:''; width:3px; height:14px; background:#00d4ff; flex-shrink:0; }
-        .card-head h3 { font-size:12px; font-weight:700; color:#6b82a8; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
-        .card-head i { color:#00d4ff; }
+        .card-head::before { content:''; width:3px; height:14px; background:#2563eb; flex-shrink:0; border-radius:2px; }
+        .card-head h3 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
+        .card-head i { color:#2563eb; }
+
         .card-body { padding:24px; display:flex; flex-direction:column; gap:16px; }
 
-        /* ── FORM ── */
         .form-group { display:flex; flex-direction:column; gap:6px; }
-        .form-group label { font-size:10px; font-weight:700; color:#3a4e72; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
+        .form-group label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
         .form-group input {
-            padding:12px 16px; background:#040912; border:1px solid #162040;
-            color:#e0eaff; font-family:'Space Mono',monospace; font-size:14px;
-            outline:none; transition:border-color .2s, box-shadow .2s;
+            padding:12px 16px; background:#f8faff; border:1.5px solid #c7d9f5;
+            color:#0f172a; font-family:'Space Mono',monospace; font-size:14px;
+            outline:none; transition:border-color .2s, box-shadow .2s; border-radius:8px;
         }
-        .form-group input:focus { border-color:#00d4ff44; box-shadow:0 0 0 3px #00d4ff0a; }
-        .form-group input::placeholder { color:#2a3a52; }
+        .form-group input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.1); background:#ffffff; }
+        .form-group input::placeholder { color:#cbd5e1; }
+
         .btn-update {
             align-self:flex-start; padding:11px 24px;
-            background:linear-gradient(135deg,#0057ff,#00d4ff); border:none;
-            color:#040912; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
+            background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none;
+            color:#ffffff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
             cursor:pointer; letter-spacing:.06em; text-transform:uppercase;
-            display:flex; align-items:center; gap:7px; transition:opacity .2s;
+            display:flex; align-items:center; gap:7px; transition:all .2s;
+            border-radius:8px; box-shadow:0 3px 12px rgba(37,99,235,0.25);
         }
-        .btn-update:hover { opacity:.88; }
+        .btn-update:hover { opacity:.92; box-shadow:0 5px 18px rgba(37,99,235,0.35); }
 
         /* ── SLOTS ── */
-        .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#162040; margin:24px; }
-        .slot {
-            background:#0b1428; padding:26px 16px; text-align:center; position:relative; overflow:hidden;
-        }
-        .slot::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-        .slot-available::before { background:#00ff88; }
-        .slot-occupied::before  { background:#ff4d6d; }
-        .slot-total::before     { background:#00d4ff; }
-        .slot-label { font-size:10px; font-weight:700; color:#3a4e72; letter-spacing:.15em; text-transform:uppercase; font-family:'Space Mono',monospace; margin-bottom:10px; }
+        .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#ddeaff; margin:20px; border-radius:8px; overflow:hidden; }
+        .slot { background:#ffffff; padding:26px 16px; text-align:center; position:relative; overflow:hidden; }
+        .slot::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+        .slot-available::before { background:#10b981; }
+        .slot-occupied::before  { background:#ef4444; }
+        .slot-total::before     { background:#2563eb; }
+        .slot-label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.15em; text-transform:uppercase; font-family:'Space Mono',monospace; margin-bottom:10px; }
         .slot-num { font-size:44px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
-        .slot-available .slot-num { color:#00ff88; }
-        .slot-occupied  .slot-num { color:#ff4d6d; }
-        .slot-total     .slot-num { color:#00d4ff; }
+        .slot-available .slot-num { color:#10b981; }
+        .slot-occupied  .slot-num { color:#ef4444; }
+        .slot-total     .slot-num { color:#2563eb; }
 
         /* ── HISTORY TABLE ── */
-        .history-box { background:#0b1428; border:1px solid #162040; overflow:hidden; }
+        .history-box { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         table { width:100%; border-collapse:collapse; }
         th,td { padding:13px 22px; text-align:left; font-size:13px; }
-        th { background:#040912; color:#3a4e72; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #162040; }
-        td { color:#a0b4d0; border-bottom:1px solid #0f1d36; }
+        th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
+        td { color:#334155; border-bottom:1px solid #f1f5f9; }
         tr:last-child td { border-bottom:none; }
-        tbody tr:hover td { background:#0f1e38; }
+        tbody tr:hover td { background:#f8faff; }
         .hist-table tr { display:grid; grid-template-columns:60px 1fr 1fr 140px; }
-        .btn-sm { padding:5px 10px; border:1px solid #162040; background:transparent; color:#6b82a8; cursor:pointer; font-size:13px; transition:all .2s; margin-right:4px; }
-        .btn-sm:hover { border-color:#00d4ff44; color:#00d4ff; }
-        .btn-sm.danger:hover { border-color:#ff4d6d44; color:#ff4d6d; }
+        .btn-sm { padding:5px 10px; border:1px solid #c7d9f5; background:transparent; color:#64748b; cursor:pointer; font-size:13px; transition:all .2s; margin-right:4px; border-radius:6px; }
+        .btn-sm:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
+        .btn-sm.danger:hover { border-color:#fca5a5; color:#ef4444; background:#fee2e2; }
     </style>
 </head>
 <body>
@@ -118,7 +113,6 @@
 
         <div class="inner">
             <div class="grid-2">
-                <!-- Config Form -->
                 <div class="card">
                     <div class="card-head"><i class="bi bi-gear-fill"></i><h3>Parking Configuration</h3></div>
                     <div class="card-body">
@@ -132,7 +126,6 @@
                     </div>
                 </div>
 
-                <!-- Slot Status -->
                 <div class="card">
                     <div class="card-head"><i class="bi bi-card-checklist"></i><h3>Slot Status</h3></div>
                     <div class="slots-grid">
@@ -152,12 +145,11 @@
                 </div>
             </div>
 
-            <!-- History -->
             <div class="history-box">
-                <div class="card-head" style="padding:15px 22px; background:#040912; border-bottom:1px solid #162040; display:flex; align-items:center; gap:10px;">
-                    <span style="width:3px;height:14px;background:#00d4ff;display:inline-block;flex-shrink:0;"></span>
-                    <i class="bi bi-clock-history" style="color:#00d4ff;"></i>
-                    <h3 style="font-size:12px;font-weight:700;color:#6b82a8;text-transform:uppercase;letter-spacing:.12em;font-family:'Space Mono',monospace;">Parking History</h3>
+                <div class="card-head" style="padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:10px;">
+                    <span style="width:3px;height:14px;background:#2563eb;display:inline-block;flex-shrink:0;border-radius:2px;"></span>
+                    <i class="bi bi-clock-history" style="color:#2563eb;"></i>
+                    <h3 style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.12em;font-family:'Space Mono',monospace;">Parking History</h3>
                 </div>
                 <table class="hist-table">
                     <thead>
@@ -165,9 +157,9 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="font-family:'Space Mono',monospace;color:#3a4e72;">01</td>
+                            <td style="font-family:'Space Mono',monospace;color:#94a3b8;">01</td>
                             <td>qrpass</td>
-                            <td style="font-family:'Space Mono',monospace;color:#00d4ff;">hsjms</td>
+                            <td style="font-family:'Space Mono',monospace;color:#2563eb;">hsjms</td>
                             <td>
                                 <button class="btn-sm danger"><i class="bi bi-trash"></i></button>
                                 <button class="btn-sm"><i class="bi bi-pencil-square"></i></button>

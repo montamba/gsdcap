@@ -4,39 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Profile – Staff</title>
-    <link rel="stylesheet" href="/../../static/css/staff.css">
-    <link rel="stylesheet" href="/../../static/css/message.css">
-    <script src="/../../static/scripts/scrit.js"></script>
-
+  <link rel="stylesheet" href="/../../static/css/staff.css">
+  <link rel="stylesheet" href="/../../static/css/message.css">
+  <script src="/../../static/scripts/scrit.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; display: flex; min-height: 100vh; }
+    body { font-family: 'DM Sans', sans-serif; background: #eef4ff; display: flex; min-height: 100vh; }
 
     .right { flex: 1; padding: 48px 40px; display: flex; align-items: flex-start; justify-content: center; }
 
-    .profile-card { background: #fff; border-radius: 20px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 4px 32px rgba(0,0,0,.08); }
+    .profile-card { background: #fff; border-radius: 20px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 4px 32px rgba(37,99,235,0.1); border: 1px solid #c7d9f5; }
 
     .card-banner {
       height: 130px;
-      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
       position: relative;
     }
     .card-banner::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
 
     .avatar-wrap { position: absolute; bottom: -38px; left: 36px; z-index: 2; cursor: pointer; }
     .avatar {
       width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff;
       background: #dbeafe; display: flex; align-items: center; justify-content: center;
-      font-size: 1.9rem; box-shadow: 0 2px 12px rgba(0,0,0,.12); overflow: hidden; position: relative;
+      font-size: 1.9rem; box-shadow: 0 4px 16px rgba(37,99,235,0.2); overflow: hidden; position: relative;
     }
     .avatar-overlay {
-      position: absolute; inset: 0; background: rgba(0,0,0,.5);
+      position: absolute; inset: 0; background: rgba(37,99,235,.5);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity .2s; font-size: .68rem; color: #fff;
       font-weight: 700; border-radius: 50%; letter-spacing: .5px; text-align: center; line-height: 1.3;
@@ -65,37 +65,38 @@
     .user-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #0f172a; margin-bottom: 3px; }
     .user-dept { font-size: .8rem; color: #64748b; margin-bottom: 28px; }
 
-    .info-grid { display: grid; gap: 14px; margin-bottom: 32px; }
+    .info-grid { display: grid; gap: 12px; margin-bottom: 28px; }
     .info-item {
-      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+      background: #f5f9ff; border: 1px solid #ddeaff; border-radius: 12px;
       padding: 14px 18px; display: flex; align-items: center; gap: 14px;
     }
     .info-icon { width: 36px; height: 36px; border-radius: 8px; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
     .info-label { font-size: .7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 2px; }
     .info-value { font-size: .92rem; font-weight: 500; color: #1e293b; }
 
-    .divider { height: 1px; background: #e2e8f0; margin-bottom: 20px; }
+    .divider { height: 1px; background: #ddeaff; margin-bottom: 20px; }
 
     .btn-row { display: flex; gap: 10px; }
     .btn-reset {
       flex: 1; display: inline-flex; align-items: center; gap: 8px;
-      background: #1e293b; color: #fff; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9); color: #fff; border: none; border-radius: 12px;
       padding: 13px 20px; font-family: 'DM Sans', sans-serif; font-size: .85rem;
-      font-weight: 500; cursor: pointer; transition: background .2s, transform .15s; justify-content: center;
+      font-weight: 600; cursor: pointer; transition: all .2s; justify-content: center;
+      box-shadow: 0 3px 10px rgba(37,99,235,0.25);
     }
-    .btn-reset:hover { background: #334155; transform: translateY(-1px); }
+    .btn-reset:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,99,235,0.35); }
 
     /* ── MODALS ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
-      background: rgba(15,23,42,.45); backdrop-filter: blur(4px);
+      background: rgba(15,23,42,.3); backdrop-filter: blur(4px);
       z-index: 100; align-items: center; justify-content: center;
     }
     .modal-overlay.show { display: flex; }
     .modal {
       background: #fff; border-radius: 20px; padding: 36px;
-      width: 100%; max-width: 430px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      width: 100%; max-width: 430px; border: 1px solid #c7d9f5;
+      box-shadow: 0 20px 60px rgba(37,99,235,0.15);
       animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
     }
     @keyframes popIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -109,37 +110,35 @@
     .field { margin-bottom: 15px; }
     .field label { display: block; font-size: .72rem; color: #64748b; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
     .field input {
-      width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0;
+      width: 100%; padding: 11px 14px; border: 1.5px solid #c7d9f5;
       border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: .875rem;
-      color: #1e293b; outline: none; transition: border-color .2s, box-shadow .2s;
-      background: #fff;
+      color: #1e293b; outline: none; transition: border-color .2s, box-shadow .2s; background: #f8faff;
     }
-    .field input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #ffffff; }
 
     .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
     .btn-cancel {
-      flex: 1; padding: 11px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      flex: 1; padding: 11px; border: 1.5px solid #c7d9f5; border-radius: 10px;
       background: #fff; font-family: 'DM Sans', sans-serif; font-size: .875rem;
       color: #64748b; cursor: pointer; transition: background .2s;
     }
-    .btn-cancel:hover { background: #f8fafc; }
+    .btn-cancel:hover { background: #f5f9ff; }
     .btn-save {
       flex: 1; padding: 11px; border: none; border-radius: 10px;
-      background: #3b82f6; color: #fff; font-family: 'DM Sans', sans-serif;
-      font-size: .875rem; font-weight: 600; cursor: pointer; transition: background .2s;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9); color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
     }
-    .btn-save:hover { background: #2563eb; }
+    .btn-save:hover { opacity: .92; }
 
-    /* Avatar picker */
     .avatar-picker-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
     .av-opt {
-      width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid #e2e8f0;
+      width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid #c7d9f5;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; cursor: pointer; transition: border-color .2s, transform .15s; background: #f8fafc;
+      font-size: 1.5rem; cursor: pointer; transition: border-color .2s, transform .15s; background: #f5f9ff;
     }
     .av-opt:hover { border-color: #93c5fd; transform: scale(1.08); }
-    .av-opt.sel { border-color: #3b82f6; background: #dbeafe; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+    .av-opt.sel { border-color: #2563eb; background: #dbeafe; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
 
     .toast {
       position: fixed; bottom: 28px; left: 50%;
@@ -153,14 +152,13 @@
   </style>
 </head>
 <body>
-
     <aside>
         <div class="logos">
             <div class="circle">P</div>
             <span>STAFF PORTAL</span>
         </div>
         <div class="buttons">
-            <a href="/staff/generate" ><i class="bi bi-qr-code"></i> Generator</a>
+            <a href="/staff/generate"><i class="bi bi-qr-code"></i> Generator</a>
             <a href="/staff/history"><i class="bi bi-stopwatch"></i> History</a>
             <a href="/staff/search"><i class="bi bi-search"></i> Search</a>
             <a href="/staff/profile" class="active"><i class="bi bi-people"></i> Profile</a>
@@ -189,22 +187,21 @@
             <div class="info-icon">👤</div>
             <div>
               <div class="info-label">Username</div>
-              <div class="info-value" id="dUser">maria.santos</div>
+              <div class="info-value" id="dUser">—</div>
             </div>
           </div>
           <div class="info-item">
             <div class="info-icon">✉️</div>
             <div>
               <div class="info-label">Email</div>
-              <div class="info-value" id="dEmail">maria.santos@company.com</div>
+              <div class="info-value" id="dEmail">—</div>
             </div>
           </div>
-          
           <div class="info-item">
             <div class="info-icon">🏷️</div>
             <div>
               <div class="info-label">Role</div>
-              <div class="info-value" id="role">Staff Member</div>
+              <div class="info-value" id="role">—</div>
             </div>
           </div>
         </div>
@@ -225,17 +222,14 @@
         <button class="btn-close" onclick="closeEdit()">✕</button>
       </div>
       <p class="modal-sub">Update your personal information below.</p>
-
-      <div class="field"><label>Username</label><input type="text" id="eUser" value="maria.santos"/></div>
-      <div class="field"><label>Email</label><input type="email" id="eEmail" value="maria.santos@company.com"/></div>
-
+      <div class="field"><label>Username</label><input type="text" id="eUser"/></div>
+      <div class="field"><label>Email</label><input type="email" id="eEmail"/></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
         <button class="btn-save" onclick="saveProfile()">Save Changes</button>
       </div>
     </div>
   </div>
-
 
   <div class="modal-overlay" id="avatarModal">
     <div class="modal" style="max-width:360px">
@@ -263,7 +257,6 @@
     </div>
   </div>
 
-
   <div class="modal-overlay" id="pwModal">
     <div class="modal">
       <div class="modal-header">
@@ -285,27 +278,20 @@
 
   <script>
     let pendingAv = null;
-
-    function openEdit() { 
-      document.getElementById('editModal').classList.add('show'); 
+    function openEdit() {
+      document.getElementById('editModal').classList.add('show');
       document.getElementById('eUser').value = document.getElementById('dUser').innerText
       document.getElementById('eEmail').value = document.getElementById('dEmail').innerText
-
     }
     function closeEdit() { document.getElementById('editModal').classList.remove('show'); }
     function openAvatar() { document.getElementById('avatarModal').classList.add('show'); }
 
-
     async function getUserData(){
       let user = await API.get("/staff/getuserdata");
-      console.log(user)
-
       let dat = user.data
       document.getElementById('dUser').innerText = dat[0]
       document.getElementById('dEmail').innerText = dat[1]
       document.getElementById('role').innerText = dat[2]
-
-    
     }
 
     function pickAv(el, emoji) {
@@ -319,14 +305,11 @@
       toast('🖼️ Avatar updated!');
     }
     async function saveProfile() {
-      let user ={
-        username :document.getElementById('eUser').value.trim(),
-        email:document.getElementById('eEmail').value.trim()
+      let user = {
+        username: document.getElementById('eUser').value.trim(),
+        email: document.getElementById('eEmail').value.trim()
       }
-      let res = await API.put("/staff/updateuser",user)
-      console.log(res)
-
-
+      let res = await API.put("/staff/updateuser", user)
       showMessageModal(res.message, res.status)
       getUserData()
       closeEdit();
@@ -342,7 +325,6 @@
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
-
     getUserData()
   </script>
 </body>
