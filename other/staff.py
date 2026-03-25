@@ -36,62 +36,86 @@ class Staff:
         @self.staff.route("/profile")
         def profile():
             return render_template("staff/profile.html")
-        
+
         @self.staff.route("/getuserdata", methods=["GET"])
         def getuserdata():
             try:
                 data = self.sql.getuserbyid(session["user_id"])
             except:
-                return {"status":"bad", "messages": "sorry something went wrong"}
-            return jsonify({"status":"good", "data":data})
-        
-        @self.staff.route("/updateuser",methods=["PUT"])
+                return {"status": "bad", "messages": "sorry something went wrong"}
+            return jsonify({"status": "good", "data": data})
+
+        @self.staff.route("/updateuser", methods=["PUT"])
         def updateuser():
             data = request.get_json()
             username = data.get("username")
             email = data.get("email")
-            
             try:
-                self.sql.updateuser(username,email, session["user_id"])
-    
+                self.sql.updateuser(username, email, session["user_id"])
             except:
-                return jsonify({"status":"bad", "message":"Failed to update"})
-            
-            return jsonify({"status":"good", "message":"Updated succesfully"})
-            
-            
+                return jsonify({"status": "bad", "message": "Failed to update"})
+            return jsonify({"status": "good", "message": "Updated successfully"})
 
         # ─── QR API ───────────────────────────────────────
+        @self.staff.route("/recentqr")
+        def recent():
+            data = self.sql.getallqr(limit=7)
+            return jsonify({"data":data})
 
         @self.staff.route("/my_qr", methods=["GET"])
         def my_qr():
             qrs = self.sql.getqrbyuser(session["user_id"])
             if qrs:
-                return jsonify({"status": "good", "data": qrs})
-            
+                serialized = [
+                    [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
+                    for row in qrs
+                ]
+                return jsonify({"status": "good", "data": serialized})
             return jsonify({"status": "empty", "message": "No QR codes found"})
 
         @self.staff.route("/save_qr", methods=["POST"])
         def save_qr():
             data = request.get_json()
-            qr_data = data.get("data").strip()
-            plate = data.get("plate").strip()
+            qr_data = (data.get("data") or "").strip()
+            plate = (data.get("plate") or "").strip()
             valid_until = data.get("valid_until")
+            owner_name = (data.get("owner_name") or "").strip()
+            owner_email = (data.get("owner_email") or "").strip()
 
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
             try:
-                self.sql.saveqr(qr_data,plate,valid_until,session["user_id"])
-            except:
-                return jsonify({"status":"bad", "message": "Please fill the valid dates"})
+                self.sql.saveqr(qr_data, plate, valid_until, session["user_id"], owner_name, owner_email)
+            except Exception as e:
+                print(e)
+                return jsonify({"status": "bad", "message": "Please fill in all required fields"})
             return jsonify({"status": "good", "message": "QR saved successfully"})
-        
-        @self.staff.route("/test",methods=["POST"])
+
+        @self.staff.route("/send_qr_email", methods=["POST"])
+        def send_qr_email():
+            """Send QR code image to the owner's email."""
+            data        = request.get_json()
+            qr_data     = (data.get("data") or "").strip()
+            owner_name  = (data.get("owner_name") or "Anonymous").strip()
+            owner_email = (data.get("owner_email") or "").strip()
+            plate       = (data.get("plate") or "").strip()
+            valid_until = (data.get("valid_until") or "").strip()
+
+            if not owner_email:
+                return jsonify({"status": "bad", "message": "Owner email is required to send"})
+            if not qr_data:
+                return jsonify({"status": "bad", "message": "QR data is required"})
+
+            success = self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+            if success:
+                return jsonify({"status": "good", "message": f"QR sent to {owner_email}"})
+            return jsonify({"status": "bad", "message": "Failed to send email. Check SMTP settings in .env"})
+
+        @self.staff.route("/test", methods=["POST"])
         def test():
-            return {"test":"complete"}
+            return {"test": "complete"}
 
         @self.staff.route("/delete_qr/<int:id>", methods=["DELETE"])
         def delete_qr(id):
             self.sql.deleteqr(id, session["user_id"])
             return jsonify({"status": "ok", "message": "QR deleted"})
-        

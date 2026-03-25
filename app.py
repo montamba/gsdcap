@@ -58,10 +58,7 @@ class Main:
             email = data.get("email").strip()
             password = data.get("password")
             role = data.get("role")
-            
-            print(0000000000000)
-            print(role)
-            
+                        
 
             if not email or not password or not role:
                 return jsonify({"status": "failed", "message": "Missing required fields"})
@@ -79,12 +76,14 @@ class Main:
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
                     (email,role)
                 )
+                print("hello", email)
 
             
             user = cur.fetchone()
-
+            print("user")
+            print(user)
             if not user:
-                return jsonify({"status": "failed", "message": "Invalid credentials"})
+                return jsonify({"status": "failed", "message": "no user"})
             
             if role == "admin":
                 user = user + ('admin',)

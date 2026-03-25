@@ -34,10 +34,26 @@ class Guard:
             qr = self.sql.getqrbydata(qrdata)
 
             if qr:
-                plate = qr[2] if qr[2] else None
+                # qr columns: 0:id, 1:data, 2:plate, 3:owner_name, 4:owner_email, 5:expiry, 6:status, 7:created_by, 8:created_at
+                # (adjust indices to match your actual DB column order after migration)
+                plate      = qr[2] or None
+                owner_name = qr[3] if len(qr) > 3 else None
+                owner_email= qr[4] if len(qr) > 4 else None
+                expiry     = str(qr[5]) if len(qr) > 5 and qr[5] else None
+
                 self.sql.inserthistory(qrdata, session["user_id"], "accepted")
-                msg = f"Property of {plate}" if plate else "Access granted"
-                return jsonify({"status": "good", "message": msg})
+
+                return jsonify({
+                    "status":      "good",
+                    "message":     "Access Granted",
+                    "owner_name":  owner_name or "—",
+                    "owner_email": owner_email or "—",
+                    "plate":       plate or "—",
+                    "valid_until": expiry or "—"
+                })
 
             self.sql.inserthistory(qrdata, session["user_id"], "failed")
-            return jsonify({"status": "bad", "message": "QR code not recognized"})
+            return jsonify({
+                "status":  "bad",
+                "message": "QR code not recognized"
+            })
