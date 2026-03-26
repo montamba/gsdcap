@@ -51,7 +51,7 @@ class Main:
                     return redirect("/staff/generate")
             return render_template("index.html")
 
-        # ─── LOGIN --------------------------------------------------------
+        # LOGIN --------------------------------------------------------
         @self.app.route("/auth/login", methods=["POST"])
         def login():
             data = request.get_json()
@@ -142,7 +142,7 @@ class Main:
 
 
 app_instance = Main()
-#test 2
+
 if __name__ == "__main__":
     app_instance.routes()
     app_instance.run()

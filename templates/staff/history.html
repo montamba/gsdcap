@@ -166,8 +166,9 @@
     </div>
     <script>
         async function getRecentQR(){
-            let response = await API.get("/staff/recentqr")
+            let response = await API.get("/staff/recentqr");
             let html = ""
+            console.log(response)
 
             if(!response) return;
 
@@ -176,7 +177,7 @@
                 <tr>
                     <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i}</td>
                     <td>
-                        <img src="/static/qr/${d[1]}.png" width="40">
+                        ${d[1]}
                     </td>
                     <td style="color:#334155;">${d[1]}</td>
                     <td>
@@ -210,7 +211,7 @@
             document.querySelector("#qrtab > tbody").innerHTML = html
         }
 
-        getRecentQR()
+        setTimeout(getRecentQR, 1000)
         getQrdata()
         setInterval(getQrdata, 30000)
         setInterval(getRecentQR, 25000)

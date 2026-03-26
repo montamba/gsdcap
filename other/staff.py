@@ -59,8 +59,13 @@ class Staff:
         # ─── QR API ───────────────────────────────────────
         @self.staff.route("/recentqr")
         def recent():
-            data = self.sql.getallqr(limit=7)
-            return jsonify({"data":data})
+            try:
+                data = self.sql.getallqr(limit=7)
+            
+                return jsonify({"data":data})
+            
+            except:
+                return jsonify({"message":"error"})
 
         @self.staff.route("/my_qr", methods=["GET"])
         def my_qr():
