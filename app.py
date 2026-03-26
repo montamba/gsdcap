@@ -143,6 +143,5 @@ class Main:
 
 app_instance = Main()
 
-if __name__ == "__main__":
-    app_instance.routes()
-    app_instance.run()
+app_instance.routes()
+
