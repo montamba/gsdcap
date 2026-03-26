@@ -10,23 +10,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def login_required(role=None):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            if "user_id" not in session:
-                return redirect(url_for("index"))
-            if role and session.get("role") != role:
-                return jsonify({"status": "forbidden", "message": "Access denied"}), 403
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
-
 
 class Main:
     def __init__(self):
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY", "gsd-parking-secret-change-in-prod")
+        self.app.secret_key = os.environ.get("SECRET_KEY", "gsd-parking-secret-key")
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
@@ -142,6 +130,5 @@ class Main:
 
 
 app_instance = Main()
-
-app_instance.routes()
+#test 2
 

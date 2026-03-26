@@ -162,6 +162,10 @@ class SQL:
         self.sql.commit()
         cur.close()
 
+
+
+
+
         """
         Sends the QR data code (plain string) to the owner's email.
         No image is generated server-side — the JS on the client renders the QR from this code.
