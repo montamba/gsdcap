@@ -125,8 +125,7 @@ class Main:
         self.app.register_blueprint(Staff().staff)
         self.app.register_blueprint(Guard().guard)
 
-    def run(self):
-        self.app.run(debug=True)
+    
 
 
 app_instance = Main()
