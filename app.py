@@ -28,6 +28,7 @@ class Main:
         
         print(os.getenv("DATABASE"))
         self.blueprints()
+        self.routes()
 
     def routes(self):
         @self.app.route("/")
@@ -129,7 +130,3 @@ class Main:
 
 
 app_instance = Main()
-#test 2
-if __name__ == "__main__":
-    app_instance.routes()
-    app_instance.run()
