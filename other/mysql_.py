@@ -5,6 +5,7 @@ import bcrypt
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import json
 
 load_dotenv()
 
@@ -14,8 +15,10 @@ class SQL:
             user= os.getenv("USER"),
             host= os.getenv("LOCALHOST"),
             database= os.getenv("DATABASE"),
-            passwd= os.getenv("PASSW")
+            passwd= os.getenv("PASSW"),
+            port=int(os.getenv("PORT"))
         )
+        self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
 
     def _hash(self, password: str) -> str:
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -156,16 +159,53 @@ class SQL:
         self.sql.commit()
         cur.close()
 
-    def inserthistory(self, data, guard, status):
+    def deleteqr(self, qr_id, user_id):
         cur = self.sql.cursor()
-        cur.execute("INSERT INTO history(data, guard, status) VALUES (%s,%s,%s)", (data, guard, status))
+        cur.execute("DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id))
         self.sql.commit()
         cur.close()
 
+    # ─── History queries ───────────────────────────────────
 
+    def inserthistory(self, data, guard, status, action="entry"):
+        cur = self.sql.cursor()
+        cur.execute(
+            "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
+            (data, guard, status, action)
+        )
+        self.sql.commit()
+        cur.close()
 
+    # ─── Parking Management ────────────────────────────────
 
+    def updateparking(self, action="entry"):
+        try:
+            with open(self.parking_file, "r") as f:
+                data = json.load(f)
+            
+            if action == "entry":
+                data["occupied"] = min(data["occupied"] + 1, data["total"])
+                data["available"] = data["total"] - data["occupied"]
+            elif action == "exit":
+                data["occupied"] = max(data["occupied"] - 1, 0)
+                data["available"] = data["total"] - data["occupied"]
+            
+            with open(self.parking_file, "w") as f:
+                json.dump(data, f, indent=4)
+            
+            return True
+        except Exception as e:
+            print(f"Error updating parking: {e}")
+            return False
 
+    def getparking(self):
+        try:
+            with open(self.parking_file, "r") as f:
+                return json.load(f)
+        except:
+            return {"total": 0, "occupied": 0, "available": 0}
+
+   
         """
         Sends the QR data code (plain string) to the owner's email.
         No image is generated server-side — the JS on the client renders the QR from this code.
@@ -191,7 +231,7 @@ class SQL:
               <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
                           padding:28px 32px;text-align:center;">
                 <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
-                  &#x1F17F; GSD PARKING
+                  🅿️ GSD PARKING
                 </h1>
                 <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;letter-spacing:1px;">
                   VEHICLE MONITORING SYSTEM

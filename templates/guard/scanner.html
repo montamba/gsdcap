@@ -162,6 +162,95 @@
             flex-wrap: wrap;
         }
 
+        /* ─── ACTION SELECTOR ─── */
+        .action-selector {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .action-head {
+            padding: 14px 20px;
+            background: #f5f9ff;
+            border-bottom: 1px solid #ddeaff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-head::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .action-head h2 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .action-head i { color: #2563eb; }
+
+        .action-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #ddeaff;
+            background: #f8faff;
+            color: #64748b;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.04em;
+        }
+
+        .action-btn:hover {
+            border-color: #c7d9f5;
+            background: #ffffff;
+        }
+
+        .action-btn.active {
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            border-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .action-btn.exit {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            border-color: #ef4444;
+            color: #ffffff;
+        }
+
+        .action-btn.exit:not(.active) {
+            background: #fef2f2;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+
         /* ─── VIDEO CARD ─── */
         .video-card {
             background: #ffffff;
@@ -217,7 +306,6 @@
             background: #0f172a;
         }
 
-        /* scanner corner decorations */
         .video-frame::before,
         .video-frame::after {
             content: '';
@@ -247,7 +335,6 @@
             object-fit: cover;
         }
 
-        /* scan line animation */
         .scan-line {
             position: absolute;
             left: 0; right: 0;
@@ -289,6 +376,11 @@
             transform: translateY(-1px);
         }
 
+        .btn-capture:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* ─── RESULT CARD ─── */
         .result-card {
             background: #ffffff;
@@ -307,7 +399,6 @@
             gap: 16px;
         }
 
-        /* captured preview */
         .preview-box {
             width: 100%;
             aspect-ratio: 4/3;
@@ -335,7 +426,6 @@
             line-height: 2;
         }
 
-        /* result status */
         .result-status {
             padding: 16px;
             border-radius: 10px;
@@ -377,7 +467,18 @@
         .result-status.success .result-text { color: #065f46; }
         .result-status.error   .result-text { color: #991b1b; }
 
-        /* hidden canvas */
+        .result-action {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .result-status.success .result-action { color: #059669; }
+        .result-status.error   .result-action { color: #dc2626; }
+
         #pic { display: none; }
     </style>
 </head>
@@ -401,6 +502,24 @@
             <p>SCAN VEHICLE QR CODES FOR ENTRY / EXIT</p>
         </div>
 
+        <!-- Action Selector -->
+        <div style="padding: 0 32px;">
+            <div class="action-selector">
+                <div class="action-head">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <h2>Select Action</h2>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn active" id="entryBtn" onclick="setAction('entry')">
+                        <i class="bi bi-arrow-bar-right"></i> ENTRY
+                    </button>
+                    <button class="action-btn exit" id="exitBtn" onclick="setAction('exit')">
+                        <i class="bi bi-arrow-bar-left"></i> EXIT
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="scanner-wrap">
             <!-- Camera -->
             <div class="video-card">
@@ -413,7 +532,7 @@
                         <video id="video" autoplay></video>
                         <div class="scan-line"></div>
                     </div>
-                    <button class="btn-capture" onclick="takePicture()">
+                    <button class="btn-capture" id="captureBtn" onclick="takePicture()">
                         <i class="bi bi-camera"></i> Capture & Scan
                     </button>
                 </div>
@@ -436,6 +555,7 @@
                     <div class="result-status" id="resultStatus">
                         <div class="result-label">Status</div>
                         <div class="result-text" id="resultText">Waiting for scan...</div>
+                        <div class="result-action" id="resultAction" style="display:none;"></div>
                     </div>
                 </div>
             </div>
@@ -450,6 +570,22 @@
         const canvas = document.getElementById("pic");
         const poc    = document.getElementById("poc");
         const ctx    = canvas.getContext("2d");
+        let currentAction = "entry";
+
+        function setAction(action) {
+            currentAction = action;
+            document.getElementById("entryBtn").classList.remove("active");
+            document.getElementById("exitBtn").classList.remove("active");
+            
+            if(action === "entry") {
+                document.getElementById("entryBtn").classList.add("active");
+            } else {
+                document.getElementById("exitBtn").classList.add("active");
+            }
+            
+            // Reset result
+            setResult("default", "Ready to scan...");
+        }
 
         async function startCamera() {
             try {
@@ -458,6 +594,7 @@
             } catch (err) {
                 console.error("Error accessing camera: ", err);
                 setResult("error", "Camera access denied or unavailable.");
+                document.getElementById("captureBtn").disabled = true;
             }
         }
 
@@ -482,9 +619,14 @@
 
             if (code) {
                 setResult("loading", "QR detected — checking...");
-                let response = await API.post("/guard/check_qr", { data: code.data });
+                let response = await API.post("/guard/check_qr", { 
+                    data: code.data,
+                    action: currentAction
+                });
+                
                 if (response.status === "good") {
-                    setResult("success", response.message || "Access granted.");
+                    setResult("success", response.message);
+                    showActionResult(response.action);
                 } else {
                     setResult("error", response.message || "QR not recognized.");
                 }
@@ -493,13 +635,37 @@
             }
         }
 
+        function showActionResult(action) {
+            const actionEl = document.getElementById("resultAction");
+            if(action === "entry") {
+                actionEl.textContent = "✓ VEHICLE ENTERED";
+                actionEl.style.color = "#10b981";
+            } else {
+                actionEl.textContent = "✓ VEHICLE EXITED";
+                actionEl.style.color = "#ef4444";
+            }
+            actionEl.style.display = "block";
+        }
+
         function setResult(type, message) {
             const box  = document.getElementById("resultStatus");
             const text = document.getElementById("resultText");
+            const action = document.getElementById("resultAction");
+            
             box.className  = "result-status";
             text.textContent = message;
-            if (type === "success") box.classList.add("success");
-            if (type === "error")   box.classList.add("error");
+            action.style.display = "none";
+            
+            if (type === "success") {
+                box.classList.add("success");
+                setTimeout(() => {
+                    poc.style.display = "none";
+                    document.getElementById("previewPlaceholder").style.display = "block";
+                    setResult("default", "Ready to scan...");
+                }, 2000);
+            } else if (type === "error") {
+                box.classList.add("error");
+            }
         }
 
         startCamera();

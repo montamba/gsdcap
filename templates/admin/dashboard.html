@@ -90,8 +90,8 @@
         tbody tr:hover td { background:#f8faff; color:#0f172a; }
         .plate { font-family:'Space Mono',monospace; color:#1e3a8a; font-size:13px; }
         .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; border-radius:20px; }
-        .badge-green { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
-        .badge-red   { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge-in { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-out   { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
     </style>
 </head>
 <body>
@@ -128,19 +128,19 @@
         <div class="inner">
             <div class="cards">
                 <div class="card card-1">
-                    <div><div class="card-label">Parking Slots</div><div class="card-num">50</div></div>
+                    <div><div class="card-label">Parking Slots</div><div class="card-num" id="totalSlots">—</div></div>
                     <div class="card-icon"><i class="bi bi-p-circle-fill"></i></div>
                 </div>
                 <div class="card card-2">
-                    <div><div class="card-label">Entered Today</div><div class="card-num">32</div></div>
+                    <div><div class="card-label">Entered Today</div><div class="card-num" id="enteredToday">—</div></div>
                     <div class="card-icon"><i class="bi bi-arrow-bar-right"></i></div>
                 </div>
                 <div class="card card-3">
-                    <div><div class="card-label">Occupied</div><div class="card-num">18</div></div>
+                    <div><div class="card-label">Occupied</div><div class="card-num" id="occupied">—</div></div>
                     <div class="card-icon"><i class="bi bi-car-front-fill"></i></div>
                 </div>
                 <div class="card card-4">
-                    <div><div class="card-label">Active QR</div><div class="card-num">12</div></div>
+                    <div><div class="card-label">Active QR</div><div class="card-num" id="activeQr">—</div></div>
                     <div class="card-icon"><i class="bi bi-qr-code"></i></div>
                 </div>
             </div>
@@ -163,46 +163,114 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>QR Code</th>
+                            <th>Time</th>
+                            <th>Action</th>
                             <th>Plate Number</th>
-                            <th>Time In</th>
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr><td class="plate">ABC-123</td><td>10:45 AM</td><td><span class="badge badge-green">● Inside</span></td></tr>
-                        <tr><td class="plate">XYZ-421</td><td>11:02 AM</td><td><span class="badge badge-red">● Exited</span></td></tr>
-                        <tr><td class="plate">JKL-555</td><td>11:10 AM</td><td><span class="badge badge-green">● Inside</span></td></tr>
+                    <tbody id="activityTable">
+                        <tr>
+                            <td colspan="5" style="text-align:center;color:#94a3b8;">Loading...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <script src="/../../static/scripts/scrit.js"></script>
     <script>
-        new Chart(document.getElementById('parkingChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-                datasets: [{
-                    label: 'Cars Entered',
-                    data: [12,19,7,15,22,30,18],
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37,99,235,0.07)',
-                    tension: 0.4, fill: true,
-                    pointBackgroundColor: '#2563eb',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2, pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { labels: { color:'#64748b', font:{ family:'Space Mono', size:11 } } } },
-                scales: {
-                    x: { ticks:{ color:'#94a3b8', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#f1f5f9' } },
-                    y: { ticks:{ color:'#94a3b8', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#f1f5f9' } }
+        let chartInstance = null;
+
+        async function loadDashboardData() {
+            try {
+                let statsRes = await API.get("/admin/dashboard_data");
+                if(statsRes.status === "good") {
+                    document.getElementById("totalSlots").textContent = statsRes.parking_slots;
+                    document.getElementById("enteredToday").textContent = statsRes.entered_today;
+                    document.getElementById("occupied").textContent = statsRes.occupied;
+                    document.getElementById("activeQr").textContent = statsRes.active_qr;
                 }
+
+                let chartRes = await API.get("/admin/activity_chart");
+                if(chartRes.status === "good") {
+                    updateChart(chartRes.labels, chartRes.data);
+                }
+
+                let activityRes = await API.get("/admin/recent_activity");
+                if(activityRes.status === "good") {
+                    updateActivityTable(activityRes.data);
+                }
+            } catch(e) {
+                console.error("Error loading dashboard:", e);
             }
-        });
+        }
+
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('parkingChart').getContext('2d');
+            
+            if(chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                    datasets: [{
+                        label: 'Cars Entered',
+                        data: data.length > 0 ? data : [0,0,0,0,0,0,0],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37,99,235,0.07)',
+                        tension: 0.4, fill: true,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2, pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color:'#64748b', font:{ family:'Space Mono', size:11 } } } },
+                    scales: {
+                        x: { ticks:{ color:'#94a3b8', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#f1f5f9' } },
+                        y: { ticks:{ color:'#94a3b8', font:{ family:'Space Mono', size:11 } }, grid:{ color:'#f1f5f9' } }
+                    }
+                }
+            });
+        }
+
+        function updateActivityTable(activities) {
+            const tbody = document.getElementById("activityTable");
+            
+            if(!activities || activities.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No recent activity</td></tr>`;
+                return;
+            }
+
+            let html = activities.map(activity => {
+                const actionBadge = activity.action === 'entry' 
+                    ? `<span class="badge badge-in">● ENTRY</span>`
+                    : `<span class="badge badge-out">● EXIT</span>`;
+                
+                return `
+                    <tr>
+                        <td style="font-family:'Space Mono',monospace;font-size:11px;color:#2563eb;">${activity.qr_code || '—'}</td>
+                        <td style="font-size:11px;color:#94a3b8;">${activity.time || '—'}</td>
+                        <td>${actionBadge}</td>
+                        <td class="plate">${activity.plate || '—'}</td>
+                        <td style="color:#10b981;font-weight:600;">${activity.status === 'accepted' ? '✓ Accepted' : '✗ Rejected'}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            tbody.innerHTML = html;
+        }
+
+        loadDashboardData();
+
+        setInterval(loadDashboardData, 30000);
     </script>
 </body>
 </html>

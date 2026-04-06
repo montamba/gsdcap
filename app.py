@@ -22,7 +22,8 @@ class Main:
             user= os.getenv("USER"),
             host= os.getenv("LOCALHOST"),
             database= os.getenv("DATABASE"),
-            passwd= os.getenv("PASSW")
+            passwd= os.getenv("PASSW"),
+             port=int(os.getenv("PORT"))
         )
         
         print(os.getenv("DATABASE"))
