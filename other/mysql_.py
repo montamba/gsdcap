@@ -16,7 +16,7 @@ class SQL:
             host= os.getenv("LOCALHOST"),
             database= os.getenv("DATABASE"),
             passwd= os.getenv("PASSW"),
-            port=int(os.getenv("PORT"))
+            port=int(os.getenv("MYSQLPORT"))
         )
         self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
 
