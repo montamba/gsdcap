@@ -65,11 +65,9 @@ class Main:
                     (email,role)
                 )
                 print("hello", email)
-
             
             user = cur.fetchone()
-            print("user")
-            print(user)
+            
             if not user:
                 return jsonify({"status": "failed", "message": "no user"})
             
@@ -131,4 +129,6 @@ class Main:
 
 app_instance = Main()
 #test 2
-
+if __name__ == "__main__":
+    app_instance.routes()
+    app_instance.run()

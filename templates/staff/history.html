@@ -211,10 +211,14 @@
             document.querySelector("#qrtab > tbody").innerHTML = html
         }
 
-        setTimeout(getRecentQR, 1000)
-        getQrdata()
-        setInterval(getQrdata, 30000)
-        setInterval(getRecentQR, 25000)
+
+        async function get(){
+            await getRecentQR()
+            await getQrdata()
+        }
+
+        get()
+        setInterval(get, 30000)
     </script>
 </body>
 </html>

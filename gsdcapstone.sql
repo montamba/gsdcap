@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `gsdparking` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `gsdparking`;
 -- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: gsdparking
@@ -58,8 +56,8 @@ CREATE TABLE `history` (
   `status` enum('failed','accepted','expired') DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `guard` (`guard`),
-  CONSTRAINT `history_ibfk_1` FOREIGN KEY (`guard`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `history_ibfk_guard` FOREIGN KEY (`guard`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -88,11 +86,12 @@ CREATE TABLE `qrcode` (
   `status` varchar(20) DEFAULT 'active',
   `created_by` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `car_status` enum('IN','OUT') DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `data` (`data`),
   KEY `fk_user` (`created_by`),
-  CONSTRAINT `fk_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `qrcode_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -101,7 +100,6 @@ CREATE TABLE `qrcode` (
 
 LOCK TABLES `qrcode` WRITE;
 /*!40000 ALTER TABLE `qrcode` DISABLE KEYS */;
-INSERT INTO `qrcode` VALUES (1,'mmm','mmm23',NULL,NULL,'2002-02-22 00:00:00','active',5,'2026-03-11 11:27:04'),(2,'kqkq','wkwk',NULL,NULL,'4444-04-04 00:00:00','active',5,'2026-03-16 04:25:26'),(3,'s','s',NULL,NULL,'3333-03-31 00:00:00','active',5,'2026-03-16 04:28:29'),(4,'hello ako po toh nag tetest','123321',NULL,NULL,'2026-02-22 00:00:00','active',5,'2026-03-16 08:56:32'),(5,'GSD-ZSWK-BSDQ','1234432','vy','','2026-03-14 00:00:00','active',14,'2026-03-25 13:45:20');
 /*!40000 ALTER TABLE `qrcode` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -122,7 +120,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,7 +129,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (4,'sss','s@s','sssssssss','guard','2026-03-08 07:23:28'),(5,'kayoop','m@m','kayonapo','guard','2026-03-11 06:25:38'),(6,'okkayo','m@email','12333444','user','2026-03-11 06:31:08'),(7,'kkk','k@k','$2b$12$ypZks.v8rVeu0sPeAtVyIeKxCq55B9LqUmlxnFYTr1KlSiYjaP1m2','user','2026-03-11 07:18:43'),(10,'mmm','mon@mon','$2b$12$xgTinuLMSfSriLE80H6KMuP2Whxxy2QuugyjzoSVLS53YNjHjE4ly','guard','2026-03-11 07:51:59'),(11,'hatdog','hat@hat','$2b$12$tdEFLgQBRdtJc1f2vZ5Kc.gsTEPXIh.hdsS5bBIQAT.0zrXXYpRZ2','guard','2026-03-18 10:06:17'),(13,'korekong','kore@kong','$2b$12$BA3im4.XcJsyn22WlIgYSOsi7IEYphFwnPJh2m0TKUUBfpBKEBMZa','staff','2026-03-18 10:17:51'),(14,'via','viy@gmail','$2b$12$NV.7Hp833PXGNdrQQzbNteJjLKJeigCf2YteZlzvFAHqH9wuTPFle','staff','2026-03-25 13:32:51');
+INSERT INTO `users` VALUES (16,'fritz','fritz@fritz','$2b$12$Op7rjQQwdt6OVmuudn9YSeok6dMjMNIpjPi2oZwQ84I8efJYaKVSe','guard','2026-04-06 03:36:40'),(17,'via','via@via','$2b$12$j67JL3Yc.LItB5x8Az0XTur1lsyrbWG3quxESTxo1RoTWVL6BHnz2','staff','2026-04-06 03:37:14');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -144,4 +142,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-25 22:18:20
+-- Dump completed on 2026-04-06 11:47:11
