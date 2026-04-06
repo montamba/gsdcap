@@ -130,3 +130,4 @@ class Main:
 
 
 app_instance = Main()
+app = app_instance.app
