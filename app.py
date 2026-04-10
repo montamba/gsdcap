@@ -23,7 +23,7 @@ class Main:
             host= os.getenv("LOCALHOST"),
             database= os.getenv("DATABASE"),
             passwd= os.getenv("PASSW"),
-             port=int(os.getenv("PORT"))
+             port=int(os.getenv("MYSQLPORT"))
         )
         
         print(os.getenv("DATABASE"))
@@ -125,19 +125,10 @@ class Main:
         self.app.register_blueprint(Staff().staff)
         self.app.register_blueprint(Guard().guard)
 
+    
 
 
 app_instance = Main()
 app = app_instance.app
-
-
-if __name__ == "__main__":
-    app.run(port="0.0.0.0")
-
-
-
-
-
-
 
 
