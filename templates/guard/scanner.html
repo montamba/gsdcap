@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>QR Scanner — GSD Parking</title>
     <script src="/../../static/scripts/scrit.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -132,6 +132,9 @@
             border-bottom: 1px solid #c7d9f5;
             padding: 22px 32px;
             box-shadow: 0 1px 8px rgba(37,99,235,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .header h1 {
@@ -152,6 +155,36 @@
             margin-top: 3px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-switch-camera {
+            padding: 8px 16px;
+            background: #f8faff;
+            border: 1.5px solid #c7d9f5;
+            color: #2563eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-switch-camera:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        .btn-switch-camera:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .scanner-wrap {
@@ -304,6 +337,8 @@
             overflow: hidden;
             border: 2px solid #ddeaff;
             background: #0f172a;
+            width: 100%;
+            max-width: 480px;
         }
 
         .video-frame::before,
@@ -330,8 +365,9 @@
 
         #video {
             display: block;
-            width: 480px;
-            height: 360px;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4/3;
             object-fit: cover;
         }
 
@@ -479,7 +515,49 @@
         .result-status.success .result-action { color: #059669; }
         .result-status.error   .result-action { color: #dc2626; }
 
+        .camera-permission-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: none;
+        }
+
         #pic { display: none; }
+
+        @media (max-width: 768px) {
+            aside {
+                width: 200px;
+                min-width: 200px;
+            }
+
+            .scanner-wrap {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .video-card, .result-card {
+                width: 100%;
+            }
+
+            #video {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -498,8 +576,21 @@
 
     <div class="right">
         <div class="header">
-            <h1><i class="bi bi-qr-code-scan"></i> QR Scanner</h1>
-            <p>SCAN VEHICLE QR CODES FOR ENTRY / EXIT</p>
+            <div>
+                <h1><i class="bi bi-qr-code-scan"></i> QR Scanner</h1>
+                <p>SCAN VEHICLE QR CODES FOR ENTRY / EXIT</p>
+            </div>
+            <div class="header-right">
+                <button class="btn-switch-camera" id="switchCameraBtn" onclick="switchCamera()" title="Switch camera">
+                    <i class="bi bi-arrow-repeat"></i> Switch Camera
+                </button>
+            </div>
+        </div>
+
+        <!-- Camera Permission Error -->
+        <div class="camera-permission-error" id="cameraError">
+            <strong>⚠️ Camera Permission Denied</strong><br>
+            Please enable camera permission in your browser settings to use the scanner.
         </div>
 
         <!-- Action Selector -->
@@ -529,7 +620,7 @@
                 </div>
                 <div class="video-body">
                     <div class="video-frame">
-                        <video id="video" autoplay></video>
+                        <video id="video" autoplay playsinline></video>
                         <div class="scan-line"></div>
                     </div>
                     <button class="btn-capture" id="captureBtn" onclick="takePicture()">
@@ -566,11 +657,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        // ─── STATE VARIABLES ───
         const video  = document.getElementById("video");
         const canvas = document.getElementById("pic");
         const poc    = document.getElementById("poc");
         const ctx    = canvas.getContext("2d");
         let currentAction = "entry";
+        let currentStream = null;
+        let currentFacing = "environment"; // rear camera by default
+        let availableCameras = [];
+        let isScanning = false;
 
         function setAction(action) {
             currentAction = action;
@@ -583,8 +679,24 @@
                 document.getElementById("exitBtn").classList.add("active");
             }
             
-            // Reset result
             setResult("default", "Ready to scan...");
+        }
+
+        async function getCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(device => device.kind === 'videoinput');
+                
+                // Hide switch button if only one camera
+                if (availableCameras.length <= 1) {
+                    document.getElementById("switchCameraBtn").style.display = "none";
+                }
+                
+                return availableCameras;
+            } catch (err) {
+                console.error("Error enumerating cameras:", err);
+                return [];
+            }
         }
 
         async function startCamera() {
@@ -593,24 +705,73 @@
                     currentStream.getTracks().forEach(track => track.stop());
                 }
 
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: currentFacing }, 
-                    audio: false 
-                });
+                document.getElementById("cameraError").style.display = "none";
 
+                const constraints = {
+                    audio: false,
+                    video: {
+                        facingMode: { ideal: currentFacing },
+                        width: { ideal: 1280 },
+                        height: { ideal: 960 }
+                    }
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 currentStream = stream;
                 video.srcObject = stream;
 
+                const track = stream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                console.log("Camera facing mode:", settings.facingMode);
+
             } catch (err) {
-                console.error("Error accessing camera: ", err);
-                setResult("error", "Camera access denied or unavailable.");
+                console.error("Error accessing camera:", err);
+                
+                if (err.name === "NotAllowedError") {
+                    document.getElementById("cameraError").style.display = "block";
+                    document.getElementById("cameraError").innerHTML = 
+                        "<strong>⚠️ Camera Permission Denied</strong><br>" +
+                        "Please enable camera permission in your browser settings to use the scanner.";
+                } else if (err.name === "NotFoundError") {
+                    document.getElementById("cameraError").style.display = "block";
+                    document.getElementById("cameraError").innerHTML = 
+                        "<strong>⚠️ No Camera Found</strong><br>" +
+                        "Please connect a camera device to your device.";
+                } else {
+                    document.getElementById("cameraError").style.display = "block";
+                    document.getElementById("cameraError").innerHTML = 
+                        "<strong>⚠️ Camera Error</strong><br>" +
+                        "Unable to access camera: " + err.message;
+                }
+                
                 document.getElementById("captureBtn").disabled = true;
+                document.getElementById("switchCameraBtn").disabled = true;
             }
         }
 
+        async function switchCamera() {
+            currentFacing = currentFacing === "environment" ? "user" : "environment";
+            const facing = currentFacing === "environment" ? "Rear" : "Front";
+            console.log("Switching to " + facing + " camera");
+            
+            setResult("loading", "Switching camera...");
+            await startCamera();
+            setTimeout(() => {
+                setResult("default", "Ready to scan...");
+            }, 1500);
+        }
+
         function takePicture() {
+            if (isScanning) return;
+            
             const width  = video.videoWidth;
             const height = video.videoHeight;
+            
+            if (width === 0 || height === 0) {
+                setResult("error", "Camera not ready. Please wait...");
+                return;
+            }
+
             canvas.width  = width;
             canvas.height = height;
             ctx.drawImage(video, 0, 0, width, height);
@@ -620,28 +781,36 @@
             poc.style.display = "block";
             document.getElementById("previewPlaceholder").style.display = "none";
 
+            isScanning = true;
             poc.onload = () => detectQRCode();
         }
 
         async function detectQRCode() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            try {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-            if (code) {
-                setResult("loading", "QR detected — checking...");
-                let response = await API.post("/guard/check_qr", { 
-                    data: code.data,
-                    action: currentAction
-                });
-                
-                if (response.status === "good") {
-                    setResult("success", response.message);
-                    showActionResult(response.action);
+                if (code) {
+                    setResult("loading", "QR detected — checking...");
+                    let response = await API.post("/guard/check_qr", { 
+                        data: code.data,
+                        action: currentAction
+                    });
+                    
+                    if (response.status === "good") {
+                        setResult("success", response.message);
+                        showActionResult(response.action);
+                    } else {
+                        setResult("error", response.message || "QR not recognized.");
+                    }
                 } else {
-                    setResult("error", response.message || "QR not recognized.");
+                    setResult("error", "No QR code detected in frame.");
                 }
-            } else {
-                setResult("error", "No QR code detected in frame.");
+            } catch (err) {
+                console.error("Detection error:", err);
+                setResult("error", "Error detecting QR code.");
+            } finally {
+                isScanning = false;
             }
         }
 
@@ -672,13 +841,36 @@
                     poc.style.display = "none";
                     document.getElementById("previewPlaceholder").style.display = "block";
                     setResult("default", "Ready to scan...");
-                }, 2000);
+                    isScanning = false;
+                }, 2500);
             } else if (type === "error") {
                 box.classList.add("error");
+                setTimeout(() => {
+                    isScanning = false;
+                }, 1500);
             }
         }
 
-        startCamera();
+        window.addEventListener("load", async () => {
+            await getCameras();
+            await startCamera();
+        });
+
+        window.addEventListener("beforeunload", () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+            } else {
+                startCamera();
+            }
+        });
     </script>
 </body>
 </html>
