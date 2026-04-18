@@ -10,53 +10,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="/../../static/scripts/scrit.js"></script>
     <style>
-        .page-header {
-            background:#ffffff;
-            border-bottom:1px solid #c7d9f5; padding:24px 36px; position:relative;
-            box-shadow:0 1px 8px rgba(37,99,235,0.06);
-        }
+        .page-header { background:#fff; border-bottom:1px solid #c7d9f5; padding:24px 36px; position:relative; box-shadow:0 1px 8px rgba(37,99,235,.06); }
         .page-header h1 { font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:10px; }
         .page-header h1 i { color:#2563eb; }
         .page-header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
-
         .inner { padding:28px 36px; }
-
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
-
-        .card { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
-        .card-head {
-            padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff;
-            display:flex; align-items:center; gap:10px;
-        }
+        .card { background:#fff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .card-head { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:10px; }
         .card-head::before { content:''; width:3px; height:14px; background:#2563eb; flex-shrink:0; border-radius:2px; }
         .card-head h3 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
         .card-head i { color:#2563eb; }
-
         .card-body { padding:24px; display:flex; flex-direction:column; gap:16px; }
-
         .form-group { display:flex; flex-direction:column; gap:6px; }
         .form-group label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
-        .form-group input {
-            padding:12px 16px; background:#f8faff; border:1.5px solid #c7d9f5;
-            color:#0f172a; font-family:'Space Mono',monospace; font-size:14px;
-            outline:none; transition:border-color .2s, box-shadow .2s; border-radius:8px;
-        }
-        .form-group input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.1); background:#ffffff; }
+        .form-group input { padding:12px 16px; background:#f8faff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Space Mono',monospace; font-size:14px; outline:none; transition:border-color .2s,box-shadow .2s; border-radius:8px; }
+        .form-group input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
         .form-group input::placeholder { color:#cbd5e1; }
+        .btn-update { align-self:flex-start; padding:11px 24px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; letter-spacing:.06em; text-transform:uppercase; display:flex; align-items:center; gap:7px; transition:all .2s; border-radius:8px; box-shadow:0 3px 12px rgba(37,99,235,.25); }
+        .btn-update:hover { opacity:.92; }
 
-        .btn-update {
-            align-self:flex-start; padding:11px 24px;
-            background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none;
-            color:#ffffff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
-            cursor:pointer; letter-spacing:.06em; text-transform:uppercase;
-            display:flex; align-items:center; gap:7px; transition:all .2s;
-            border-radius:8px; box-shadow:0 3px 12px rgba(37,99,235,0.25);
-        }
-        .btn-update:hover { opacity:.92; box-shadow:0 5px 18px rgba(37,99,235,0.35); }
-
-        /* ── SLOTS ── */
         .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#ddeaff; margin:20px; border-radius:8px; overflow:hidden; }
-        .slot { background:#ffffff; padding:26px 16px; text-align:center; position:relative; overflow:hidden; }
+        .slot { background:#fff; padding:26px 16px; text-align:center; position:relative; overflow:hidden; }
         .slot::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
         .slot-available::before { background:#10b981; }
         .slot-occupied::before  { background:#ef4444; }
@@ -67,18 +42,23 @@
         .slot-occupied  .slot-num { color:#ef4444; }
         .slot-total     .slot-num { color:#2563eb; }
 
-        /* ── HISTORY TABLE ── */
-        .history-box { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
+        .history-box { background:#fff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
         table { width:100%; border-collapse:collapse; }
         th,td { padding:13px 22px; text-align:left; font-size:13px; }
         th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
         td { color:#334155; border-bottom:1px solid #f1f5f9; }
         tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:#f8faff; }
-        .hist-table tr { display:grid; grid-template-columns:60px 1fr 1fr 140px; }
-        .btn-sm { padding:5px 10px; border:1px solid #c7d9f5; background:transparent; color:#64748b; cursor:pointer; font-size:13px; transition:all .2s; margin-right:4px; border-radius:6px; }
-        .btn-sm:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
-        .btn-sm.danger:hover { border-color:#fca5a5; color:#ef4444; background:#fee2e2; }
+        .hist-table tr { display:grid; grid-template-columns:60px 1fr 1fr 120px; }
+
+        /* ─── PAGINATION ─── */
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:5px; }
+        .pg-btn { padding:5px 11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
     </style>
 </head>
 <body>
@@ -118,7 +98,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label>Total Parking Spaces</label>
-                            <input type="number" id="park" placeholder="Enter number of spaces">
+                            <input type="number" id="park" placeholder="Enter number of spaces" min="1">
                         </div>
                         <button class="btn-update" onclick="updateParking(event)">
                             <i class="bi bi-arrow-repeat"></i> Update Slots
@@ -146,72 +126,111 @@
             </div>
 
             <div class="history-box">
-                <div class="card-head" style="padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:10px;">
-                    <span style="width:3px;height:14px;background:#2563eb;display:inline-block;flex-shrink:0;border-radius:2px;"></span>
-                    <i class="bi bi-clock-history" style="color:#2563eb;"></i>
-                    <h3 style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.12em;font-family:'Space Mono',monospace;">Parking History</h3>
+                <div style="padding:14px 20px;background:#f5f9ff;border-bottom:1px solid #ddeaff;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="width:3px;height:14px;background:#2563eb;display:inline-block;flex-shrink:0;border-radius:2px;"></span>
+                        <i class="bi bi-clock-history" style="color:#2563eb;"></i>
+                        <h3 style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.12em;font-family:'Space Mono',monospace;">Scan History</h3>
+                    </div>
+                    <span class="pg-info" id="histPgInfo">—</span>
                 </div>
                 <table class="hist-table">
                     <thead>
-                        <tr><th>ID</th><th>QR Code</th><th>Actions</th></tr>
+                        <tr><th>ID</th><th>QR Code</th><th>Status</th><th>Actions</th></tr>
                     </thead>
-                    <tbody>
-                        
-                    </tbody>
+                    <tbody id="histBody"></tbody>
                 </table>
+                <div class="pagination">
+                    <span class="pg-info" id="histPgBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="histPrev" onclick="changeHistPage(histPage - 1)" disabled>‹ Prev</button>
+                        <div id="histPgNums" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="histNext" onclick="changeHistPage(histPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        async function updateParking(e){
-            e.preventDefault()
-            let ndata = { "total": document.getElementById("park").value }
-            let response = await API.put("/admin/setparking", ndata)
-            document.querySelectorAll(".total").forEach(t => t.innerText = response.total)
-            showMessageModal(response.message, "Update: " + response.status)
+        const LIMIT  = 5;
+        let histPage  = 1;
+        let histPages = 1;
+
+        async function updateParking(e) {
+            e.preventDefault();
+            const total = document.getElementById("park").value;
+            if (!total) { showMessageModal("Please enter a number of spaces.", "Missing Value"); return; }
+            const response = await API.put("/admin/setparking", { total });
+            document.querySelectorAll(".total").forEach(t => t.innerText = response.total);
+            showMessageModal(response.message, "Update: " + response.status);
+            getParkdata();
         }
 
-        async function getParkdata(){
-            let response = await API.get("/admin/parking")
-            let data = response.data
-            document.querySelectorAll(".available").forEach(el => el.innerText = data.available)
-            document.querySelectorAll(".occupied").forEach(el => el.innerText = data.occupied)
-            document.querySelectorAll(".total").forEach(el => el.innerText = data.total)
+        async function getParkdata() {
+            const response = await API.get("/admin/parking");
+            const data = response.data;
+            document.querySelectorAll(".available").forEach(el => el.innerText = data.available);
+            document.querySelectorAll(".occupied").forEach(el  => el.innerText = data.occupied);
+            document.querySelectorAll(".total").forEach(el     => el.innerText = data.total);
         }
 
-        async function getHistory(){
-            let data = await API.get("/admin/get_history");
-            let histable = document.querySelector(".hist-table > tbody");
-            let html = "";
-            data.forEach(res=>{
-                html += `
-                    <tr>
-                        <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${res[0]}</td>
-                        <td style="font-family:'Space Mono',monospace;color:#2563eb;">${res[1]}</td>
-                        <td>
-                            <button class="btn-sm danger"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                `
+        async function getHistory(page = 1) {
+            histPage = page;
+            const data = await API.get(`/admin/get_history?page=${page}&limit=${LIMIT}`);
+            const tbody = document.getElementById("histBody");
 
+            if (!data || data.status !== "good" || !data.data.length) {
+                tbody.innerHTML = `<tr><td colspan="4" style="padding:32px;text-align:center;color:#94a3b8;font-family:'Space Mono',monospace;font-size:11px;">No history yet</td></tr>`;
+                updateHistPager(0, 1, 1);
+                return;
+            }
 
-            })
-            histable.innerHTML = html;
+            tbody.innerHTML = data.data.map(res => `
+                <tr>
+                    <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${res[0]}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#2563eb;font-size:12px;">${res[1]}</td>
+                    <td style="font-size:12px;color:#334155;">${res[3] || "—"}</td>
+                    <td style="color:#94a3b8;font-size:12px;">—</td>
+                </tr>`).join("");
+
+            updateHistPager(data.total, page, data.pages);
         }
 
+        function updateHistPager(total, page, pages) {
+            histPages = pages;
+            const info = `Page ${page} of ${pages}  (${total} records)`;
+            document.getElementById("histPgInfo").textContent   = info;
+            document.getElementById("histPgBottom").textContent = info;
+            document.getElementById("histPrev").disabled = page <= 1;
+            document.getElementById("histNext").disabled = page >= pages;
 
-        async function loadAll(){
+            const nums = document.getElementById("histPgNums");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changeHistPage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changeHistPage(p) {
+            if (p < 1 || p > histPages) return;
+            getHistory(p);
+        }
+
+        async function loadAll() {
             await getParkdata();
-            await getHistory();
-
+            await getHistory(histPage);
         }
 
-
-        
-
-        
-        setInterval(loadAll, 20000)
+        loadAll();
+        setInterval(loadAll, 20000);
     </script>
 </body>
 </html>

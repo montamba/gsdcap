@@ -10,19 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="/../../static/scripts/scrit.js"></script>
     <style>
-        .page-header {
-            background:#ffffff;
-            border-bottom:1px solid #c7d9f5; padding:24px 36px;
-            box-shadow:0 1px 8px rgba(37,99,235,0.06);
-        }
+        .page-header { background:#fff; border-bottom:1px solid #c7d9f5; padding:24px 36px; box-shadow:0 1px 8px rgba(37,99,235,.06); }
         .page-header h1 { font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:10px; }
         .page-header h1 i { color:#2563eb; }
         .page-header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
-
         .inner { padding:28px 36px; }
 
         .stat-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
-        .stat { background:#ffffff; border:1px solid #c7d9f5; padding:22px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
+        .stat { background:#fff; border:1px solid #c7d9f5; padding:22px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
         .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
         .stat:nth-child(1)::before { background:#f59e0b; }
         .stat:nth-child(2)::before { background:#10b981; }
@@ -37,39 +32,24 @@
         .stat:nth-child(2) .stat-icon { background:#d1fae5; color:#10b981; }
         .stat:nth-child(3) .stat-icon { background:#dbeafe; color:#2563eb; }
 
-        .table-box { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
-        .table-top {
-            padding:14px 22px; background:#f5f9ff; border-bottom:1px solid #ddeaff;
-            display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
-        }
+        .table-box { background:#fff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .table-top { padding:14px 22px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
         .table-top-left { display:flex; align-items:center; gap:10px; }
         .table-top-left::before { content:''; width:3px; height:14px; background:#2563eb; flex-shrink:0; border-radius:2px; }
         .table-top h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
         .table-top i { color:#2563eb; }
         .table-top-right { display:flex; align-items:center; gap:10px; }
-
-        .search-input {
-            padding:8px 14px; background:#ffffff; border:1.5px solid #c7d9f5;
-            color:#0f172a; font-family:'Space Mono',monospace; font-size:12px;
-            outline:none; width:210px; transition:border-color .2s; border-radius:8px;
-        }
+        .search-input { padding:8px 14px; background:#fff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Space Mono',monospace; font-size:12px; outline:none; width:210px; transition:border-color .2s; border-radius:8px; }
         .search-input:focus { border-color:#2563eb; }
         .search-input::placeholder { color:#cbd5e1; }
-
-        .btn-add {
-            padding:9px 18px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none;
-            color:#ffffff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
-            cursor:pointer; letter-spacing:.04em; text-transform:uppercase;
-            display:flex; align-items:center; gap:6px; transition:all .2s;
-            border-radius:8px; box-shadow:0 3px 10px rgba(37,99,235,0.25);
-        }
-        .btn-add:hover { opacity:.92; box-shadow:0 5px 16px rgba(37,99,235,0.35); }
+        .btn-add { padding:9px 18px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; letter-spacing:.04em; text-transform:uppercase; display:flex; align-items:center; gap:6px; transition:all .2s; border-radius:8px; box-shadow:0 3px 10px rgba(37,99,235,.25); }
+        .btn-add:hover { opacity:.92; }
 
         table { width:100%; border-collapse:collapse; }
         tr { display:grid; grid-template-columns:60px 2fr repeat(3,1fr); gap:1px; }
         th,td { padding:13px 16px; text-align:left; font-size:13px; }
         th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
-        td { color:#334155; border-bottom:1px solid #f1f5f9; background:#ffffff; }
+        td { color:#334155; border-bottom:1px solid #f1f5f9; background:#fff; }
         tbody tr:hover td { background:#f8faff; }
 
         .role-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.08em; border-radius:20px; }
@@ -80,50 +60,37 @@
         .btn-sm:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
         .btn-sm.danger:hover { border-color:#fca5a5; color:#ef4444; background:#fee2e2; }
 
+        /* ─── PAGINATION ─── */
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:5px; }
+        .pg-btn { padding:5px 11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+
         /* ── DIALOG ── */
-        #useradd {
-            background:#ffffff;
-            border:1px solid #c7d9f5;
-            padding:0; width:480px;
-            box-shadow:0 20px 60px rgba(37,99,235,0.15);
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            border-radius:14px;
-        }
-        #useradd::backdrop { background:rgba(15,23,42,0.35); backdrop-filter:blur(4px); }
-        .dialog-head {
-            padding:18px 24px; background:#f5f9ff; border-bottom:1px solid #ddeaff;
-            display:flex; align-items:center; gap:10px; border-radius:14px 14px 0 0;
-        }
+        #useradd { background:#fff; border:1px solid #c7d9f5; padding:0; width:480px; box-shadow:0 20px 60px rgba(37,99,235,.15); position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:14px; }
+        #useradd::backdrop { background:rgba(15,23,42,.35); backdrop-filter:blur(4px); }
+        .dialog-head { padding:18px 24px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:10px; border-radius:14px 14px 0 0; }
         .dialog-head::before { content:''; width:3px; height:14px; background:#2563eb; flex-shrink:0; border-radius:2px; }
         .dialog-head h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.12em; font-family:'Space Mono',monospace; }
         .dialog-head i { color:#2563eb; }
         .dialog-body { padding:24px; display:flex; flex-direction:column; gap:14px; }
         .form-group { display:flex; flex-direction:column; gap:6px; }
         .form-group label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
-        .form-group input, .form-group select {
-            padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5;
-            color:#0f172a; font-family:'Syne',sans-serif; font-size:14px; outline:none;
-            transition:border-color .2s; border-radius:8px;
-        }
-        .form-group input:focus, .form-group select:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.1); background:#ffffff; }
+        .form-group input, .form-group select { padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Syne',sans-serif; font-size:14px; outline:none; transition:border-color .2s; border-radius:8px; }
+        .form-group input:focus, .form-group select:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
         .form-group input::placeholder { color:#cbd5e1; }
-        .form-group select option { background:#ffffff; }
         .shwpass { display:flex; align-items:center; gap:8px; }
         .shwpass label { font-size:11px; color:#64748b; cursor:pointer; font-family:'Space Mono',monospace; }
         .shwpass input[type=checkbox] { width:14px; height:14px; accent-color:#2563eb; cursor:pointer; }
-        .dialog-foot {
-            padding:16px 24px; background:#f5f9ff; border-top:1px solid #ddeaff;
-            display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 14px 14px;
-        }
-        .btn-dlg { padding:9px 18px; border:1px solid #c7d9f5; background:#ffffff; color:#64748b; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px; }
-        .btn-dlg.primary { background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#ffffff; font-weight:800; box-shadow:0 3px 10px rgba(37,99,235,0.25); }
+        .dialog-foot { padding:16px 24px; background:#f5f9ff; border-top:1px solid #ddeaff; display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 14px 14px; }
+        .btn-dlg { padding:9px 18px; border:1px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px; }
+        .btn-dlg.primary { background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-weight:800; box-shadow:0 3px 10px rgba(37,99,235,.25); }
         .btn-dlg.primary:hover { opacity:.92; }
         .btn-dlg.cancel { color:#ef4444; border-color:#fca5a5; }
         .btn-dlg.cancel:hover { background:#fee2e2; }
-        .btn-dlg:not(.primary):not(.cancel):hover { border-color:#93c5fd; color:#2563eb; }
     </style>
 </head>
 <body>
@@ -179,7 +146,7 @@
                         <h2>All Users</h2>
                     </div>
                     <div class="table-top-right">
-                        <input type="search" class="search-input" placeholder="🔍 Search users..." oninput="filterUsers(this.value)">
+                        <input type="search" class="search-input" placeholder="🔍 Search users…" oninput="filterUsers(this.value)">
                         <button class="btn-add" onclick="showmodal()"><i class="bi bi-plus-lg"></i> Add User</button>
                     </div>
                 </div>
@@ -189,6 +156,14 @@
                     </thead>
                     <tbody id="users"></tbody>
                 </table>
+                <div class="pagination">
+                    <span class="pg-info" id="pgInfo">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="btnPrev" onclick="changePage(currentPage - 1)" disabled>‹ Prev</button>
+                        <div id="pgNumbers" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="btnNext" onclick="changePage(currentPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -224,51 +199,54 @@
                     </div>
                 </div>
                 <div class="dialog-foot">
-                    <button type="reset"   class="btn-dlg">Clear</button>
-                    <button type="button"  class="btn-dlg cancel" commandfor="useradd" command="close">Cancel</button>
-                    <button type="submit"  class="btn-dlg primary"><i class="bi bi-person-plus"></i> Add User</button>
+                    <button type="reset"  class="btn-dlg">Clear</button>
+                    <button type="button" class="btn-dlg cancel" commandfor="useradd" command="close">Cancel</button>
+                    <button type="submit" class="btn-dlg primary"><i class="bi bi-person-plus"></i> Add User</button>
                 </div>
             </form>
         </dialog>
     </div>
 
     <script>
-        let allUsers = []
+        const LIMIT = 5;
+        let currentPage = 1;
+        let totalPages  = 1;
+        let searchQuery = "";
 
-        async function adduser(e){
-            e.preventDefault()
-            let user = {
+        async function adduser(e) {
+            e.preventDefault();
+            const user = {
                 username: document.getElementById("username").value,
-                email: document.getElementById("email").value,
-                role: document.getElementById("role").value,
+                email:    document.getElementById("email").value,
+                role:     document.getElementById("role").value,
                 password: document.getElementById("password").value
-            }
-            if(user.password.length < 8){ alert("Password must have at least 8 characters"); return }
-            let res = await API.post("/admin/add_user", user)
-            showMessageModal(res.message, res.status)
-            if(res.status === "good"){
-                document.getElementById("useradd").close()
-                getUsers()
+            };
+            if (user.password.length < 8) { alert("Password must have at least 8 characters"); return; }
+            const res = await API.post("/admin/add_user", user);
+            showMessageModal(res.message, res.status);
+            if (res.status === "good") {
+                document.getElementById("useradd").close();
+                getUsers(1);
             }
         }
 
-        function showmodal(){ document.getElementById("useradd").show() }
+        function showmodal() { document.getElementById("useradd").show(); }
 
-        function showpassword(){
-            document.getElementById("password").type = document.getElementById("chckpass").checked ? "text" : "password"
+        function showpassword() {
+            document.getElementById("password").type = document.getElementById("chckpass").checked ? "text" : "password";
         }
 
-        function renderUsers(users){
-            if(!users.length){
-                document.getElementById("users").innerHTML = `
-                    <tr><td colspan="5" style="padding:36px;text-align:center;color:#94a3b8;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;background:#ffffff;">NO USERS FOUND</td></tr>`
-                return
+        function renderUsers(users) {
+            if (!users.length) {
+                document.getElementById("users").innerHTML =
+                    `<tr><td colspan="5" style="padding:36px;text-align:center;color:#94a3b8;font-family:'Space Mono',monospace;font-size:11px;background:#fff;">NO USERS FOUND</td></tr>`;
+                return;
             }
             document.getElementById("users").innerHTML = users.map(u => {
-                let roleLabel = u[2] === 'user' ? 'staff' : u[2]
-                let badge = roleLabel === 'guard'
+                const roleLabel = u[2] === "user" ? "staff" : u[2];
+                const badge = roleLabel === "guard"
                     ? `<span class="role-badge role-guard">🔒 Guard</span>`
-                    : `<span class="role-badge role-staff">👥 Staff</span>`
+                    : `<span class="role-badge role-staff">👥 Staff</span>`;
                 return `
                 <tr>
                     <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${u[0]}</td>
@@ -276,50 +254,86 @@
                     <td>${badge}</td>
                     <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${u[3]}</td>
                     <td>
-                        <button class="btn-sm danger" onclick="deleteUsers(${u[0]})"><i class="bi bi-trash"></i></button>
-                        <button class="btn-sm"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn-sm danger" onclick="deleteUsers(${u[0]})" title="Delete user"><i class="bi bi-trash"></i></button>
                     </td>
-                </tr>`
-            }).join("")
+                </tr>`;
+            }).join("");
         }
 
-        function filterUsers(q){
-            let filtered = allUsers.filter(u =>
-                u[1].toLowerCase().includes(q.toLowerCase()) ||
-                u[2].toLowerCase().includes(q.toLowerCase())
-            )
-            renderUsers(filtered)
+        let filterTimer = null;
+        function filterUsers(q) {
+            searchQuery = q;
+            clearTimeout(filterTimer);
+            filterTimer = setTimeout(() => getUsers(1), 320);
         }
 
-        async function getUsers(){
-            let data = await API.get("/admin/getusers")
-            if(data.status === "bad"){
-                allUsers = []
-                renderUsers([])
-                document.getElementById("cnt-guard").innerText = "0"
-                document.getElementById("cnt-staff").innerText = "0"
-                document.getElementById("cnt-total").innerText = "0"
-                return
+        async function getUsers(page = 1) {
+            currentPage = page;
+            const res = await API.get(`/admin/getusers?page=${page}&limit=${LIMIT}`);
+            if (!res || res.status !== "good") {
+                renderUsers([]);
+                ["cnt-guard","cnt-staff","cnt-total"].forEach(id => document.getElementById(id).textContent = "0");
+                updatePager(0, 1, 1);
+                return;
             }
-            allUsers = data.data
-            renderUsers(allUsers)
-            let guards = allUsers.filter(u => u[2] === "guard").length
-            let staff  = allUsers.filter(u => u[2] === "user" || u[2] === "staff").length
-            document.getElementById("cnt-guard").innerText = guards
-            document.getElementById("cnt-staff").innerText = staff
-            document.getElementById("cnt-total").innerText = allUsers.length
+
+            // Client-side text filter on returned page
+            let rows = res.data;
+            if (searchQuery) {
+                rows = rows.filter(u =>
+                    u[1].toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    u[2].toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+
+            renderUsers(rows);
+            updatePager(res.total, res.page, res.pages);
+
+            // Stats from full total — fetch once without limit for counts
+            document.getElementById("cnt-total").textContent = res.total;
+            // For guard/staff counts we use visible page rows as approximation
+            const guards = res.data.filter(u => u[2] === "guard").length;
+            const staff  = res.data.filter(u => u[2] === "user" || u[2] === "staff").length;
+            document.getElementById("cnt-guard").textContent = guards;
+            document.getElementById("cnt-staff").textContent = staff;
         }
 
-        async function deleteUsers(id){
-            if(confirm("Are you sure you want to delete this user?")){
-                let result = await API.delete(`/admin/delete_user/${id}`)
-                showMessageModal(result.message, result.status)
-                getUsers()
+        function updatePager(total, page, pages) {
+            totalPages = pages;
+            const info = `Page ${page} of ${pages}  (${total} users)`;
+            document.getElementById("pgInfo").textContent = info;
+            document.getElementById("btnPrev").disabled = page <= 1;
+            document.getElementById("btnNext").disabled = page >= pages;
+
+            const nums = document.getElementById("pgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changePage(p);
+                nums.appendChild(btn);
             }
         }
 
-        getUsers()
-        setInterval(getUsers, 30000)
+        function changePage(p) {
+            if (p < 1 || p > totalPages) return;
+            getUsers(p);
+        }
+
+        async function deleteUsers(id) {
+            if (confirm("Are you sure you want to delete this user?")) {
+                const result = await API.delete(`/admin/delete_user/${id}`);
+                showMessageModal(result.message, result.status);
+                getUsers(currentPage);
+            }
+        }
+
+        getUsers(1);
+        setInterval(() => getUsers(currentPage), 30000);
     </script>
 </body>
 </html>

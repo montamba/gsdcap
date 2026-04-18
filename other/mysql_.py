@@ -34,12 +34,19 @@ class SQL:
 
     # ─── User queries ──────────────────────────────────────
 
-    def getalluser(self):
+    def getalluser(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        cur.execute("SELECT id, username, role, created_at FROM users")
+        cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
         users = cur.fetchall()
         cur.close()
         return users
+
+    def countallusers(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM users")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def getuser(self, id):
         cur = self.sql.cursor()
@@ -111,12 +118,30 @@ class SQL:
         cur.close()
         return qr
 
-    def getqrbyuser(self, id):
+    def getqrbyid(self, qr_id):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE created_by=%s ORDER BY created_at DESC", (id,))
+        cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
+        qr = cur.fetchone()
+        cur.close()
+        return qr
+
+    def getqrbyuser(self, user_id, limit=5, offset=0):
+        cur = self.sql.cursor()
+        cur.execute("""SELECT qrcode.*, users.username
+                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                       WHERE qrcode.created_by = %s
+                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                    (user_id, limit, offset))
         qr = cur.fetchall()
         cur.close()
         return qr
+
+    def countqrbyuser(self, user_id):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def getqrbyowner_email(self, email):
         cur = self.sql.cursor()
@@ -125,20 +150,22 @@ class SQL:
         cur.close()
         return qr
 
-    def getallqr(self, limit=0, offset=0):
+    def getallqr(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        if limit:
-            cur.execute("""SELECT qrcode.*, users.username
-                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                           ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                        (limit, offset))
-        else:
-            cur.execute("""SELECT qrcode.*, users.username
-                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                           ORDER BY qrcode.created_at DESC""")
+        cur.execute("""SELECT qrcode.*, users.username
+                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                    (limit, offset))
         result = cur.fetchall()
         cur.close()
         return result
+
+    def countallqr(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM qrcode")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def saveqr(self, data, plate, expiry, created_by, owner_name="", owner_email=""):
         cur = self.sql.cursor()
@@ -159,12 +186,21 @@ class SQL:
         self.sql.commit()
         cur.close()
 
+    def renewqr_any(self, qr_id, new_expiry):
+        """Renew any QR code — used by staff who can manage all QRs."""
+        cur = self.sql.cursor()
+        cur.execute(
+            "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
+            (new_expiry, qr_id)
+        )
+        self.sql.commit()
+        cur.close()
+
     def deleteqr(self, qr_id, user_id):
         cur = self.sql.cursor()
         cur.execute("DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id))
         self.sql.commit()
         cur.close()
-
 
     def inserthistory(self, data, guard, status, action="entry"):
         cur = self.sql.cursor()
@@ -174,46 +210,38 @@ class SQL:
         )
         self.sql.commit()
         cur.close()
-        
-    def gethistory(self):
+
+    def gethistory(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM history")
+        cur.execute("SELECT * FROM history ORDER BY id DESC LIMIT %s OFFSET %s", (limit, offset))
         data = cur.fetchall()
         cur.close()
         return data
 
+    def counthistory(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM history")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def updateparking(self):
         try:
             with open(self.parking_file, "r") as f:
                 data = json.load(f)
-            
-            # if action == "entry":
-            #     data["occupied"] = min(data["occupied"] + 1, data["total"])
-            #     data["available"] = data["total"] - data["occupied"]
-            # elif action == "exit":
-            #     data["occupied"] = max(data["occupied"] - 1, 0)
-            #     data["available"] = data["total"] - data["occupied"]
-            
+
             res = self.get_total_entry_exit()
-            entry = res["entry"][0]
-            print("=================")
-            print(entry)
-            
-            data["occupied"] = min(entry,data["total"])
+            entry = res["entry"]
+            data["occupied"] = min(entry, data["total"])
             data["available"] = data["total"] - data["occupied"]
-            print(data)
-            print("============================")
-            
+
             with open(self.parking_file, "w") as f:
                 json.dump(data, f, indent=4)
-            
+
             return True
         except Exception as e:
             print(f"Error updating parking: {e}")
             return False
-        
-        
 
     def getparking(self):
         try:
@@ -221,33 +249,24 @@ class SQL:
                 return json.load(f)
         except:
             return {"total": 0, "occupied": 0, "available": 0}
-        
-        
+
     def get_total_entry_exit(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
-        entry = cur.fetchone()
-        
+        entry = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
-        exit = cur.fetchone()
-        
-        return {"entry": entry, "exit":exit}
-    
+        exit_ = cur.fetchone()[0]
+        cur.close()
+        return {"entry": entry, "exit": exit_}
+
     def get_total_scan(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM history")
-        total = cur.fetchone()
+        total = cur.fetchone()[0]
+        cur.close()
         return total
-        
-        
 
-        
-
-   
-        """
-        Sends the QR data code (plain string) to the owner's email.
-        No image is generated server-side — the JS on the client renders the QR from this code.
-        """
+    def send_qr_email(self, to_email, owner_name, qr_data, plate="", valid_until=""):
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
         smtp_user = os.getenv("SMTP_EMAIL", "")
@@ -265,41 +284,19 @@ class SQL:
             html_body = f"""
             <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;
                         background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;overflow:hidden;">
-
               <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
                           padding:28px 32px;text-align:center;">
-                <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
-                  🅿️ GSD PARKING
-                </h1>
-                <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;letter-spacing:1px;">
-                  VEHICLE MONITORING SYSTEM
-                </p>
+                <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">🅿️ GSD PARKING</h1>
+                <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;">VEHICLE MONITORING SYSTEM</p>
               </div>
-
               <div style="padding:32px;text-align:center;">
                 <h2 style="color:#0f172a;margin:0 0 8px;">Hello, {owner_name}!</h2>
-                <p style="color:#64748b;font-size:14px;margin:0 0 28px;">
-                  Your parking QR pass is ready. Show this code at the entrance — the guard will scan it.
-                </p>
-
-                <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
-                            padding:28px 36px;display:inline-block;margin-bottom:28px;">
-                  <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#94a3b8;
-                             letter-spacing:2px;text-transform:uppercase;">
-                    YOUR QR CODE
-                  </p>
-                  <p style="margin:0;font-size:28px;font-weight:800;color:#2563eb;
-                             font-family:monospace;letter-spacing:4px;word-break:break-all;">
-                    {qr_data}
-                  </p>
-                  <p style="margin:10px 0 0;font-size:11px;color:#94a3b8;">
-                    Give this code to the guard or use the Owner Portal to view your QR pass.
-                  </p>
+                <p style="color:#64748b;font-size:14px;margin:0 0 28px;">Your parking QR pass is ready.</p>
+                <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;padding:28px 36px;display:inline-block;margin-bottom:28px;">
+                  <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
+                  <p style="margin:0;font-size:28px;font-weight:800;color:#2563eb;font-family:monospace;letter-spacing:4px;word-break:break-all;">{qr_data}</p>
                 </div>
-
-                <table style="margin:0 auto;border-collapse:collapse;font-size:13px;
-                              width:100%;max-width:320px;background:#f8faff;
-                              border:1px solid #ddeaff;border-radius:8px;">
+                <table style="margin:0 auto;border-collapse:collapse;font-size:13px;width:100%;max-width:320px;background:#f8faff;border:1px solid #ddeaff;border-radius:8px;">
                   <tr style="border-bottom:1px solid #ddeaff;">
                     <td style="padding:10px 16px;color:#94a3b8;font-weight:700;">PLATE</td>
                     <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{plate or "—"}</td>
@@ -310,10 +307,8 @@ class SQL:
                   </tr>
                 </table>
               </div>
-
-              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
-                          text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
-                GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
+              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;text-align:center;font-size:10px;color:#94a3b8;">
+                GSD PARKING MONITORING SYSTEM — DO NOT SHARE THIS CODE
               </div>
             </div>
             """

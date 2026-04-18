@@ -65,14 +65,25 @@ class Admin:
 
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
-            users = self.sql.getalluser()
-            if users:
-                serialized = [
-                    [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in u]
-                    for u in users
-                ]
-                return jsonify({"status": "good", "data": serialized})
-            return jsonify({"status": "bad", "message": "No users found"})
+            page  = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            users = self.sql.getalluser(limit=limit, offset=offset)
+            total = self.sql.countallusers()
+
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in u]
+                for u in users
+            ]
+            return jsonify({
+                "status": "good",
+                "data":   serialized,
+                "total":  total,
+                "page":   page,
+                "limit":  limit,
+                "pages":  max(1, -(-total // limit))
+            })
 
         @self.admin.route("/delete_user/<int:id>", methods=["DELETE"])
         def deleteUser(id):
@@ -83,20 +94,10 @@ class Admin:
         def add_user():
             data = request.get_json()
             username = data.get("username", "").strip()
-            email = data.get("email", "").strip()
+            email    = data.get("email", "").strip()
             password = data.get("password", "")
-            role = data.get("role", "")
-            
-            isemail = self.sql.getuserbyemail(email)
-            username_exist = self.sql.getuserbyusername(username)
-            if isemail:
-                return jsonify({"status": "bad", "message": "Sorry email already register"})
-            
-            if username_exist:
-                return jsonify({"status": "bad", "message": "Sorry username already register"})
-            
-            
-            
+            role     = data.get("role", "")
+
             if not all([username, email, password, role]):
                 return jsonify({"status": "bad", "message": "All fields are required"})
 
@@ -106,35 +107,91 @@ class Admin:
             if self.sql.getuserbyemail(email):
                 return jsonify({"status": "bad", "message": f"Email '{email}' is already in use"})
 
+            if self.sql.getuserbyusername(username):
+                return jsonify({"status": "bad", "message": f"Username '{username}' is already taken"})
+
             self.sql.adduser(username, email, password, role)
             return jsonify({"status": "good", "message": "User added successfully"})
-        
-        @self.admin.route("/get_qr",methods=["GET"])
+
+        @self.admin.route("/get_qr", methods=["GET"])
         def getqr():
-            data = self.sql.getallqr()
-            ndata = []
-            
-            for d in data:
-                da = [d[1],d[4],d[9]]
-                ndata.append(da)
-            
-            return {
-                "status":"good",
-                "message":"successfull",
-                "data":ndata
-            }
-            
+            page  = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            data  = self.sql.getallqr(limit=limit, offset=offset)
+            total = self.sql.countallqr()
+            ndata = [[str(d[1]), str(d[8]), str(d[10] or "—")] for d in data]
+
+            return jsonify({
+                "status": "good",
+                "data":   ndata,
+                "total":  total,
+                "page":   page,
+                "pages":  max(1, -(-total // limit))
+            })
+
         @self.admin.route("/get_entries")
         def entries():
-            data = self.sql.get_total_entry_exit()
+            data   = self.sql.get_total_entry_exit()
             scanned = self.sql.get_total_scan()
-            data["scan"] = scanned
-            
-            return data
-        
+            return jsonify({
+                "entry": data["entry"],
+                "exit":  data["exit"],
+                "scan":  scanned
+            })
+
         @self.admin.route("/get_history")
         def gethistory():
-            data = self.sql.gethistory()
-            print(data)
-            return data
-            
+            page  = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            data  = self.sql.gethistory(limit=limit, offset=offset)
+            total = self.sql.counthistory()
+
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
+                for row in data
+            ]
+            return jsonify({
+                "status": "good",
+                "data":   serialized,
+                "total":  total,
+                "page":   page,
+                "pages":  max(1, -(-total // limit))
+            })
+
+        # ─── DASHBOARD API ────────────────────────────────
+
+        @self.admin.route("/dashboard_data")
+        def dashboard_data():
+            parking  = self.sql.getparking()
+            entries  = self.sql.get_total_entry_exit()
+            active_qr = self.sql.countallqr()
+            return jsonify({
+                "status":        "good",
+                "parking_slots": parking.get("total", 0),
+                "occupied":      parking.get("occupied", 0),
+                "entered_today": entries["entry"],
+                "active_qr":     active_qr
+            })
+
+        @self.admin.route("/activity_chart")
+        def activity_chart():
+            # Placeholder — extend with real weekly data as needed
+            return jsonify({"status": "good", "labels": [], "data": []})
+
+        @self.admin.route("/recent_activity")
+        def recent_activity():
+            rows = self.sql.getallqr(limit=10, offset=0)
+            result = []
+            for r in rows:
+                result.append({
+                    "qr_code": r[1],
+                    "time":    str(r[8]),
+                    "action":  "entry" if r[9] == "IN" else "exit",
+                    "plate":   r[2] or "—",
+                    "status":  "accepted"
+                })
+            return jsonify({"status": "good", "data": result})

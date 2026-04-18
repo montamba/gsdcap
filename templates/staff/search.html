@@ -11,293 +11,93 @@
     <title>Search — GSD Parking</title>
 
     <style>
-        .header {
-            background: #ffffff;
-            border-bottom: 1px solid #c7d9f5;
-            padding: 22px 32px;
-            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 800;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .header h1 i { color: #2563eb; }
-        .header p {
-            font-size: 11px;
-            color: #94a3b8;
-            font-family: 'Space Mono', monospace;
-            margin-top: 3px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
+        .header { background:#fff; border-bottom:1px solid #c7d9f5; padding:22px 32px; box-shadow:0 1px 8px rgba(37,99,235,.06); }
+        .header h1 { font-size:20px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+        .header h1 i { color:#2563eb; }
+        .header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:3px; letter-spacing:.08em; text-transform:uppercase; }
 
-        .inner { padding: 28px 32px; }
+        .inner { padding:28px 32px; }
 
-        /* ─── SEARCH BAR ─── */
-        .search-box {
-            background: #ffffff;
-            border: 1px solid #c7d9f5;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
-            margin-bottom: 24px;
-        }
+        .search-box { background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,.07); margin-bottom:20px; }
+        .search-head { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:8px; }
+        .search-head::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; flex-shrink:0; }
+        .search-head h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; font-family:'Space Mono',monospace; }
+        .search-head i { color:#2563eb; }
+        .search-body { padding:18px 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .search-body input { flex:1; min-width:220px; padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Syne',sans-serif; font-size:13px; outline:none; transition:border-color .2s,box-shadow .2s; border-radius:8px; }
+        .search-body input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
+        .search-body input::placeholder { color:#cbd5e1; }
+        .filter-select { padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5; color:#334155; font-family:'Syne',sans-serif; font-size:13px; outline:none; cursor:pointer; transition:border-color .2s; border-radius:8px; }
+        .filter-select:focus { border-color:#2563eb; }
+        .btn-search { padding:11px 20px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; border-radius:8px; display:flex; align-items:center; gap:6px; transition:all .2s; box-shadow:0 3px 10px rgba(37,99,235,.25); }
+        .btn-search:hover { opacity:.92; transform:translateY(-1px); }
+        .btn-clear { padding:11px 16px; background:#fff; border:1.5px solid #c7d9f5; color:#64748b; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border-radius:8px; transition:all .2s; }
+        .btn-clear:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
 
-        .search-head {
-            padding: 14px 20px;
-            background: #f5f9ff;
-            border-bottom: 1px solid #ddeaff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .meta-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+        .results-count { font-size:12px; font-weight:700; color:#64748b; font-family:'Space Mono',monospace; }
+        .results-count span { color:#2563eb; }
 
-        .search-head::before {
-            content: '';
-            width: 3px;
-            height: 14px;
-            background: #2563eb;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
+        .table-box { background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .table-head-bar { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; gap:8px; }
+        .table-head-bar::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; flex-shrink:0; }
+        .table-head-bar h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; font-family:'Space Mono',monospace; }
+        .table-head-bar i { color:#2563eb; }
 
-        .search-head h2 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
+        table { width:100%; border-collapse:collapse; }
+        table tr { display:grid; grid-template-columns:50px 1fr 130px 100px 130px 110px; }
+        th,td { padding:12px 14px; text-align:left; font-size:12px; }
+        th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
+        td { color:#334155; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        tbody tr:last-child td { border-bottom:none; }
+        tbody tr.clickable:hover td { background:#f0f6ff; cursor:pointer; }
+        tbody tr.clickable:hover td:first-child { border-left:3px solid #2563eb; }
 
-        .search-head i { color: #2563eb; }
+        .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; border-radius:20px; }
+        .badge-active  { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-expired { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        .badge-revoked { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
 
-        .search-body {
-            padding: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:6px; }
+        .pg-btn { padding:6px 13px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-        .search-body input {
-            flex: 1;
-            min-width: 220px;
-            padding: 12px 16px;
-            background: #f8faff;
-            border: 1.5px solid #c7d9f5;
-            color: #0f172a;
-            font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            border-radius: 8px;
-        }
+        .state-row { display:block !important; }
+        .state-row td { display:block; padding:48px 16px; text-align:center; color:#94a3b8; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; border-bottom:none !important; background:#fff !important; }
+        .state-icon { font-size:32px; display:block; margin-bottom:10px; opacity:.4; }
 
-        .search-body input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-            background: #ffffff;
-        }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.4); backdrop-filter:blur(4px); z-index:200; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:#fff; border-radius:16px; width:100%; max-width:500px; border:1px solid #c7d9f5; box-shadow:0 24px 64px rgba(37,99,235,.18); animation:popIn .22s cubic-bezier(.34,1.56,.64,1); overflow:hidden; margin:16px; }
+        @keyframes popIn { from{transform:scale(.92);opacity:0} to{transform:scale(1);opacity:1} }
 
-        .search-body input::placeholder { color: #cbd5e1; }
+        .modal-header { padding:18px 24px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; justify-content:space-between; }
+        .modal-header h3 { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:#0f172a; letter-spacing:.06em; text-transform:uppercase; }
+        .btn-modal-close { background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; line-height:1; padding:2px; }
+        .btn-modal-close:hover { color:#334155; }
 
-        .filter-select {
-            padding: 12px 14px;
-            background: #f8faff;
-            border: 1.5px solid #c7d9f5;
-            color: #334155;
-            font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.2s;
-            border-radius: 8px;
-        }
+        .modal-body { padding:22px 24px; display:flex; flex-direction:column; gap:10px; }
+        .detail-row { display:flex; align-items:center; gap:12px; background:#f8faff; border:1px solid #ddeaff; border-radius:8px; padding:10px 14px; }
+        .detail-lbl { font-size:9px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.14em; font-family:'Space Mono',monospace; min-width:80px; flex-shrink:0; }
+        .detail-val { font-size:13px; font-weight:600; color:#0f172a; word-break:break-all; }
 
-        .filter-select:focus { border-color: #2563eb; }
-        .filter-select option { background: #ffffff; }
+        .renew-section { border-top:1px solid #ddeaff; padding-top:16px; margin-top:4px; display:none; flex-direction:column; gap:10px; }
+        .renew-section.show { display:flex; }
+        .renew-label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
+        .renew-section input[type=date] { padding:10px 14px; background:#f8faff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Syne',sans-serif; font-size:13px; outline:none; border-radius:8px; transition:border-color .2s; }
+        .renew-section input[type=date]:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
+        .btn-confirm-renew { padding:11px; background:linear-gradient(135deg,#10b981,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; border-radius:8px; transition:opacity .2s; }
+        .btn-confirm-renew:hover { opacity:.9; }
 
-        .btn-search {
-            padding: 12px 22px;
-            background: linear-gradient(135deg, #2563eb, #0ea5e9);
-            border: none;
-            color: #ffffff;
-            font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            font-weight: 800;
-            cursor: pointer;
-            border-radius: 8px;
-            letter-spacing: 0.04em;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            transition: all 0.2s;
-            box-shadow: 0 3px 10px rgba(37,99,235,0.25);
-        }
-
-        .btn-search:hover {
-            opacity: 0.92;
-            box-shadow: 0 5px 16px rgba(37,99,235,0.35);
-            transform: translateY(-1px);
-        }
-
-        .btn-clear {
-            padding: 12px 18px;
-            background: #ffffff;
-            border: 1.5px solid #c7d9f5;
-            color: #64748b;
-            font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            transition: all 0.2s;
-        }
-
-        .btn-clear:hover {
-            border-color: #93c5fd;
-            color: #2563eb;
-            background: #eff6ff;
-        }
-
-        /* ─── RESULTS INFO ─── */
-        .results-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .results-count {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            font-family: 'Space Mono', monospace;
-            letter-spacing: 0.06em;
-        }
-
-        .results-count span { color: #2563eb; }
-
-        /* ─── TABLE ─── */
-        .table-box {
-            background: #ffffff;
-            border: 1px solid #c7d9f5;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
-        }
-
-        .table-head-bar {
-            padding: 14px 20px;
-            background: #f5f9ff;
-            border-bottom: 1px solid #ddeaff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .table-head-bar::before {
-            content: '';
-            width: 3px;
-            height: 14px;
-            background: #2563eb;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .table-head-bar h2 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
-
-        .table-head-bar i { color: #2563eb; }
-
-        table { width: 100%; border-collapse: collapse; }
-        table tr { display: grid; grid-template-columns: 50px 1fr 140px 110px 130px 120px; }
-        th, td { padding: 13px 16px; text-align: left; font-size: 12px; }
-        th {
-            background: #f5f9ff;
-            color: #64748b;
-            font-family: 'Space Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            border-bottom: 1px solid #ddeaff;
-        }
-        td { color: #334155; border-bottom: 1px solid #f1f5f9; }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background: #f8faff; }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            font-size: 10px;
-            font-weight: 700;
-            font-family: 'Space Mono', monospace;
-            letter-spacing: 0.06em;
-            border-radius: 20px;
-        }
-        .badge-active  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .badge-expired { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge-revoked { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-
-        .plate-text {
-            font-family: 'Space Mono', monospace;
-            color: #1e3a8a;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-        }
-
-        /* ─── EMPTY / LOADING STATES ─── */
-        .state-row td {
-            padding: 48px 16px;
-            text-align: center;
-            color: #94a3b8;
-            font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.1em;
-            grid-column: 1 / -1;
-        }
-
-        .state-row { display: block !important; }
-        .state-row td { display: block; }
-
-        .state-icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 10px;
-            opacity: 0.4;
-        }
-
-        /* ─── SPINNER ─── */
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #dbeafe;
-            border-top-color: #2563eb;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .modal-footer { padding:16px 24px; background:#f5f9ff; border-top:1px solid #ddeaff; display:flex; gap:10px; }
+        .btn-renew { flex:1; padding:11px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:7px; transition:opacity .2s; }
+        .btn-renew:hover { opacity:.9; }
+        .btn-cancel-modal { flex:1; padding:11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border-radius:8px; transition:all .2s; }
+        .btn-cancel-modal:hover { border-color:#93c5fd; color:#2563eb; }
     </style>
 </head>
 <body>
@@ -320,7 +120,7 @@
     <div class="right">
         <div class="header">
             <h1><i class="bi bi-search"></i> Search QR Codes</h1>
-            <p>LOOK UP QR CODES BY DATA, PLATE, OR STATUS</p>
+            <p>LOOK UP QR CODES BY DATA, PLATE, OR STATUS — CLICK A ROW TO VIEW DETAILS</p>
         </div>
 
         <div class="inner">
@@ -330,20 +130,20 @@
                     <h2>Search & Filter</h2>
                 </div>
                 <div class="search-body">
-                    <input type="text" id="searchInput" placeholder="Search by name, data or plate number..." oninput="liveSearch()">
-                    <select class="filter-select" id="statusFilter" onchange="liveSearch()">
+                    <input type="text" id="searchInput" placeholder="Search by data, plate, or owner…" oninput="onFilterChange()">
+                    <select class="filter-select" id="statusFilter" onchange="onFilterChange()">
                         <option value="">All Statuses</option>
                         <option value="active">Active</option>
                         <option value="expired">Expired</option>
                         <option value="revoked">Revoked</option>
                     </select>
-                    <button class="btn-search" onclick="doSearch()"><i class="bi bi-search"></i> Search</button>
                     <button class="btn-clear" onclick="clearSearch()"><i class="bi bi-x-lg"></i> Clear</button>
                 </div>
             </div>
 
-            <div class="results-meta">
-                <div class="results-count">Showing <span id="countDisplay">0</span> result(s)</div>
+            <div class="meta-row">
+                <div class="results-count">Showing <span id="countDisplay">0</span> of <span id="totalDisplay">0</span> QR codes</div>
+                <div class="pg-info" id="pgInfo">Page 1 of 1</div>
             </div>
 
             <div class="table-box">
@@ -353,100 +153,228 @@
                 </div>
                 <table>
                     <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Data</th>
-                            <th>Plate</th>
-                            <th>Status</th>
-                            <th>Valid Until</th>
-                            <th>Created At</th>
-                        </tr>
+                        <tr><th>#</th><th>Data</th><th>Plate</th><th>Status</th><th>Valid Until</th><th>Created At</th></tr>
                     </thead>
                     <tbody id="resultsBody">
                         <tr class="state-row">
-                            <td>
-                                <span class="state-icon">🔍</span>
-                                TYPE TO SEARCH OR PRESS SEARCH
-                            </td>
+                            <td><span class="state-icon">🔍</span>LOADING…</td>
                         </tr>
                     </tbody>
                 </table>
+                <div class="pagination">
+                    <span class="pg-info" id="pgInfoBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="btnPrev" onclick="changePage(currentPage - 1)" disabled>‹ Prev</button>
+                        <div id="pgNumbers" style="display:flex;gap:6px;"></div>
+                        <button class="pg-btn" id="btnNext" onclick="changePage(currentPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── DETAIL MODAL ─── -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📋 QR Code Details</h3>
+                <button class="btn-modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row"><span class="detail-lbl">QR Data</span><span class="detail-val" id="dData">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Plate</span><span class="detail-val" id="dPlate">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Owner</span><span class="detail-val" id="dOwner">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Email</span><span class="detail-val" id="dEmail">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Status</span><span class="detail-val" id="dStatus">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Car Status</span><span class="detail-val" id="dCarStatus">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Valid Until</span><span class="detail-val" id="dExpiry">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Created At</span><span class="detail-val" id="dCreatedAt">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Created By</span><span class="detail-val" id="dCreatedBy">—</span></div>
+
+                <div class="renew-section" id="renewSection">
+                    <span class="renew-label">Set New Expiry Date</span>
+                    <input type="date" id="renewDate">
+                    <button class="btn-confirm-renew" onclick="confirmRenew()">
+                        <i class="bi bi-arrow-repeat"></i> Confirm Renewal
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-renew" onclick="toggleRenew()"><i class="bi bi-calendar-check"></i> Renew QR</button>
+                <button class="btn-cancel-modal" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        let allData = []
+        const LIMIT = 5;
+        let currentPage  = 1;
+        let totalPages   = 1;
+        let totalRecords = 0;
+        let activeQrId   = null;
+        let filterTimer  = null;
 
-        async function loadAll() {
-            let res = await API.get("/staff/all_qr")
-            if (res && res.data) {
-                allData = res.data
-                renderRows(allData)
+        async function loadPage(page = 1) {
+            currentPage = page;
+            const q      = document.getElementById("searchInput").value.trim();
+            const status = document.getElementById("statusFilter").value;
+
+            // Build URL — server handles limit; client filters text/status in the same request window
+            const url = `/staff/all_qr?page=${page}&limit=${LIMIT}`;
+            const res = await API.get(url);
+
+            if (!res || res.status !== "good") {
+                setEmpty("📭 NO RESULTS FOUND");
+                updatePager(0, 0, 1);
+                return;
             }
-            console.log(res.data)
+
+            let rows = res.data;
+            if (q) {
+                rows = rows.filter(d =>
+                    (d[1] || "").toLowerCase().includes(q.toLowerCase()) ||
+                    (d[2] || "").toLowerCase().includes(q.toLowerCase()) ||
+                    (d[3] || "").toLowerCase().includes(q.toLowerCase())
+                );
+            }
+            if (status) {
+                rows = rows.filter(d => (d[6] || "active").toLowerCase() === status);
+            }
+
+            totalRecords = res.total;
+            totalPages   = res.pages;
+            renderRows(rows, (page - 1) * LIMIT);
+            updatePager(res.total, page, res.pages);
         }
 
-        function renderRows(data) {
-            const tbody = document.getElementById("resultsBody")
-            document.getElementById("countDisplay").textContent = data.length
+        function renderRows(data, offset) {
+            const tbody = document.getElementById("resultsBody");
+            document.getElementById("countDisplay").textContent = data.length;
+            document.getElementById("totalDisplay").textContent = totalRecords;
 
             if (!data.length) {
-                tbody.innerHTML = `
-                    <tr class="state-row">
-                        <td>
-                            <span class="state-icon">📭</span>
-                            NO RESULTS FOUND
-                        </td>
-                    </tr>`
-                return
+                setEmpty("📭 NO RESULTS FOUND");
+                return;
             }
 
             tbody.innerHTML = data.map((d, i) => {
-                const status  = (d[5] || "active").toLowerCase()
-                const badgeClass = status === "active"  ? "badge-active"
-                                 : status === "expired" ? "badge-expired"
-                                 : "badge-revoked"
-                const plate  = d[2] ? `<span class="plate-text">${d[2]}</span>` : `<span style="color:#cbd5e1;">—</span>`
-                const validUntil = d[5] || "—"
-                const createdAt  = d[8] || "—"
-
+                const status    = (d[6] || "active").toLowerCase();
+                const badgeCls  = status === "active" ? "badge-active" : status === "expired" ? "badge-expired" : "badge-revoked";
+                const expiry    = d[5] || "—";
+                const createdAt = d[8] || "—";
                 return `
-                <tr>
-                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
-                    <td style="color:#0f172a;font-weight:600;">${d[1] || "—"}</td>
-                    <td>${plate}</td>
-                    <td><span class="badge ${badgeClass}">${status}</span></td>
-                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${validUntil}</td>
+                <tr class="clickable" onclick="openDetail(${JSON.stringify(d).replace(/"/g, '&quot;')})">
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${offset + i + 1}</td>
+                    <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d[1] || "—"}</td>
+                    <td style="font-family:'Space Mono',monospace;font-weight:700;color:#1e3a8a;">${d[2] || "—"}</td>
+                    <td><span class="badge ${badgeCls}">${status}</span></td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${expiry}</td>
                     <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${createdAt}</td>
-                </tr>`
-            }).join("")
+                </tr>`;
+            }).join("");
         }
 
-        function liveSearch() {
-            const q = document.getElementById("searchInput").value.toLowerCase().trim()
-            const status = document.getElementById("statusFilter").value.toLowerCase()
-
-            const filtered = allData.filter(d => {
-                const matchesText = !q ||
-                    (d[1] && d[1].toLowerCase().includes(q)) ||
-                    (d[2] && d[2].toLowerCase().includes(q))
-                const matchesStatus = !status || (d[6] && d[6].toLowerCase() === status)
-                return matchesText && matchesStatus
-            })
-
-            renderRows(filtered)
+        function setEmpty(msg) {
+            document.getElementById("resultsBody").innerHTML =
+                `<tr class="state-row"><td><span class="state-icon">📭</span>${msg}</td></tr>`;
+            document.getElementById("countDisplay").textContent = 0;
         }
 
-        function doSearch() { liveSearch() }
+        function updatePager(total, page, pages) {
+            totalPages   = pages;
+            const info   = `Page ${page} of ${pages}  (${total} total)`;
+            document.getElementById("pgInfo").textContent       = info;
+            document.getElementById("pgInfoBottom").textContent = info;
+            document.getElementById("btnPrev").disabled = page <= 1;
+            document.getElementById("btnNext").disabled = page >= pages;
+
+            const nums = document.getElementById("pgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changePage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changePage(p) {
+            if (p < 1 || p > totalPages) return;
+            loadPage(p);
+        }
+
+        function onFilterChange() {
+            clearTimeout(filterTimer);
+            filterTimer = setTimeout(() => loadPage(1), 320);
+        }
 
         function clearSearch() {
-            document.getElementById("searchInput").value = ""
-            document.getElementById("statusFilter").value = ""
-            renderRows(allData)
+            document.getElementById("searchInput").value = "";
+            document.getElementById("statusFilter").value = "";
+            loadPage(1);
         }
 
-        loadAll()
+        function openDetail(d) {
+            // 0:id 1:data 2:plate 3:owner_name 4:owner_email 5:expiry 6:status 7:created_by 8:created_at 9:car_status 10:username
+            activeQrId = d[0];
+
+            document.getElementById("dData").textContent      = d[1]  || "—";
+            document.getElementById("dPlate").textContent     = d[2]  || "—";
+            document.getElementById("dOwner").textContent     = d[3]  || "—";
+            document.getElementById("dEmail").textContent     = d[4]  || "—";
+            document.getElementById("dStatus").textContent    = (d[6] || "active").toUpperCase();
+            document.getElementById("dCarStatus").textContent = d[9]  || "NOT SCANNED";
+            document.getElementById("dExpiry").textContent    = d[5]  || "No expiry set";
+            document.getElementById("dCreatedAt").textContent = d[8]  || "—";
+            document.getElementById("dCreatedBy").textContent = d[10] || "—";
+
+            if (d[5] && d[5] !== "None") {
+                document.getElementById("renewDate").value = d[5].split(" ")[0];
+            } else {
+                document.getElementById("renewDate").value = "";
+            }
+
+            document.getElementById("renewSection").classList.remove("show");
+            document.getElementById("detailModal").classList.add("show");
+        }
+
+        function closeModal() {
+            document.getElementById("detailModal").classList.remove("show");
+            activeQrId = null;
+        }
+
+        function toggleRenew() {
+            const sec = document.getElementById("renewSection");
+            sec.classList.toggle("show");
+            if (sec.classList.contains("show")) {
+                document.getElementById("renewDate").focus();
+            }
+        }
+
+        async function confirmRenew() {
+            if (!activeQrId) return;
+            const expiry = document.getElementById("renewDate").value;
+            if (!expiry) {
+                showMessageModal("Please pick a new expiry date.", "Missing Date");
+                return;
+            }
+            const res = await API.put(`/staff/renew_qr/${activeQrId}`, { expiry });
+            showMessageModal(res.message, res.status);
+            if (res.status === "good") {
+                closeModal();
+                loadPage(currentPage);
+            }
+        }
+
+        document.getElementById("detailModal").addEventListener("click", function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadPage(1);
     </script>
 </body>
 </html>

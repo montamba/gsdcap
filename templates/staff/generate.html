@@ -35,55 +35,27 @@
         .form-group { display:flex; flex-direction:column; gap:6px; }
         .form-group label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; font-family:'Space Mono',monospace; }
 
-        /* QR code field — read-only with regen button */
         .code-row { display:flex; gap:6px; align-items:stretch; }
-        .code-row input {
-            flex:1; padding:11px 14px; background:#f0f6ff; border:1.5px solid #c7d9f5;
-            color:#2563eb; font-family:'Space Mono',monospace; font-size:13px; font-weight:700;
-            outline:none; border-radius:8px; letter-spacing:.06em;
-        }
-        .btn-regen {
-            padding:0 12px; background:#eff6ff; border:1.5px solid #c7d9f5; color:#2563eb;
-            border-radius:8px; cursor:pointer; font-size:16px; transition:all .2s; flex-shrink:0;
-        }
+        .code-row input { flex:1; padding:11px 14px; background:#f0f6ff; border:1.5px solid #c7d9f5; color:#2563eb; font-family:'Space Mono',monospace; font-size:13px; font-weight:700; outline:none; border-radius:8px; letter-spacing:.06em; }
+        .btn-regen { padding:0 12px; background:#eff6ff; border:1.5px solid #c7d9f5; color:#2563eb; border-radius:8px; cursor:pointer; font-size:16px; transition:all .2s; flex-shrink:0; }
         .btn-regen:hover { background:#dbeafe; border-color:#93c5fd; }
         .btn-regen:active { transform:rotate(180deg); }
 
         .form-group input[type=text],
         .form-group input[type=email],
-        .form-group input[type=date] {
-            padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5;
-            color:#0f172a; font-family:'Syne',sans-serif; font-size:13px;
-            outline:none; transition:border-color .2s; border-radius:8px;
-        }
+        .form-group input[type=date] { padding:11px 14px; background:#f8faff; border:1.5px solid #c7d9f5; color:#0f172a; font-family:'Syne',sans-serif; font-size:13px; outline:none; transition:border-color .2s; border-radius:8px; }
         .form-group input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
         .form-group input::placeholder { color:#cbd5e1; }
 
         .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
-        .btn-gen {
-            padding:11px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none;
-            color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
-            cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px;
-            box-shadow:0 3px 10px rgba(37,99,235,.25);
-        }
+        .btn-gen { padding:11px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:800; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px; box-shadow:0 3px 10px rgba(37,99,235,.25); }
         .btn-gen:hover { opacity:.9; box-shadow:0 5px 16px rgba(37,99,235,.35); }
-        .btn-save {
-            padding:11px; background:#fff; border:1.5px solid #c7d9f5; color:#64748b;
-            font-family:'Syne',sans-serif; font-size:13px; font-weight:600;
-            cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px;
-        }
+        .btn-save { padding:11px; background:#fff; border:1.5px solid #c7d9f5; color:#64748b; font-family:'Syne',sans-serif; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px; }
         .btn-save:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
-
-        .btn-email {
-            padding:11px; background:#fff; border:1.5px solid #6ee7b7; color:#059669;
-            font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
-            cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px;
-            display:flex; align-items:center; justify-content:center; gap:6px;
-        }
-        .btn-email:hover { background:#ecfdf5; border-color:#34d399; box-shadow:0 2px 8px rgba(16,185,129,.15); }
+        .btn-email { padding:11px; background:#fff; border:1.5px solid #6ee7b7; color:#059669; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .btn-email:hover { background:#ecfdf5; border-color:#34d399; }
         .btn-email:disabled { opacity:.45; cursor:not-allowed; }
 
-        /* Preview */
         .qr-preview { background:#fff; border:1px solid #c7d9f5; flex:1; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,.07); }
         .qr-inner { padding:32px; display:flex; flex-direction:column; align-items:center; gap:16px; }
         .qr-box { width:220px; height:220px; border:2px solid #ddeaff; background:#f5f9ff; display:grid; place-items:center; border-radius:10px; }
@@ -92,25 +64,35 @@
         #qrcode img, #qrcode canvas { max-width:200px; max-height:200px; }
         .qr-code-label { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:#2563eb; letter-spacing:.08em; text-align:center; }
 
-        /* Owner summary in preview */
         .owner-card { width:100%; background:#f5f9ff; border:1px solid #ddeaff; border-radius:10px; padding:14px 18px; display:none; flex-direction:column; gap:7px; }
         .owner-card.show { display:flex; }
         .owner-row { display:flex; align-items:center; gap:10px; font-size:12px; }
         .owner-row .lbl { font-size:9px; font-weight:700; color:#94a3b8; letter-spacing:.12em; text-transform:uppercase; font-family:'Space Mono',monospace; min-width:60px; }
         .owner-row .val { color:#0f172a; font-weight:600; }
 
-        /* Table */
+        /* ─── TABLE + PAGINATION ─── */
         .table-section { padding:0 32px 32px; }
-        .section-header { display:flex; align-items:center; gap:8px; border-top:1px solid #ddeaff; padding:20px 0 16px; }
-        .section-header::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; }
+        .section-header { display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid #ddeaff; padding:20px 0 16px; flex-wrap:wrap; }
+        .section-header-left { display:flex; align-items:center; gap:8px; }
+        .section-header-left::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; }
         .section-header h3 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; font-family:'Space Mono',monospace; }
 
-        table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; }
-        th, td { padding:12px 16px; text-align:left; font-size:12px; }
+        .table-wrap { background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:12px 16px; text-align:left; font-size:12px; }
         th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
         td { color:#334155; border-bottom:1px solid #f1f5f9; }
+        tbody tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:#f8faff; }
         table.qr-row-table tr { display:grid; grid-template-columns:40px 1fr 1fr 130px 130px; }
+
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:5px; }
+        .pg-btn { padding:5px 11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
 
         @media print {
             body * { visibility:hidden; }
@@ -149,7 +131,6 @@
                     <h2>Generate QR Code</h2>
                 </div>
                 <div class="form-body">
-
                     <div class="form-divider"><span>QR Info</span></div>
 
                     <div class="form-group">
@@ -187,7 +168,6 @@
                     <button class="btn-email" id="sendBtn" onclick="sendEmail()" disabled>
                         <i class="bi bi-envelope-arrow-up"></i> Send Code to Owner
                     </button>
-
                 </div>
             </div>
 
@@ -204,18 +184,14 @@
                         </div>
                     </div>
                     <div class="qr-code-label" id="qrLabel" style="display:none;"></div>
-
                     <div class="owner-card" id="ownerCard">
                         <div class="owner-row"><span class="lbl">Owner</span><span class="val" id="prevName">—</span></div>
                         <div class="owner-row"><span class="lbl">Email</span><span class="val" id="prevEmail">—</span></div>
                         <div class="owner-row"><span class="lbl">Plate</span><span class="val" id="prevPlate">—</span></div>
                         <div class="owner-row"><span class="lbl">Expires</span><span class="val" id="prevExpiry">—</span></div>
                     </div>
-
                     <button onclick="window.print()"
-                        style="padding:8px 18px;border:1.5px solid #c7d9f5;background:#fff;color:#64748b;
-                               border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;
-                               font-weight:600;transition:all .2s;"
+                        style="padding:8px 18px;border:1.5px solid #c7d9f5;background:#fff;color:#64748b;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;transition:all .2s;"
                         onmouseover="this.style.borderColor='#93c5fd';this.style.color='#2563eb'"
                         onmouseout="this.style.borderColor='#c7d9f5';this.style.color='#64748b'">
                         🖨️ Print
@@ -226,45 +202,47 @@
 
         <div class="table-section">
             <div class="section-header">
-                <h3>Recently Generated QR Codes</h3>
+                <div class="section-header-left">
+                    <h3>My Generated QR Codes</h3>
+                </div>
+                <span class="pg-info" id="myPgInfo">—</span>
             </div>
-            <table class="qr-row-table" id="qrtab">
-                <thead>
-                    <tr><th>#</th><th>Code</th><th>Owner</th><th>Plate</th><th>Created At</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="color:#94a3b8;font-family:'Space Mono',monospace;">—</td>
-                        <td style="color:#94a3b8;">No records yet</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-wrap">
+                <table class="qr-row-table" id="qrtab">
+                    <thead>
+                        <tr><th>#</th><th>Code</th><th>Owner</th><th>Plate</th><th>Created At</th></tr>
+                    </thead>
+                    <tbody id="qrBody">
+                        <tr><td style="color:#94a3b8;font-family:'Space Mono',monospace;">—</td><td style="color:#94a3b8;">No records yet</td><td>—</td><td>—</td><td>—</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span class="pg-info" id="myPgBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="myBtnPrev" onclick="changeMyPage(myPage - 1)" disabled>‹ Prev</button>
+                        <div id="myPgNumbers" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="myBtnNext" onclick="changeMyPage(myPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        const LIMIT = 5;
+        let myPage  = 1;
+        let myPages = 1;
+
         function makeCode() {
             const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            const seg = function (n) {
-                    let result = "";
-                    for (let i = 0; i < n; i++) {
-                        let randomIndex = Math.floor(Math.random() * chars.length);
-                        result += chars[randomIndex];
-                    }
-                    return result;
-                }
+            const seg = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
             return `GSD-${seg(4)}-${seg(4)}`;
         }
 
         function regenerateCode() {
             const code = makeCode();
             document.getElementById("text").value = code;
-            if (document.getElementById("qrLabel").style.display !== "none") {
-                generateQR();
-            }
+            if (document.getElementById("qrLabel").style.display !== "none") generateQR();
         }
 
         function toggleEmailBtn() {
@@ -275,58 +253,40 @@
 
         function generateQR() {
             const code = document.getElementById("text").value.trim();
-            if (!code) {
-                showMessageModal("Click ↻ first to generate a QR code.", "No Code");
-                return;
-            }
-
+            if (!code) { showMessageModal("Click ↻ first to generate a QR code.", "No Code"); return; }
             document.getElementById("qrcode").innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), {
-                text:            code,
-                width:           200,
-                height:          200,
-                correctLevel:    QRCode.CorrectLevel.H
-            });
-
-            const name = document.getElementById("owner_name").value.trim();
-            const email = document.getElementById("owner_email").value.trim();
-            const plate = document.getElementById("plate").value.trim();
+            new QRCode(document.getElementById("qrcode"), { text:code, width:200, height:200, correctLevel:QRCode.CorrectLevel.H });
+            const name   = document.getElementById("owner_name").value.trim();
+            const email  = document.getElementById("owner_email").value.trim();
+            const plate  = document.getElementById("plate").value.trim();
             const expiry = document.getElementById("validuntil").value;
-
-            const label = document.getElementById("qrLabel");
-            label.textContent = code;
+            const label  = document.getElementById("qrLabel");
+            label.textContent   = code;
             label.style.display = "block";
-
-            document.getElementById("prevName").textContent = name   || "—";
-            document.getElementById("prevEmail").textContent = email  || "—";
-            document.getElementById("prevPlate").textContent = plate  || "—";
+            document.getElementById("prevName").textContent   = name   || "—";
+            document.getElementById("prevEmail").textContent  = email  || "—";
+            document.getElementById("prevPlate").textContent  = plate  || "—";
             document.getElementById("prevExpiry").textContent = expiry || "—";
             document.getElementById("ownerCard").classList.add("show");
-
             toggleEmailBtn();
         }
 
         async function saveQR() {
             const code = document.getElementById("text").value.trim();
             if (!code) { showMessageModal("Generate a code first.", "No Code"); return; }
-
             const payload = {
-                data: code,
-                plate: document.getElementById("plate").value.trim(),
+                data:        code,
+                plate:       document.getElementById("plate").value.trim(),
                 valid_until: document.getElementById("validuntil").value,
-                owner_name: document.getElementById("owner_name").value.trim(),
+                owner_name:  document.getElementById("owner_name").value.trim(),
                 owner_email: document.getElementById("owner_email").value.trim(),
             };
-
             const res = await API.post("/staff/save_qr", payload);
             showMessageModal(res.message, res.status);
             if (res.status === "good") {
-                getQrdata();
+                getQrdata(1);
                 regenerateCode();
-                document.getElementById("plate").value = "";
-                document.getElementById("validuntil").value = "";
-                document.getElementById("owner_name").value = "";
-                document.getElementById("owner_email").value = "";
+                ["plate","validuntil","owner_name","owner_email"].forEach(id => document.getElementById(id).value = "");
                 document.getElementById("ownerCard").classList.remove("show");
                 document.getElementById("qrcode").innerHTML = `<span class="placeholder-text">CLICK<br>PREVIEW<br>TO SEE QR</span>`;
                 document.getElementById("qrLabel").style.display = "none";
@@ -334,50 +294,71 @@
         }
 
         async function sendEmail() {
-            const btn = document.getElementById("sendBtn");
-            const code = document.getElementById("text").value.trim();
+            const btn   = document.getElementById("sendBtn");
+            const code  = document.getElementById("text").value.trim();
             const email = document.getElementById("owner_email").value.trim();
-
-            if (!code || !email) {
-                showMessageModal("A QR code and owner email are both required.", "Missing Info");
-                return;
-            }
-
+            if (!code || !email) { showMessageModal("A QR code and owner email are both required.", "Missing Info"); return; }
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
-
             const res = await API.post("/staff/send_qr_email", {
-                data: code,
+                data:        code,
                 owner_name:  document.getElementById("owner_name").value.trim(),
                 owner_email: email,
-                plate: document.getElementById("plate").value.trim(),
+                plate:       document.getElementById("plate").value.trim(),
                 valid_until: document.getElementById("validuntil").value,
             });
-
             showMessageModal(res.message, res.status);
             btn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> Send Code to Owner';
             btn.disabled  = false;
         }
 
-        async function getQrdata() {
-            const response = await API.get("/staff/my_qr");
-            if (!response || response.status !== "good") return;
-            let html = "";
-            response.data.forEach((d, i) => {
-                html += `
+        // ── My QR paginated ───────────────────────────────
+        async function getQrdata(page = 1) {
+            myPage = page;
+            const res = await API.get(`/staff/my_qr?page=${page}&limit=${LIMIT}`);
+            if (!res || res.status !== "good") {
+                document.getElementById("qrBody").innerHTML =
+                    `<tr><td colspan="5" style="padding:28px;text-align:center;color:#94a3b8;font-family:'Space Mono',monospace;font-size:11px;">No records yet</td></tr>`;
+                return;
+            }
+
+            myPages = res.pages;
+            document.getElementById("qrBody").innerHTML = res.data.map((d, i) => `
                 <tr>
-                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${(page-1)*LIMIT+i+1}</td>
                     <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;">${d[1]}</td>
                     <td style="color:#334155;">${d[3] || "—"}</td>
                     <td style="color:#334155;font-family:'Space Mono',monospace;">${d[2] || "—"}</td>
                     <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
-                </tr>`;
-            });
-            document.querySelector("#qrtab > tbody").innerHTML = html;
+                </tr>`).join("");
+
+            const info = `Page ${page} of ${res.pages}  (${res.total} total)`;
+            document.getElementById("myPgInfo").textContent   = info;
+            document.getElementById("myPgBottom").textContent = info;
+            document.getElementById("myBtnPrev").disabled = page <= 1;
+            document.getElementById("myBtnNext").disabled = page >= res.pages;
+
+            const nums = document.getElementById("myPgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(res.pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changeMyPage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changeMyPage(p) {
+            if (p < 1 || p > myPages) return;
+            getQrdata(p);
         }
 
         regenerateCode();
-        getQrdata();
+        getQrdata(1);
     </script>
 </body>
 </html>

@@ -11,66 +11,59 @@
     <title>History — GSD Parking</title>
 
     <style>
-        .header {
-            background: #ffffff;
-            border-bottom: 1px solid #c7d9f5;
-            padding: 22px 32px;
-            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
-        }
-        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display:flex; align-items:center; gap:8px; }
-        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; }
-        .header .bi { color: #2563eb; }
+        .header { background:#fff; border-bottom:1px solid #c7d9f5; padding:22px 32px; box-shadow:0 1px 8px rgba(37,99,235,.06); }
+        .header h1 { font-size:20px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+        .header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:3px; letter-spacing:.08em; }
+        .header .bi { color:#2563eb; }
 
-        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 28px 32px 0; }
-        .stat-item { background: #ffffff; border: 1px solid #c7d9f5; padding: 20px; position: relative; border-radius: 12px; box-shadow: 0 1px 6px rgba(37,99,235,0.07); }
-        .stat-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 12px 12px 0 0; }
-        .stat-item:nth-child(1)::before { background: #2563eb; }
-        .stat-item:nth-child(2)::before { background: #ef4444; }
-        .stat-item:nth-child(3)::before { background: #f59e0b; }
-        .stat-item:nth-child(4)::before { background: #10b981; }
+        .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:28px 32px 0; }
+        .stat-item { background:#fff; border:1px solid #c7d9f5; padding:20px; position:relative; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .stat-item::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+        .stat-item:nth-child(1)::before { background:#2563eb; }
+        .stat-item:nth-child(2)::before { background:#ef4444; }
+        .stat-item:nth-child(3)::before { background:#f59e0b; }
+        .stat-item:nth-child(4)::before { background:#10b981; }
+        .stat-item h4 { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.14em; font-family:'Space Mono',monospace; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .stat-item .num { font-size:36px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .stat-item:nth-child(1) .num { color:#2563eb; }
+        .stat-item:nth-child(2) .num { color:#ef4444; }
+        .stat-item:nth-child(3) .num { color:#f59e0b; }
+        .stat-item:nth-child(4) .num { color:#10b981; }
 
-        .stat-item h4 { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.14em; font-family: 'Space Mono', monospace; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .stat-item .num { font-size: 36px; font-weight: 800; font-family: 'Space Mono', monospace; line-height: 1; }
-        .stat-item:nth-child(1) .num { color: #2563eb; }
-        .stat-item:nth-child(2) .num { color: #ef4444; }
-        .stat-item:nth-child(3) .num { color: #f59e0b; }
-        .stat-item:nth-child(4) .num { color: #10b981; }
+        .section { margin:24px 32px; background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .section-head { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .section-head-left { display:flex; align-items:center; gap:8px; }
+        .section-head-left::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:2px; }
+        .section-head h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; font-family:'Space Mono',monospace; }
+        .section-head .bi { color:#2563eb; }
 
-        .section { margin: 24px 32px; background: #ffffff; border: 1px solid #c7d9f5; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(37,99,235,0.07); }
-        .section-head {
-            padding: 14px 20px; background: #f5f9ff; border-bottom: 1px solid #ddeaff;
-            display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-        }
-        .section-head-left { display: flex; align-items: center; gap: 8px; }
-        .section-head-left::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; }
-        .section-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
-        .section-head .bi { color: #2563eb; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:12px 16px; text-align:left; font-size:12px; }
+        th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
+        td { color:#334155; border-bottom:1px solid #f1f5f9; }
+        tbody tr:last-child td { border-bottom:none; }
+        tbody tr:hover td { background:#f8faff; }
 
-        .search-input {
-            padding: 7px 12px; background: #ffffff; border: 1.5px solid #c7d9f5;
-            color: #0f172a; font-family: 'Space Mono', monospace; font-size: 11px;
-            outline: none; width: 200px; transition: border-color 0.2s; border-radius: 8px;
-        }
-        .search-input:focus { border-color: #2563eb; }
-        .search-input::placeholder { color: #cbd5e1; }
+        /* Column layouts */
+        .recent-table tr { display:grid; grid-template-columns:50px 1.6fr 120px 100px 130px; }
+        .all-table tr    { display:grid; grid-template-columns:50px 1fr 130px 100px 130px 110px; }
 
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 16px; text-align: left; font-size: 12px; }
-        th { background: #f5f9ff; color: #64748b; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid #ddeaff; }
-        td { color: #334155; border-bottom: 1px solid #f1f5f9; }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background: #f8faff; }
+        .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; border-radius:20px; }
+        .badge.active   { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge.expired  { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        .badge.rejected { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
 
-        .recent-table tr { display: grid; grid-template-columns: 50px 80px 1fr 120px 100px 120px; }
-        .all-table tr { display: grid; grid-template-columns: 50px 1fr 120px 100px 120px 100px; }
+        /* ─── PAGINATION ─── */
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:5px; }
+        .pg-btn { padding:5px 11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font-size: 10px; font-weight: 700; font-family: 'Space Mono', monospace; letter-spacing: 0.06em; border-radius: 20px; }
-        .badge.active  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .badge.expired { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge.rejected{ background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-
-        .btn-sm { padding: 4px 9px; border: 1px solid #c7d9f5; background: transparent; color: #64748b; cursor: pointer; font-size: 12px; transition: all 0.2s; border-radius: 6px; }
-        .btn-sm:hover { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .empty-row { display:block !important; }
+        .empty-row td { display:block; padding:32px; text-align:center; color:#94a3b8; font-family:'Space Mono',monospace; font-size:11px; border-bottom:none !important; }
     </style>
 </head>
 <body>
@@ -97,128 +90,151 @@
         </div>
 
         <div class="stat-row">
-            <div class="stat-item">
-                <h4><i class="bi bi-qr-code"></i> Generated</h4>
-                <div class="num">0</div>
-            </div>
-            <div class="stat-item">
-                <h4><i class="bi bi-x-circle"></i> Rejected</h4>
-                <div class="num">0</div>
-            </div>
-            <div class="stat-item">
-                <h4><i class="bi bi-hourglass-bottom"></i> Expired</h4>
-                <div class="num">0</div>
-            </div>
-            <div class="stat-item">
-                <h4><i class="bi bi-check-circle"></i> Active</h4>
-                <div class="num">0</div>
-            </div>
+            <div class="stat-item"><h4><i class="bi bi-qr-code"></i> Total QR</h4><div class="num" id="statTotal">—</div></div>
+            <div class="stat-item"><h4><i class="bi bi-x-circle"></i> Revoked</h4><div class="num" id="statRevoked">—</div></div>
+            <div class="stat-item"><h4><i class="bi bi-hourglass-bottom"></i> Expired</h4><div class="num" id="statExpired">—</div></div>
+            <div class="stat-item"><h4><i class="bi bi-check-circle"></i> Active</h4><div class="num" id="statActive">—</div></div>
         </div>
 
+        <!-- Recently Created (top 5) -->
         <div class="section">
             <div class="section-head">
                 <div class="section-head-left">
                     <i class="bi bi-clock-history"></i>
-                    <h2>Recently Created</h2>
+                    <h2>Recently Created (Latest 5)</h2>
                 </div>
             </div>
             <table class="recent-table">
                 <thead>
-                    <tr><th>#</th><th>Image</th><th>Data</th><th>Status</th><th>Action</th><th>Created At</th></tr>
+                    <tr><th>#</th><th>QR Data</th><th>Plate</th><th>Status</th><th>Created At</th></tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td style="color:#94a3b8;font-family:'Space Mono',monospace;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">No recent records</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                    </tr>
+                <tbody id="recentBody">
+                    <tr class="empty-row"><td>Loading…</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="section">
+        <!-- All QR codes — paginated -->
+        <div class="section" style="margin-bottom:32px;">
             <div class="section-head">
                 <div class="section-head-left">
                     <i class="bi bi-table"></i>
                     <h2>All QR Codes</h2>
                 </div>
-                <input type="text" class="search-input" placeholder="🔍 Search...">
+                <span class="pg-info" id="allPgInfo">—</span>
             </div>
             <table class="all-table" id="qrtab">
                 <thead>
-                    <tr><th>#</th><th>Data</th><th>Plate</th><th>Status</th><th>Created By</th><th>Action</th></tr>
+                    <tr><th>#</th><th>QR Data</th><th>Plate</th><th>Status</th><th>Created At</th><th>By</th></tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td style="color:#94a3b8;font-family:'Space Mono',monospace;">—</td>
-                        <td style="color:#94a3b8;">No records yet</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                        <td style="color:#94a3b8;">—</td>
-                    </tr>
+                <tbody id="allBody">
+                    <tr class="empty-row"><td>Loading…</td></tr>
                 </tbody>
             </table>
+            <div class="pagination">
+                <span class="pg-info" id="allPgBottom">—</span>
+                <div class="pg-btns">
+                    <button class="pg-btn" id="btnPrev" onclick="changePage(allPage - 1)" disabled>‹ Prev</button>
+                    <div id="pgNumbers" style="display:flex;gap:5px;"></div>
+                    <button class="pg-btn" id="btnNext" onclick="changePage(allPage + 1)" disabled>Next ›</button>
+                </div>
+            </div>
         </div>
     </div>
+
     <script>
-        async function getRecentQR(){
-            let response = await API.get("/staff/recentqr");
-            let html = ""
-            console.log(response)
+        const LIMIT = 5;
+        let allPage  = 1;
+        let allPages = 1;
 
-            if(!response) return;
-
-            response.data.forEach((d,i)=>{
-                html += `
+        // ── Recent QR (fixed top 5) ───────────────────────
+        async function getRecentQR() {
+            const res = await API.get("/staff/recentqr");
+            if (!res || res.status !== "good") {
+                document.getElementById("recentBody").innerHTML =
+                    `<tr class="empty-row"><td>No recent records</td></tr>`;
+                return;
+            }
+            document.getElementById("recentBody").innerHTML = res.data.map((d, i) => `
                 <tr>
-                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i}</td>
-                    <td>
-                        ${d[1]}
-                    </td>
-                    <td style="color:#334155;">${d[1]}</td>
-                    <td>
-                        <span class="badge ${d[5]}">${d[5]}</span>
-                    </td>
-                    <td>
-                        <button class="btn-sm">View</button>
-                    </td>
-                    <td style="color:#64748b;">${d[7]}</td>
-                </tr>
-                `
-            })
-
-            document.querySelector(".recent-table tbody").innerHTML = html
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
+                    <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;">${d[1]}</td>
+                    <td style="color:#334155;font-family:'Space Mono',monospace;">${d[2] || "—"}</td>
+                    <td><span class="badge ${d[6] || 'active'}">${d[6] || 'active'}</span></td>
+                    <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
+                </tr>`).join("");
         }
-        async function getQrdata(){
-            let response = await API.get("/staff/all_qr")
-            let html = ""
-            if(!response)return;
-            response.data.forEach((d,i)=>{
-                html += `
+
+        // ── All QR paginated ──────────────────────────────
+        async function getAllQR(page = 1) {
+            allPage = page;
+            const res = await API.get(`/staff/all_qr?page=${page}&limit=${LIMIT}`);
+            if (!res || res.status !== "good") {
+                document.getElementById("allBody").innerHTML =
+                    `<tr class="empty-row"><td>No records yet</td></tr>`;
+                return;
+            }
+
+            allPages = res.pages;
+            updateStats(res.total, res.data);
+
+            document.getElementById("allBody").innerHTML = res.data.map((d, i) => `
                 <tr>
-                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i}</td>
-                    <td style="color:#334155;">${d[1]}</td>
-                    <td style="color:#334155;">${d[2]}</td>
-                    <td style="color:#334155;">${d[5]}</td>
-                    <td style="color:#64748b;">${d[6]}</td>
-                    <td style="color:#94a3b8;">—s</td>
-                </tr>`
-            })
-            document.querySelector("#qrtab > tbody").innerHTML = html
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${(page - 1) * LIMIT + i + 1}</td>
+                    <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d[1]}</td>
+                    <td style="color:#334155;font-family:'Space Mono',monospace;">${d[2] || "—"}</td>
+                    <td><span class="badge ${d[6] || 'active'}">${d[6] || 'active'}</span></td>
+                    <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
+                    <td style="color:#64748b;font-size:11px;">${d[10] || "—"}</td>
+                </tr>`).join("");
+
+            updatePager(res.total, page, res.pages);
         }
 
-
-        async function get(){
-            await getRecentQR()
-            await getQrdata()
+        function updateStats(total, rows) {
+            document.getElementById("statTotal").textContent   = total;
+            // Count per-page visible; full counts require separate API calls or backend aggregation
+            const active  = rows.filter(d => (d[6] || "active") === "active").length;
+            const expired = rows.filter(d => (d[6] || "") === "expired").length;
+            const revoked = rows.filter(d => (d[6] || "") === "revoked").length;
+            document.getElementById("statActive").textContent  = active;
+            document.getElementById("statExpired").textContent = expired;
+            document.getElementById("statRevoked").textContent = revoked;
         }
 
-        get()
-        setInterval(get, 30000)
+        function updatePager(total, page, pages) {
+            const info = `Page ${page} of ${pages}  (${total} total)`;
+            document.getElementById("allPgInfo").textContent   = info;
+            document.getElementById("allPgBottom").textContent = info;
+            document.getElementById("btnPrev").disabled = page <= 1;
+            document.getElementById("btnNext").disabled = page >= pages;
+
+            const nums = document.getElementById("pgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changePage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changePage(p) {
+            if (p < 1 || p > allPages) return;
+            getAllQR(p);
+        }
+
+        async function init() {
+            await getRecentQR();
+            await getAllQR(1);
+        }
+
+        init();
+        setInterval(init, 30000);
     </script>
 </body>
 </html>
