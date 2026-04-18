@@ -165,7 +165,6 @@ class SQL:
         self.sql.commit()
         cur.close()
 
-    # ─── History queries ───────────────────────────────────
 
     def inserthistory(self, data, guard, status, action="entry"):
         cur = self.sql.cursor()
@@ -175,20 +174,36 @@ class SQL:
         )
         self.sql.commit()
         cur.close()
+        
+    def gethistory(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT * FROM history")
+        data = cur.fetchall()
+        cur.close()
+        return data
 
-    # ─── Parking Management ────────────────────────────────
 
-    def updateparking(self, action="entry"):
+    def updateparking(self):
         try:
             with open(self.parking_file, "r") as f:
                 data = json.load(f)
             
-            if action == "entry":
-                data["occupied"] = min(data["occupied"] + 1, data["total"])
-                data["available"] = data["total"] - data["occupied"]
-            elif action == "exit":
-                data["occupied"] = max(data["occupied"] - 1, 0)
-                data["available"] = data["total"] - data["occupied"]
+            # if action == "entry":
+            #     data["occupied"] = min(data["occupied"] + 1, data["total"])
+            #     data["available"] = data["total"] - data["occupied"]
+            # elif action == "exit":
+            #     data["occupied"] = max(data["occupied"] - 1, 0)
+            #     data["available"] = data["total"] - data["occupied"]
+            
+            res = self.get_total_entry_exit()
+            entry = res["entry"][0]
+            print("=================")
+            print(entry)
+            
+            data["occupied"] = min(entry,data["total"])
+            data["available"] = data["total"] - data["occupied"]
+            print(data)
+            print("============================")
             
             with open(self.parking_file, "w") as f:
                 json.dump(data, f, indent=4)
@@ -197,6 +212,8 @@ class SQL:
         except Exception as e:
             print(f"Error updating parking: {e}")
             return False
+        
+        
 
     def getparking(self):
         try:
@@ -204,6 +221,27 @@ class SQL:
                 return json.load(f)
         except:
             return {"total": 0, "occupied": 0, "available": 0}
+        
+        
+    def get_total_entry_exit(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
+        entry = cur.fetchone()
+        
+        cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
+        exit = cur.fetchone()
+        
+        return {"entry": entry, "exit":exit}
+    
+    def get_total_scan(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM history")
+        total = cur.fetchone()
+        return total
+        
+        
+
+        
 
    
         """

@@ -194,7 +194,7 @@
             document.querySelector(".recent-table tbody").innerHTML = html
         }
         async function getQrdata(){
-            let response = await API.get("/staff/my_qr")
+            let response = await API.get("/staff/all_qr")
             let html = ""
             if(!response)return;
             response.data.forEach((d,i)=>{

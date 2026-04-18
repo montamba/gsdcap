@@ -153,18 +153,10 @@
                 </div>
                 <table class="hist-table">
                     <thead>
-                        <tr><th>ID</th><th>Name</th><th>QR Code</th><th>Actions</th></tr>
+                        <tr><th>ID</th><th>QR Code</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="font-family:'Space Mono',monospace;color:#94a3b8;">01</td>
-                            <td>qrpass</td>
-                            <td style="font-family:'Space Mono',monospace;color:#2563eb;">hsjms</td>
-                            <td>
-                                <button class="btn-sm danger"><i class="bi bi-trash"></i></button>
-                                <button class="btn-sm"><i class="bi bi-pencil-square"></i></button>
-                            </td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -188,8 +180,38 @@
             document.querySelectorAll(".total").forEach(el => el.innerText = data.total)
         }
 
-        getParkdata()
-        setInterval(getParkdata, 10000)
+        async function getHistory(){
+            let data = await API.get("/admin/get_history");
+            let histable = document.querySelector(".hist-table > tbody");
+            let html = "";
+            data.forEach(res=>{
+                html += `
+                    <tr>
+                        <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${res[0]}</td>
+                        <td style="font-family:'Space Mono',monospace;color:#2563eb;">${res[1]}</td>
+                        <td>
+                            <button class="btn-sm danger"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `
+
+
+            })
+            histable.innerHTML = html;
+        }
+
+
+        async function loadAll(){
+            await getParkdata();
+            await getHistory();
+
+        }
+
+
+        
+
+        
+        setInterval(loadAll, 20000)
     </script>
 </body>
 </html>

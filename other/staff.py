@@ -67,15 +67,12 @@ class Staff:
             except:
                 return jsonify({"message":"error"})
 
-        @self.staff.route("/my_qr", methods=["GET"])
+        @self.staff.route("/all_qr", methods=["GET"])
         def my_qr():
-            qrs = self.sql.getqrbyuser(session["user_id"])
+            qrs = self.sql.getallqr()
             if qrs:
-                serialized = [
-                    [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
-                    for row in qrs
-                ]
-                return jsonify({"status": "good", "data": serialized})
+               
+                return jsonify({"status": "good", "data": qrs})
             return jsonify({"status": "empty", "message": "No QR codes found"})
 
         @self.staff.route("/save_qr", methods=["POST"])

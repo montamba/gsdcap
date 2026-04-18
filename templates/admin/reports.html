@@ -104,15 +104,15 @@
         <div class="inner">
             <div class="stat-strip">
                 <div class="stat">
-                    <div><div class="stat-label">Today Entries</div><div class="stat-num">0</div></div>
+                    <div><div class="stat-label">Today Entries</div><div class="stat-num entries">0</div></div>
                     <div class="stat-icon"><i class="bi bi-arrow-bar-down"></i></div>
                 </div>
                 <div class="stat">
-                    <div><div class="stat-label">Today Exits</div><div class="stat-num">0</div></div>
+                    <div><div class="stat-label">Today Exits</div><div class="stat-num exits">0</div></div>
                     <div class="stat-icon"><i class="bi bi-arrow-bar-up"></i></div>
                 </div>
                 <div class="stat">
-                    <div><div class="stat-label">QR Scanned</div><div class="stat-num">0</div></div>
+                    <div><div class="stat-label">QR Scanned</div><div class="stat-num scn">0</div></div>
                     <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
                 </div>
             </div>
@@ -176,7 +176,28 @@
             }
             tbody.innerHTML = html
         }
-        getRecentQR()
+
+
+        async function getEntries(){
+            let data = await API.get("/admin/get_entries");
+
+            document.querySelector(".entries").innerHTML = data.entry;
+            document.querySelector(".exits").innerHTML = data.exit;
+            document.querySelector(".scn").innerHTML = data.scan;
+
+            
+
+        }
+
+
+        async function loadAll(){
+        
+            await getRecentQR();
+            await getEntries();
+
+        }
+
+        loadAll()
     </script>
 </body>
 </html>

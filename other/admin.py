@@ -124,3 +124,17 @@ class Admin:
                 "data":ndata
             }
             
+        @self.admin.route("/get_entries")
+        def entries():
+            data = self.sql.get_total_entry_exit()
+            scanned = self.sql.get_total_scan()
+            data["scan"] = scanned
+            
+            return data
+        
+        @self.admin.route("/get_history")
+        def gethistory():
+            data = self.sql.gethistory()
+            print(data)
+            return data
+            

@@ -379,11 +379,12 @@
         let allData = []
 
         async function loadAll() {
-            let res = await API.get("/staff/my_qr")
+            let res = await API.get("/staff/all_qr")
             if (res && res.data) {
                 allData = res.data
                 renderRows(allData)
             }
+            console.log(res.data)
         }
 
         function renderRows(data) {
@@ -406,9 +407,9 @@
                 const badgeClass = status === "active"  ? "badge-active"
                                  : status === "expired" ? "badge-expired"
                                  : "badge-revoked"
-                const plate   = d[2] ? `<span class="plate-text">${d[2]}</span>` : `<span style="color:#cbd5e1;">—</span>`
-                const validUntil = d[4] || "—"
-                const createdAt  = d[7] || "—"
+                const plate  = d[2] ? `<span class="plate-text">${d[2]}</span>` : `<span style="color:#cbd5e1;">—</span>`
+                const validUntil = d[5] || "—"
+                const createdAt  = d[8] || "—"
 
                 return `
                 <tr>
@@ -423,14 +424,14 @@
         }
 
         function liveSearch() {
-            const q      = document.getElementById("searchInput").value.toLowerCase().trim()
+            const q = document.getElementById("searchInput").value.toLowerCase().trim()
             const status = document.getElementById("statusFilter").value.toLowerCase()
 
             const filtered = allData.filter(d => {
                 const matchesText = !q ||
                     (d[1] && d[1].toLowerCase().includes(q)) ||
                     (d[2] && d[2].toLowerCase().includes(q))
-                const matchesStatus = !status || (d[5] && d[5].toLowerCase() === status)
+                const matchesStatus = !status || (d[6] && d[6].toLowerCase() === status)
                 return matchesText && matchesStatus
             })
 

@@ -6,7 +6,6 @@
     <title>QR Scanner — GSD Parking</title>
     <script src="/../../static/scripts/scrit.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
@@ -21,8 +20,7 @@
         /* ─── SIDEBAR ─── */
         aside {
             position: sticky;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             height: 100vh;
             width: 240px;
             min-width: 240px;
@@ -45,148 +43,61 @@
         }
 
         .circle {
-            width: 60px;
-            height: 60px;
-            display: grid;
-            place-items: center;
+            width: 60px; height: 60px;
+            display: grid; place-items: center;
             border-radius: 16px;
             background: rgba(255,255,255,0.12);
             border: 2px solid rgba(255,255,255,0.2);
-            font-size: 20px;
-            font-weight: 800;
+            font-size: 20px; font-weight: 800;
             color: #ffffff;
             font-family: 'Space Mono', monospace;
         }
 
         .logos span {
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 10px; font-weight: 700;
             color: rgba(148,163,184,0.7);
             letter-spacing: 0.2em;
             text-transform: uppercase;
         }
 
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            padding: 14px 0;
-            flex: 1;
-        }
+        .buttons { display: flex; flex-direction: column; padding: 14px 0; flex: 1; }
 
         .buttons a {
             text-decoration: none;
             color: rgba(186,210,255,0.75);
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 14px; font-weight: 600;
             padding: 11px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             border-left: 3px solid transparent;
             transition: all 0.2s;
         }
+        .buttons a:hover { background: rgba(255,255,255,0.07); color: #ffffff; border-left-color: rgba(255,255,255,0.3); }
+        .buttons a.active { background: rgba(255,255,255,0.12); color: #ffffff; border-left-color: #60a5fa; }
 
-        .buttons a:hover {
-            background: rgba(255,255,255,0.07);
-            color: #ffffff;
-            border-left-color: rgba(255,255,255,0.3);
-        }
-
-        .buttons a.active {
-            background: rgba(255,255,255,0.12);
-            color: #ffffff;
-            border-left-color: #60a5fa;
-        }
-
-        .logout {
-            padding: 16px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-
+        .logout { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
         .logout button {
-            width: 100%;
-            padding: 10px;
+            width: 100%; padding: 10px;
             background: rgba(239,68,68,0.12);
             border: 1px solid rgba(239,68,68,0.3);
             color: #fca5a5;
             font-family: 'Syne', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 6px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border-radius: 6px;
         }
-
-        .logout button:hover {
-            background: rgba(239,68,68,0.22);
-            color: #ffffff;
-        }
+        .logout button:hover { background: rgba(239,68,68,0.22); color: #ffffff; }
 
         /* ─── MAIN ─── */
-        .right {
-            flex: 1;
-            overflow-x: hidden;
-        }
+        .right { flex: 1; overflow-x: hidden; }
 
         .header {
             background: #ffffff;
             border-bottom: 1px solid #c7d9f5;
             padding: 22px 32px;
             box-shadow: 0 1px 8px rgba(37,99,235,0.06);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 800;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
         .header h1 i { color: #2563eb; }
-
-        .header p {
-            font-size: 11px;
-            color: #94a3b8;
-            font-family: 'Space Mono', monospace;
-            margin-top: 3px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-switch-camera {
-            padding: 8px 16px;
-            background: #f8faff;
-            border: 1.5px solid #c7d9f5;
-            color: #2563eb;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-switch-camera:hover {
-            border-color: #93c5fd;
-            background: #eff6ff;
-        }
-
-        .btn-switch-camera:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
 
         .scanner-wrap {
             padding: 32px;
@@ -206,83 +117,42 @@
             margin-bottom: 20px;
             width: 100%;
         }
-
         .action-head {
             padding: 14px 20px;
             background: #f5f9ff;
             border-bottom: 1px solid #ddeaff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
         }
-
-        .action-head::before {
-            content: '';
-            width: 3px;
-            height: 14px;
-            background: #2563eb;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .action-head h2 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
-
+        .action-head::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; flex-shrink: 0; }
+        .action-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
         .action-head i { color: #2563eb; }
 
-        .action-buttons {
-            padding: 20px;
-            display: flex;
-            gap: 12px;
-        }
+        .action-buttons { padding: 20px; display: flex; gap: 12px; }
 
         .action-btn {
-            flex: 1;
-            padding: 16px;
+            flex: 1; padding: 16px;
             border: 2px solid #ddeaff;
             background: #f8faff;
             color: #64748b;
             font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 10px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; border-radius: 10px;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
             letter-spacing: 0.04em;
         }
-
-        .action-btn:hover {
-            border-color: #c7d9f5;
-            background: #ffffff;
-        }
-
-        .action-btn.active {
+        .action-btn:hover { border-color: #c7d9f5; background: #ffffff; }
+        .action-btn.entry-active {
             background: linear-gradient(135deg, #2563eb, #0ea5e9);
             border-color: #2563eb;
             color: #ffffff;
             box-shadow: 0 4px 12px rgba(37,99,235,0.3);
         }
-
-        .action-btn.exit {
+        .action-btn.exit-active {
             background: linear-gradient(135deg, #ef4444, #f97316);
             border-color: #ef4444;
             color: #ffffff;
-        }
-
-        .action-btn.exit:not(.active) {
-            background: #fef2f2;
-            color: #ef4444;
-            border-color: #fca5a5;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
         }
 
         /* ─── VIDEO CARD ─── */
@@ -294,43 +164,17 @@
             box-shadow: 0 1px 6px rgba(37,99,235,0.07);
             flex-shrink: 0;
         }
-
         .card-head {
             padding: 14px 20px;
             background: #f5f9ff;
             border-bottom: 1px solid #ddeaff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
         }
-
-        .card-head::before {
-            content: '';
-            width: 3px;
-            height: 14px;
-            background: #2563eb;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .card-head h2 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: 'Space Mono', monospace;
-        }
-
+        .card-head::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; flex-shrink: 0; }
+        .card-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
         .card-head i { color: #2563eb; }
 
-        .video-body {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
+        .video-body { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 
         .video-frame {
             position: relative;
@@ -339,84 +183,37 @@
             border: 2px solid #ddeaff;
             background: #0f172a;
             width: 100%;
-            max-width: 480px;
+            max-width: 380px;
         }
+        .video-frame::before, .video-frame::after { content: ''; position: absolute; width: 24px; height: 24px; z-index: 2; pointer-events: none; }
+        .video-frame::before { top: 10px; left: 10px; border-top: 3px solid #2563eb; border-left: 3px solid #2563eb; border-radius: 2px 0 0 0; }
+        .video-frame::after  { bottom: 10px; right: 10px; border-bottom: 3px solid #2563eb; border-right: 3px solid #2563eb; border-radius: 0 0 2px 0; }
 
-        .video-frame::before,
-        .video-frame::after {
-            content: '';
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            z-index: 2;
-            pointer-events: none;
-        }
-        .video-frame::before {
-            top: 10px; left: 10px;
-            border-top: 3px solid #2563eb;
-            border-left: 3px solid #2563eb;
-            border-radius: 2px 0 0 0;
-        }
-        .video-frame::after {
-            bottom: 10px; right: 10px;
-            border-bottom: 3px solid #2563eb;
-            border-right: 3px solid #2563eb;
-            border-radius: 0 0 2px 0;
-        }
-
-        #video {
-            display: block;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 4/3;
-            object-fit: cover;
-        }
+        #reader { width: 340px; }
 
         .scan-line {
-            position: absolute;
-            left: 0; right: 0;
+            position: absolute; left: 0; right: 0;
             height: 2px;
             background: linear-gradient(90deg, transparent, #2563eb, transparent);
             animation: scanMove 2s ease-in-out infinite;
-            z-index: 3;
-            pointer-events: none;
+            z-index: 3; pointer-events: none;
         }
-
-        @keyframes scanMove {
-            0%   { top: 10%; opacity: 0; }
-            10%  { opacity: 1; }
-            90%  { opacity: 1; }
-            100% { top: 90%; opacity: 0; }
-        }
+        @keyframes scanMove { 0%{top:10%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:90%;opacity:0} }
 
         .btn-capture {
             padding: 12px 28px;
             background: linear-gradient(135deg, #2563eb, #0ea5e9);
-            border: none;
-            color: #ffffff;
+            border: none; color: #ffffff;
             font-family: 'Syne', sans-serif;
-            font-size: 14px;
-            font-weight: 800;
-            cursor: pointer;
-            border-radius: 8px;
+            font-size: 14px; font-weight: 800;
+            cursor: pointer; border-radius: 8px;
             letter-spacing: 0.04em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
             transition: all 0.2s;
             box-shadow: 0 3px 12px rgba(37,99,235,0.28);
         }
-
-        .btn-capture:hover {
-            opacity: 0.92;
-            box-shadow: 0 5px 18px rgba(37,99,235,0.38);
-            transform: translateY(-1px);
-        }
-
-        .btn-capture:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-capture:hover { opacity: 0.92; box-shadow: 0 5px 18px rgba(37,99,235,0.38); transform: translateY(-1px); }
+        .btn-capture:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         /* ─── RESULT CARD ─── */
         .result-card {
@@ -425,139 +222,49 @@
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 1px 6px rgba(37,99,235,0.07);
-            flex: 1;
-            min-width: 280px;
+            flex: 1; min-width: 280px;
         }
+        .result-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 
-        .result-body {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .preview-box {
+        /* Status banner */
+        .result-banner {
             width: 100%;
-            aspect-ratio: 4/3;
-            background: #f5f9ff;
-            border: 1.5px solid #ddeaff;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .preview-placeholder {
-            font-family: 'Space Mono', monospace;
-            font-size: 11px;
-            color: #94a3b8;
-            letter-spacing: 0.1em;
-            text-align: center;
-            line-height: 2;
-        }
-
-        .result-status {
-            padding: 16px;
+            padding: 20px;
             border-radius: 10px;
-            border: 1.5px solid #ddeaff;
+            text-align: center;
+            border: 2px solid #ddeaff;
             background: #f5f9ff;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            transition: all 0.3s;
         }
+        .result-banner .banner-icon  { font-size: 40px; margin-bottom: 8px; }
+        .result-banner .banner-title { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; font-family: 'Space Mono', monospace; }
+        .result-banner .banner-msg   { font-size: 12px; color: #64748b; margin-top: 4px; }
 
-        .result-status.success {
-            background: #f0fdf4;
-            border-color: #6ee7b7;
+        .result-banner.idle    { background: #f5f9ff;  border-color: #ddeaff; }
+        .result-banner.success { background: #f0fdf4;  border-color: #6ee7b7; }
+        .result-banner.fail    { background: #fef2f2;  border-color: #fca5a5; }
+        .result-banner.expired { background: #fffbeb;  border-color: #fde68a; }
+
+        .result-banner.success .banner-title { color: #065f46; }
+        .result-banner.fail    .banner-title { color: #991b1b; }
+        .result-banner.expired .banner-title { color: #92400e; }
+        .result-banner.idle    .banner-title { color: #64748b; }
+
+        /* Info rows */
+        .info-rows { display: flex; flex-direction: column; gap: 8px; }
+        .info-row {
+            display: flex; align-items: center; gap: 12px;
+            background: #f8faff; border: 1px solid #ddeaff;
+            border-radius: 8px; padding: 10px 14px;
         }
-
-        .result-status.error {
-            background: #fef2f2;
-            border-color: #fca5a5;
-        }
-
-        .result-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-family: 'Space Mono', monospace;
-        }
-
-        .result-status.success .result-label { color: #059669; }
-        .result-status.error   .result-label { color: #dc2626; }
-
-        .result-text {
-            font-size: 15px;
-            font-weight: 700;
-            color: #334155;
-        }
-
-        .result-status.success .result-text { color: #065f46; }
-        .result-status.error   .result-text { color: #991b1b; }
-
-        .result-action {
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            font-family: 'Space Mono', monospace;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .result-status.success .result-action { color: #059669; }
-        .result-status.error   .result-action { color: #dc2626; }
-
-        .camera-permission-error {
-            background: #fee2e2;
-            border: 1px solid #fca5a5;
-            color: #991b1b;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 16px 0;
-            display: none;
-        }
-
-        #pic { display: none; }
+        .info-row .lbl { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.14em; font-family: 'Space Mono', monospace; min-width: 70px; }
+        .info-row .val { font-size: 13px; font-weight: 600; color: #0f172a; font-family: 'Space Mono', monospace; }
 
         @media (max-width: 768px) {
-            aside {
-                width: 200px;
-                min-width: 200px;
-            }
-
-            .scanner-wrap {
-                padding: 16px;
-                gap: 16px;
-            }
-
-            .video-card, .result-card {
-                width: 100%;
-            }
-
-            #video {
-                max-width: 100%;
-                height: auto;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .header-right {
-                width: 100%;
-                justify-content: flex-start;
-            }
+            aside { width: 200px; min-width: 200px; }
+            .scanner-wrap { padding: 16px; gap: 16px; }
+            .video-card, .result-card { width: 100%; }
+            #reader { width: 100%; }
         }
     </style>
 </head>
@@ -581,31 +288,20 @@
                 <h1><i class="bi bi-qr-code-scan"></i> QR Scanner</h1>
                 <p>SCAN VEHICLE QR CODES FOR ENTRY / EXIT</p>
             </div>
-            <div class="header-right">
-                <button class="btn-switch-camera" id="switchCameraBtn" onclick="switchCamera()" title="Switch camera">
-                    <i class="bi bi-arrow-repeat"></i> Switch Camera
-                </button>
-            </div>
-        </div>
-
-        <!-- Camera Permission Error -->
-        <div class="camera-permission-error" id="cameraError">
-            <strong>⚠️ Camera Permission Denied</strong><br>
-            Please enable camera permission in your browser settings to use the scanner.
         </div>
 
         <!-- Action Selector -->
-        <div style="padding: 0 32px;">
+        <div style="padding: 28px 32px 0;">
             <div class="action-selector">
                 <div class="action-head">
                     <i class="bi bi-arrow-left-right"></i>
                     <h2>Select Action</h2>
                 </div>
                 <div class="action-buttons">
-                    <button class="action-btn active" id="entryBtn" onclick="setAction('entry')">
+                    <button class="action-btn entry-active" id="entryBtn" onclick="setAction('entry')">
                         <i class="bi bi-arrow-bar-right"></i> ENTRY
                     </button>
-                    <button class="action-btn exit" id="exitBtn" onclick="setAction('exit')">
+                    <button class="action-btn" id="exitBtn" onclick="setAction('exit')">
                         <i class="bi bi-arrow-bar-left"></i> EXIT
                     </button>
                 </div>
@@ -613,13 +309,17 @@
         </div>
 
         <div class="scanner-wrap">
+            <!-- Camera -->
             <div class="video-card">
                 <div class="card-head">
                     <i class="bi bi-camera-video-fill"></i>
                     <h2>Live Camera</h2>
                 </div>
                 <div class="video-body">
-                    <div id="reader" style="width:300px;"></div>
+                    <div class="video-frame">
+                        <div id="reader"></div>
+                        <div class="scan-line"></div>
+                    </div>
                     <button class="btn-capture" id="captureBtn" onclick="ScanNow()">
                         <i class="bi bi-camera"></i> Capture & Scan
                     </button>
@@ -633,74 +333,109 @@
                     <h2>Scan Result</h2>
                 </div>
                 <div class="result-body">
-                    <div class="preview-box">
-                        <img src="" alt="" id="poc" style="display:none;">
-                        <div class="preview-placeholder" id="previewPlaceholder">
-                            CAPTURE<br>PREVIEW<br>APPEARS HERE
-                        </div>
+                    <div class="result-banner idle" id="resultBanner">
+                        <div class="banner-icon">📷</div>
+                        <div class="banner-title">WAITING FOR SCAN</div>
+                        <div class="banner-msg">Press Capture & Scan to begin</div>
                     </div>
 
-                    <div class="result-status" id="resultStatus">
-                        <div class="result-label">Status</div>
-                        <div class="result-text" id="resultText">Waiting for scan...</div>
-                        <div class="result-action" id="resultAction" style="display:none;"></div>
+                    <div class="info-rows" id="infoRows" style="display:none;">
+                        <div class="info-row"><span class="lbl">Owner</span><span class="val" id="rOwner">—</span></div>
+                        <div class="info-row"><span class="lbl">Plate</span><span class="val" id="rPlate">—</span></div>
+                        <div class="info-row"><span class="lbl">Valid Until</span><span class="val" id="rExpiry">—</span></div>
+                        <div class="info-row"><span class="lbl">Action</span><span class="val" id="rAction">—</span></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-   
-
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
-        const html5QrCode = new Html5Qrcode("reader");
-        let w = document.body.getBoundingClientRect().width
-        
-        
+        let scanning   = false;
+        let currentAction = "entry";
 
-        let scanning = false;
-        let currentCamera =
-            window.innerWidth < 600
-                ? { facingMode: "environment" }
-                : { facingMode: "user" }; 
+        // ── Action toggle ─────────────────────────────────
+        function setAction(action) {
+            currentAction = action;
+            const entryBtn = document.getElementById("entryBtn");
+            const exitBtn  = document.getElementById("exitBtn");
+
+            entryBtn.className = "action-btn" + (action === "entry" ? " entry-active" : "");
+            exitBtn.className  = "action-btn" + (action === "exit"  ? " exit-active"  : "");
+        }
+
+        // ── Camera init (auto — rear on mobile, front on desktop) ─
+        const html5QrCode = new Html5Qrcode("reader");
+        const cameraConfig = window.innerWidth < 600
+            ? { facingMode: "environment" }
+            : { facingMode: "user" };
 
         html5QrCode.start(
-            currentCamera, 
+            cameraConfig,
             { fps: 10, qrbox: 250 },
             async (decodedText) => {
-                console.log(scanning)
-                if(!scanning) return;
-                
-                console.log("Result:", decodedText);
-
+                if (!scanning) return;
                 scanning = false;
+
+                document.getElementById("captureBtn").disabled = true;
+                document.getElementById("captureBtn").innerHTML = '<i class="bi bi-hourglass-split"></i> Checking…';
 
                 await checkData(decodedText);
 
-                },
-                (errorMessage) => {
-                
-                }
-            ).catch(err => {
-                console.error("Camera error:", err);
-            });
+                document.getElementById("captureBtn").disabled = false;
+                document.getElementById("captureBtn").innerHTML = '<i class="bi bi-camera"></i> Capture & Scan';
+            },
+            () => {}   // suppress per-frame errors
+        ).catch(err => console.error("Camera error:", err));
 
+        // ── Trigger scan ──────────────────────────────────
         function ScanNow() {
-            scanning = true
-            console.log(scanning)
-
+            scanning = true;
+            setBanner("idle", "📷", "SCANNING…", "Hold the QR code steady");
         }
 
+        // ── Call backend ──────────────────────────────────
+        async function checkData(qrData) {
+            try {
+                const res = await API.post("/guard/check_qr", {
+                    data:   qrData,
+                    action: currentAction
+                });
 
-        async function checkData(data){
-            let res = await API.post("/guard/check_qr", {"data":data});
-            alert(res);
+                const result = res.scan_result || (res.status === "good" ? "accepted" : "failed");
+
+                if (result === "accepted") {
+                    setBanner("success", "✅", "ACCESS GRANTED", res.message);
+                } else if (result === "expired") {
+                    setBanner("expired", "⏰", "QR EXPIRED", res.message);
+                } else {
+                    setBanner("fail", "❌", "ACCESS DENIED", res.message);
+                }
+
+                // Show detail rows
+                const infoRows = document.getElementById("infoRows");
+                infoRows.style.display = "flex";
+
+                document.getElementById("rOwner").textContent  = res.owner_name  || "—";
+                document.getElementById("rPlate").textContent  = res.plate       || "—";
+                document.getElementById("rExpiry").textContent = res.valid_until  || "—";
+                document.getElementById("rAction").textContent = currentAction.toUpperCase();
+
+            } catch (e) {
+                setBanner("fail", "❌", "ERROR", "Could not reach server");
+                console.error(e);
+            }
+        }
+
+        // ── Banner helper ─────────────────────────────────
+        function setBanner(type, icon, title, msg) {
+            const banner = document.getElementById("resultBanner");
+            banner.className = "result-banner " + type;
+            banner.querySelector(".banner-icon").textContent  = icon;
+            banner.querySelector(".banner-title").textContent = title;
+            banner.querySelector(".banner-msg").textContent   = msg;
         }
     </script>
-
-    
-
-    
 </body>
 </html>
