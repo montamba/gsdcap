@@ -25,7 +25,7 @@ class Guard:
 
         @self.guard.route("/check_qr", methods=["POST"])
         def check_qr():
-            data   = request.get_json()
+            data = request.get_json()
             qrdata = data.get("data", "").strip()
 
             if not qrdata:

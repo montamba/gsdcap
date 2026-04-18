@@ -620,7 +620,7 @@
                 </div>
                 <div class="video-body">
                     <div id="reader" style="width:300px;"></div>
-                    <button class="btn-capture" id="captureBtn" onclick="takePicture()">
+                    <button class="btn-capture" id="captureBtn" onclick="ScanNow()">
                         <i class="bi bi-camera"></i> Capture & Scan
                     </button>
                 </div>
@@ -654,32 +654,49 @@
 
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
-    const html5QrCode = new Html5Qrcode("reader");
+        const html5QrCode = new Html5Qrcode("reader");
+        let w = document.body.getBoundingClientRect().width
+        
+        
 
+        let scanning = false;
+        let currentCamera =
+            window.innerWidth < 600
+                ? { facingMode: "environment" }
+                : { facingMode: "user" }; 
 
-    function ScanNow(){
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
-            let cameraId = devices[0].id;
+        html5QrCode.start(
+            currentCamera, 
+            { fps: 10, qrbox: 250 },
+            async (decodedText) => {
+                console.log(scanning)
+                if(!scanning) return;
+                
+                console.log("Result:", decodedText);
 
-            html5QrCode.start(
-                cameraId,
-                { fps: 10, qrbox: 250 },
-                (decodedText) => {
-                    console.log("Result:", decodedText);
+                scanning = false;
+
+                await checkData(decodedText);
+
                 },
-                (errorMessage) => {}
-            );
+                (errorMessage) => {
+                
+                }
+            ).catch(err => {
+                console.error("Camera error:", err);
+            });
+
+        function ScanNow() {
+            scanning = true
+            console.log(scanning)
+
+        }
 
 
-            }
-        }).catch(err => {
-            console.error(err);
-        });
-
-    }
-
-    
+        async function checkData(data){
+            let res = await API.post("/guard/check_qr", {"data":data});
+            alert(res);
+        }
     </script>
 
     
