@@ -269,7 +269,7 @@ class SQL:
     def send_qr_email(self, to_email, owner_name, qr_data, plate="", valid_until=""):
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
-        smtp_user = os.getenv("SMTP_EMAIL", "")
+        smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
         smtp_pass = os.getenv("SMTP_PASSWORD", "")
 
         if not smtp_user or not smtp_pass:
@@ -278,8 +278,8 @@ class SQL:
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = "Your GSD Parking QR Code"
-            msg["From"]    = smtp_user
-            msg["To"]      = to_email
+            msg["From"] = smtp_user
+            msg["To"] = to_email
 
             html_body = f"""
             <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;
