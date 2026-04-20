@@ -5,7 +5,11 @@ import bcrypt
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 import json
+import qrcode
+import io
+import base64
 
 load_dotenv()
 
@@ -32,21 +36,29 @@ class SQL:
         except Exception:
             return False
 
+    def _generate_qr_image(self, data: str) -> bytes:
+        """Generate a QR code image and return as PNG bytes."""
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#2563eb", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
     # ─── User queries ──────────────────────────────────────
 
-    def getalluser(self, limit=5, offset=0):
+    def getalluser(self):
         cur = self.sql.cursor()
-        cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
+        cur.execute("SELECT id, username, role, created_at FROM users")
         users = cur.fetchall()
         cur.close()
         return users
-
-    def countallusers(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM users")
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
 
     def getuser(self, id):
         cur = self.sql.cursor()
@@ -118,30 +130,12 @@ class SQL:
         cur.close()
         return qr
 
-    def getqrbyid(self, qr_id):
+    def getqrbyuser(self, id):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
-        qr = cur.fetchone()
-        cur.close()
-        return qr
-
-    def getqrbyuser(self, user_id, limit=5, offset=0):
-        cur = self.sql.cursor()
-        cur.execute("""SELECT qrcode.*, users.username
-                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                       WHERE qrcode.created_by = %s
-                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                    (user_id, limit, offset))
+        cur.execute("SELECT * FROM qrcode WHERE created_by=%s ORDER BY created_at DESC", (id,))
         qr = cur.fetchall()
         cur.close()
         return qr
-
-    def countqrbyuser(self, user_id):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
 
     def getqrbyowner_email(self, email):
         cur = self.sql.cursor()
@@ -150,22 +144,20 @@ class SQL:
         cur.close()
         return qr
 
-    def getallqr(self, limit=5, offset=0):
+    def getallqr(self, limit=0, offset=0):
         cur = self.sql.cursor()
-        cur.execute("""SELECT qrcode.*, users.username
-                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                    (limit, offset))
+        if limit:
+            cur.execute("""SELECT qrcode.*, users.username
+                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                           ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                        (limit, offset))
+        else:
+            cur.execute("""SELECT qrcode.*, users.username
+                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                           ORDER BY qrcode.created_at DESC""")
         result = cur.fetchall()
         cur.close()
         return result
-
-    def countallqr(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM qrcode")
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
 
     def saveqr(self, data, plate, expiry, created_by, owner_name="", owner_email=""):
         cur = self.sql.cursor()
@@ -186,16 +178,6 @@ class SQL:
         self.sql.commit()
         cur.close()
 
-    def renewqr_any(self, qr_id, new_expiry):
-        """Renew any QR code — used by staff who can manage all QRs."""
-        cur = self.sql.cursor()
-        cur.execute(
-            "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
-            (new_expiry, qr_id)
-        )
-        self.sql.commit()
-        cur.close()
-
     def deleteqr(self, qr_id, user_id):
         cur = self.sql.cursor()
         cur.execute("DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id))
@@ -211,19 +193,29 @@ class SQL:
         self.sql.commit()
         cur.close()
 
-    def gethistory(self, limit=5, offset=0):
+    def gethistory(self):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM history ORDER BY id DESC LIMIT %s OFFSET %s", (limit, offset))
+        cur.execute("SELECT * FROM history")
         data = cur.fetchall()
         cur.close()
         return data
 
-    def counthistory(self):
+    def gethistorybyguard(self, guard_id):
+        """Get scan history for a specific guard, joined with qrcode for plate/owner info."""
         cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM history")
-        count = cur.fetchone()[0]
+        cur.execute("""
+            SELECT h.id, h.data, h.status, h.created_at,
+                   COALESCE(q.plate, '—') AS plate,
+                   COALESCE(q.owner_name, '—') AS owner_name,
+                   COALESCE(h.action, 'entry') AS action
+            FROM history h
+            LEFT JOIN qrcode q ON h.data = q.data
+            WHERE h.guard = %s
+            ORDER BY h.created_at DESC
+        """, (guard_id,))
+        data = cur.fetchall()
         cur.close()
-        return count
+        return data
 
     def updateparking(self):
         try:
@@ -231,7 +223,8 @@ class SQL:
                 data = json.load(f)
 
             res = self.get_total_entry_exit()
-            entry = res["entry"]
+            entry = res["entry"][0]
+
             data["occupied"] = min(entry, data["total"])
             data["available"] = data["total"] - data["occupied"]
 
@@ -253,20 +246,21 @@ class SQL:
     def get_total_entry_exit(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
-        entry = cur.fetchone()[0]
+        entry = cur.fetchone()
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
-        exit_ = cur.fetchone()[0]
-        cur.close()
+        exit_ = cur.fetchone()
         return {"entry": entry, "exit": exit_}
 
     def get_total_scan(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM history")
-        total = cur.fetchone()[0]
-        cur.close()
+        total = cur.fetchone()
         return total
 
-    def send_qr_email(self, to_email, owner_name, qr_data, plate="", valid_until=""):
+
+    def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
+                      plate: str = "", valid_until: str = "") -> bool:
+        
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
         smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
@@ -276,44 +270,81 @@ class SQL:
             return False
 
         try:
-            msg = MIMEMultipart("alternative")
+            qr_bytes = self._generate_qr_image(qr_data)
+            qr_b64   = base64.b64encode(qr_bytes).decode("utf-8")
+
+            msg = MIMEMultipart("related")
             msg["Subject"] = "Your GSD Parking QR Code"
             msg["From"] = smtp_user
             msg["To"] = to_email
 
             html_body = f"""
-            <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;
-                        background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;overflow:hidden;">
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;
+                        background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;
+                        overflow:hidden;">
+
               <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
                           padding:28px 32px;text-align:center;">
-                <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">🅿️ GSD PARKING</h1>
-                <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;">VEHICLE MONITORING SYSTEM</p>
+                <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
+                  🅿️ GSD PARKING
+                </h1>
+                <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;
+                           letter-spacing:1px;">VEHICLE MONITORING SYSTEM</p>
               </div>
+
               <div style="padding:32px;text-align:center;">
                 <h2 style="color:#0f172a;margin:0 0 8px;">Hello, {owner_name}!</h2>
-                <p style="color:#64748b;font-size:14px;margin:0 0 28px;">Your parking QR pass is ready.</p>
-                <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;padding:28px 36px;display:inline-block;margin-bottom:28px;">
-                  <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
-                  <p style="margin:0;font-size:28px;font-weight:800;color:#2563eb;font-family:monospace;letter-spacing:4px;word-break:break-all;">{qr_data}</p>
+                <p style="color:#64748b;font-size:14px;margin:0 0 28px;">
+                  Your parking QR pass is ready. Show this code at the entrance — the guard will scan it.
+                </p>
+
+                <!-- QR Image block -->
+                <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
+                            padding:28px 36px;display:inline-block;margin-bottom:28px;">
+                  <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
+                             letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
+                  <img src="cid:qrimage"
+                       alt="QR Code"
+                       width="200" height="200"
+                       style="display:block;margin:0 auto 16px;border-radius:8px;
+                              border:1px solid #ddeaff;" />
+                  <p style="margin:0;font-size:18px;font-weight:800;color:#2563eb;
+                             font-family:monospace;letter-spacing:3px;">{qr_data}</p>
+                  <p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">
+                    Show this QR code or the image above to the guard at the entrance.
+                  </p>
                 </div>
-                <table style="margin:0 auto;border-collapse:collapse;font-size:13px;width:100%;max-width:320px;background:#f8faff;border:1px solid #ddeaff;border-radius:8px;">
+
+                <table style="margin:0 auto;border-collapse:collapse;font-size:13px;
+                              width:100%;max-width:340px;background:#f8faff;
+                              border:1px solid #ddeaff;border-radius:8px;overflow:hidden;">
                   <tr style="border-bottom:1px solid #ddeaff;">
-                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;">PLATE</td>
+                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">PLATE</td>
                     <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{plate or "—"}</td>
                   </tr>
                   <tr>
-                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;">VALID UNTIL</td>
+                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">VALID UNTIL</td>
                     <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{valid_until or "—"}</td>
                   </tr>
                 </table>
               </div>
-              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;text-align:center;font-size:10px;color:#94a3b8;">
-                GSD PARKING MONITORING SYSTEM — DO NOT SHARE THIS CODE
+
+              <!-- Footer -->
+              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
+                          text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
+                GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
               </div>
             </div>
             """
 
-            msg.attach(MIMEText(html_body, "html"))
+            alt_part = MIMEMultipart("alternative")
+            alt_part.attach(MIMEText(html_body, "html"))
+            msg.attach(alt_part)
+
+            img_part = MIMEImage(qr_bytes, _subtype="png")
+            img_part.add_header("Content-ID", "<qrimage>")
+            img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
+            msg.attach(img_part)
 
             with smtplib.SMTP(smtp_host, smtp_port) as server:
                 server.starttls()

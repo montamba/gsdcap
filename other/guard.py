@@ -20,18 +20,41 @@ class Guard:
     def routes(self):
         self.guard.before_request(self._protect)
 
+        # ─── PAGES ────────────────────────────────────────
+
         @self.guard.route("/scan")
         def scanner():
             return render_template("guard/scanner.html")
+
+        @self.guard.route("/history")
+        def history():
+            return render_template("guard/history.html")
+
+        # ─── API ──────────────────────────────────────────
+
+        @self.guard.route("/my_history", methods=["GET"])
+        def my_history():
+            try:
+                data = self.sql.gethistorybyguard(session["user_id"])
+                # Serialize: convert datetime / non-JSON-native types to strings
+                serialized = []
+                for row in data:
+                    serialized.append([
+                        str(v) if not isinstance(v, (int, str, float, type(None))) else v
+                        for v in row
+                    ])
+                return jsonify({"status": "good", "data": serialized})
+            except Exception as e:
+                print("History error:", e)
+                return jsonify({"status": "bad", "message": "Failed to fetch history"})
 
         @self.guard.route("/check_qr", methods=["POST"])
         def check_qr():
             data = request.get_json()
             qrdata = (data.get("data") or "").strip()
-            action = (data.get("action") or "entry").strip()  
-            
-            new_action = "IN" if action ==  "entry" else "OUT"
-            print(action, new_action)
+            action = (data.get("action") or "entry").strip()
+
+            new_action = "IN" if action == "entry" else "OUT"
 
             if not qrdata:
                 return jsonify({"status": "bad", "message": "No QR data provided"})
@@ -53,11 +76,10 @@ class Guard:
             plate = qr[2] or "—"
             owner_name  = qr[3] or "—"
             owner_email = qr[4] or "—"
-            expiry = qr[5]          
+            expiry = qr[5]
             qr_status = (qr[6] or "active").lower()
-            car_status = qr[9]
+            car_status  = qr[9]
 
-            # ── REVOKED ───────────────────────────────────
             if qr_status == "revoked":
                 self._log(qrdata, "failed")
                 return jsonify({
@@ -79,19 +101,18 @@ class Guard:
                     "plate": plate,
                     "valid_until": str(expiry)
                 })
-                
+
+            # ── DUPLICATE ACTION ──────────────────────────
             if car_status == new_action:
                 self._log(qrdata, "failed")
                 return jsonify({
                     "status": "Invalid",
-                    "message": "The vehicle already " + car_status,
-                    "scan_result": "Invalid",
+                    "message": f"The vehicle is already {car_status}",
+                    "scan_result": "failed",
                     "owner_name": owner_name,
                     "plate": plate,
-                    "valid_until": str(expiry)
+                    "valid_until": str(expiry) if expiry else "—"
                 })
-                
-                
 
             # ── ACCEPTED ──────────────────────────────────
             self._log(qrdata, "accepted")
@@ -99,18 +120,13 @@ class Guard:
             try:
                 cur = self.sql.sql.cursor()
                 if action == "entry":
-                    cur.execute(
-                        "UPDATE qrcode SET car_status='IN' WHERE data=%s", (qrdata,)
-                    )
+                    cur.execute("UPDATE qrcode SET car_status='IN' WHERE data=%s", (qrdata,))
                     self.sql.sql.commit()
                     self.sql.updateparking()
                 else:
-                    cur.execute(
-                        "UPDATE qrcode SET car_status='OUT' WHERE data=%s", (qrdata,)
-                    )
-                    self.sql.updateparking()
-
+                    cur.execute("UPDATE qrcode SET car_status='OUT' WHERE data=%s", (qrdata,))
                     self.sql.sql.commit()
+                    self.sql.updateparking()
                 cur.close()
             except Exception as e:
                 print("Parking update error:", e)

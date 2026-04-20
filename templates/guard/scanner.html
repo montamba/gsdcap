@@ -87,7 +87,7 @@
         .logout button:hover { background: rgba(239,68,68,0.22); color: #ffffff; }
 
         /* ─── MAIN ─── */
-        .right { flex: 1; overflow-x: hidden; }
+        .right { flex: 1; overflow-x: hidden; min-width: 0; }
 
         .header {
             background: #ffffff;
@@ -200,6 +200,21 @@
         }
         @keyframes scanMove { 0%{top:10%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:90%;opacity:0} }
 
+        /* scanning pulse ring */
+        .scan-pulse {
+            display: none;
+            position: absolute;
+            inset: 0; z-index: 4; pointer-events: none;
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 3px #2563eb;
+            animation: pulseBorder 0.8s ease-in-out infinite alternate;
+        }
+        .scanning .scan-pulse { display: block; }
+        @keyframes pulseBorder {
+            from { box-shadow: inset 0 0 0 3px #2563eb; }
+            to   { box-shadow: inset 0 0 0 3px #0ea5e9, inset 0 0 20px rgba(37,99,235,0.3); }
+        }
+
         .btn-capture {
             padding: 12px 28px;
             background: linear-gradient(135deg, #2563eb, #0ea5e9);
@@ -211,9 +226,15 @@
             display: flex; align-items: center; gap: 8px;
             transition: all 0.2s;
             box-shadow: 0 3px 12px rgba(37,99,235,0.28);
+            width: 100%;
+            justify-content: center;
         }
         .btn-capture:hover { opacity: 0.92; box-shadow: 0 5px 18px rgba(37,99,235,0.38); transform: translateY(-1px); }
         .btn-capture:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-capture.scanning-state {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            box-shadow: 0 3px 12px rgba(245,158,11,0.35);
+        }
 
         /* ─── RESULT CARD ─── */
         .result-card {
@@ -226,7 +247,6 @@
         }
         .result-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 
-        /* Status banner */
         .result-banner {
             width: 100%;
             padding: 20px;
@@ -244,13 +264,18 @@
         .result-banner.success { background: #f0fdf4;  border-color: #6ee7b7; }
         .result-banner.fail    { background: #fef2f2;  border-color: #fca5a5; }
         .result-banner.expired { background: #fffbeb;  border-color: #fde68a; }
+        .result-banner.scanning { background: #eff6ff; border-color: #93c5fd; animation: scanPulse 1s ease-in-out infinite alternate; }
+        @keyframes scanPulse {
+            from { border-color: #93c5fd; }
+            to   { border-color: #2563eb; box-shadow: 0 0 16px rgba(37,99,235,0.15); }
+        }
 
         .result-banner.success .banner-title { color: #065f46; }
         .result-banner.fail    .banner-title { color: #991b1b; }
         .result-banner.expired .banner-title { color: #92400e; }
         .result-banner.idle    .banner-title { color: #64748b; }
+        .result-banner.scanning .banner-title { color: #2563eb; }
 
-        /* Info rows */
         .info-rows { display: flex; flex-direction: column; gap: 8px; }
         .info-row {
             display: flex; align-items: center; gap: 12px;
@@ -260,15 +285,74 @@
         .info-row .lbl { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.14em; font-family: 'Space Mono', monospace; min-width: 70px; }
         .info-row .val { font-size: 13px; font-weight: 600; color: #0f172a; font-family: 'Space Mono', monospace; }
 
+        /* ─── MOBILE ─── */
         @media (max-width: 768px) {
-            aside { width: 200px; min-width: 200px; }
-            .scanner-wrap { padding: 16px; gap: 16px; }
-            .video-card, .result-card { width: 100%; }
+            aside { display: none; }
+
+            /* Mobile bottom nav */
+            .mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: #1e3a8a;
+                z-index: 200;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .mobile-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px 4px;
+                text-decoration: none;
+                color: rgba(186,210,255,0.7);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                transition: all 0.2s;
+            }
+            .mobile-nav a i { font-size: 20px; }
+            .mobile-nav a.active,
+            .mobile-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+            .header { padding: 16px 18px; }
+            .header h1 { font-size: 17px; }
+
+            /* Stack scanner vertically and fill the screen */
+            .scanner-wrap {
+                padding: 16px 16px 90px; /* extra bottom for mobile nav */
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .video-card, .result-card, .action-selector { width: 100%; }
+
+            /* Make video fill width on mobile */
             #reader { width: 100%; }
+            .video-frame { max-width: 100%; }
+
+            .video-body { padding: 14px; }
+            .action-buttons { padding: 14px; gap: 8px; }
+            .action-btn { padding: 14px 10px; font-size: 13px; }
+
+            .result-body { padding: 16px; }
+            .result-banner { padding: 16px; }
+            .result-banner .banner-icon { font-size: 32px; }
+            .result-banner .banner-title { font-size: 14px; }
+        }
+
+        @media (max-width: 480px) {
+            .action-btn { gap: 6px; }
+            .action-btn i { font-size: 18px; }
         }
     </style>
 </head>
 <body>
+    <!-- Desktop sidebar -->
     <aside>
         <div class="logos">
             <div class="circle">G</div>
@@ -276,11 +360,19 @@
         </div>
         <div class="buttons">
             <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+            <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
         </div>
         <div class="logout">
             <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
         </div>
     </aside>
+
+    <!-- Mobile bottom nav -->
+    <nav class="mobile-nav" style="display:none;">
+        <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+        <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
+        <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </nav>
 
     <div class="right">
         <div class="header">
@@ -316,12 +408,14 @@
                     <h2>Live Camera</h2>
                 </div>
                 <div class="video-body">
-                    <div class="video-frame">
+                    <div class="video-frame" id="videoFrame">
                         <div id="reader"></div>
                         <div class="scan-line"></div>
+                        <div class="scan-pulse"></div>
                     </div>
-                    <button class="btn-capture" id="captureBtn" onclick="ScanNow()">
-                        <i class="bi bi-camera"></i> Capture & Scan
+                    <button class="btn-capture" id="captureBtn" onclick="toggleScan()">
+                        <i class="bi bi-camera" id="captureIcon"></i>
+                        <span id="captureText">Capture &amp; Scan</span>
                     </button>
                 </div>
             </div>
@@ -336,7 +430,7 @@
                     <div class="result-banner idle" id="resultBanner">
                         <div class="banner-icon">📷</div>
                         <div class="banner-title">WAITING FOR SCAN</div>
-                        <div class="banner-msg">Press Capture & Scan to begin</div>
+                        <div class="banner-msg">Press Capture &amp; Scan to begin</div>
                     </div>
 
                     <div class="info-rows" id="infoRows" style="display:none;">
@@ -352,50 +446,67 @@
 
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
-        let scanning   = false;
-        let currentAction = "entry";
+        let scanning        = false;
+        let currentAction   = "entry";
+        let processingLock  = false;   // prevents double-processing
 
-        // ── Action toggle ─────────────────────────────────
         function setAction(action) {
             currentAction = action;
-            const entryBtn = document.getElementById("entryBtn");
-            const exitBtn  = document.getElementById("exitBtn");
-
-            entryBtn.className = "action-btn" + (action === "entry" ? " entry-active" : "");
-            exitBtn.className  = "action-btn" + (action === "exit"  ? " exit-active"  : "");
+            document.getElementById("entryBtn").className = "action-btn" + (action === "entry" ? " entry-active" : "");
+            document.getElementById("exitBtn").className  = "action-btn" + (action === "exit"  ? " exit-active"  : "");
         }
 
-        // ── Camera init (auto — rear on mobile, front on desktop) ─
         const html5QrCode = new Html5Qrcode("reader");
         const cameraConfig = window.innerWidth < 600
-            ? { facingMode: "environment" }
+            ? { facingMode: "environment" }   // rear camera on mobile
             : { facingMode: "user" };
 
         html5QrCode.start(
             cameraConfig,
-            { fps: 10, qrbox: 250 },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
             async (decodedText) => {
-                if (!scanning) return;
-                scanning = false;
+                if (!scanning || processingLock) return;
+                processingLock = true;
+                scanning       = false;
 
-                document.getElementById("captureBtn").disabled = true;
-                document.getElementById("captureBtn").innerHTML = '<i class="bi bi-hourglass-split"></i> Checking…';
+                const captureBtn = document.getElementById("captureBtn");
+                captureBtn.disabled = true;
+                captureBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Checking…';
+                captureBtn.classList.add("scanning-state");
+                document.getElementById("videoFrame").classList.remove("scanning");
+
+                setBanner("scanning", "🔍", "PROCESSING…", "Verifying QR code…");
 
                 await checkData(decodedText);
 
-                document.getElementById("captureBtn").disabled = false;
-                document.getElementById("captureBtn").innerHTML = '<i class="bi bi-camera"></i> Capture & Scan';
+                captureBtn.disabled = false;
+                captureBtn.innerHTML = '<i class="bi bi-camera" id="captureIcon"></i><span id="captureText">Capture &amp; Scan</span>';
+                captureBtn.classList.remove("scanning-state");
+                processingLock = false;
             },
-            () => {}   // suppress per-frame errors
+            () => {}
         ).catch(err => console.error("Camera error:", err));
 
-        // ── Trigger scan ──────────────────────────────────
-        function ScanNow() {
-            scanning = true;
-            setBanner("idle", "📷", "SCANNING…", "Hold the QR code steady");
+        function toggleScan() {
+            if (processingLock) return;
+
+            if (scanning) {
+                scanning = false;
+                document.getElementById("videoFrame").classList.remove("scanning");
+                document.getElementById("captureBtn").innerHTML =
+                    '<i class="bi bi-camera"></i> Capture &amp; Scan';
+                document.getElementById("captureBtn").classList.remove("scanning-state");
+                setBanner("idle", "📷", "WAITING FOR SCAN", "Press Capture & Scan to begin");
+            } else {
+                scanning = true;
+                document.getElementById("videoFrame").classList.add("scanning");
+                document.getElementById("captureBtn").innerHTML =
+                    '<i class="bi bi-x-circle"></i> Cancel Scan';
+                document.getElementById("captureBtn").classList.add("scanning-state");
+                setBanner("scanning", "🔍", "SCANNING…", "Hold the QR code steady in front of the camera");
+            }
         }
 
-        // ── Call backend ──────────────────────────────────
         async function checkData(qrData) {
             try {
                 const res = await API.post("/guard/check_qr", {
@@ -413,10 +524,7 @@
                     setBanner("fail", "❌", "ACCESS DENIED", res.message);
                 }
 
-                // Show detail rows
-                const infoRows = document.getElementById("infoRows");
-                infoRows.style.display = "flex";
-
+                document.getElementById("infoRows").style.display = "flex";
                 document.getElementById("rOwner").textContent  = res.owner_name  || "—";
                 document.getElementById("rPlate").textContent  = res.plate       || "—";
                 document.getElementById("rExpiry").textContent = res.valid_until  || "—";
@@ -428,7 +536,6 @@
             }
         }
 
-        // ── Banner helper ─────────────────────────────────
         function setBanner(type, icon, title, msg) {
             const banner = document.getElementById("resultBanner");
             banner.className = "result-banner " + type;

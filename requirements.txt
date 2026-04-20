@@ -3,3 +3,5 @@ mysql-connector-python>=8.0.0
 bcrypt>=4.0.0
 gunicorn
 python-dotenv
+qrcode[pil]>=7.4.2
+Pillow>=10.0.0

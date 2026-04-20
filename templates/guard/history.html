@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Scan History — GSD Parking</title>
+    <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
+
+        body {
+            background: #eef4ff;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            position: sticky;
+            top: 0; left: 0;
+            height: 100vh;
+            width: 240px;
+            min-width: 240px;
+            background: #1e3a8a;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+        }
+
+        .logos {
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: #172e72;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .circle {
+            width: 60px; height: 60px;
+            display: grid; place-items: center;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.2);
+            font-size: 20px; font-weight: 800;
+            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .logos span {
+            font-size: 10px; font-weight: 700;
+            color: rgba(148,163,184,0.7);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .buttons { display: flex; flex-direction: column; padding: 14px 0; flex: 1; }
+
+        .buttons a {
+            text-decoration: none;
+            color: rgba(186,210,255,0.75);
+            font-size: 14px; font-weight: 600;
+            padding: 11px 20px;
+            display: flex; align-items: center; gap: 10px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .buttons a:hover { background: rgba(255,255,255,0.07); color: #ffffff; border-left-color: rgba(255,255,255,0.3); }
+        .buttons a.active { background: rgba(255,255,255,0.12); color: #ffffff; border-left-color: #60a5fa; }
+
+        .logout { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .logout button {
+            width: 100%; padding: 10px;
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border-radius: 6px;
+        }
+        .logout button:hover { background: rgba(239,68,68,0.22); color: #ffffff; }
+
+        /* ─── MAIN ─── */
+        .right { flex: 1; overflow-x: hidden; min-width: 0; }
+
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #c7d9f5;
+            padding: 22px 32px;
+            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
+        }
+        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .header h1 i { color: #2563eb; }
+        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+        /* ─── STATS ─── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 28px 32px 0;
+        }
+        .stat-item {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            padding: 20px;
+            position: relative;
+            border-radius: 12px;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+        }
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 12px 12px 0 0;
+        }
+        .stat-item:nth-child(1)::before { background: #2563eb; }
+        .stat-item:nth-child(2)::before { background: #10b981; }
+        .stat-item:nth-child(3)::before { background: #f59e0b; }
+        .stat-item:nth-child(4)::before { background: #ef4444; }
+
+        .stat-item h4 {
+            font-size: 10px; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.14em;
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .stat-item .num {
+            font-size: 36px; font-weight: 800;
+            font-family: 'Space Mono', monospace; line-height: 1;
+        }
+        .stat-item:nth-child(1) .num { color: #2563eb; }
+        .stat-item:nth-child(2) .num { color: #10b981; }
+        .stat-item:nth-child(3) .num { color: #f59e0b; }
+        .stat-item:nth-child(4) .num { color: #ef4444; }
+
+        /* ─── TABLE SECTION ─── */
+        .section {
+            margin: 24px 32px;
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+        }
+
+        .section-head {
+            padding: 14px 20px;
+            background: #f5f9ff;
+            border-bottom: 1px solid #ddeaff;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .section-head-left { display: flex; align-items: center; gap: 8px; }
+        .section-head-left::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; }
+        .section-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
+        .section-head i { color: #2563eb; }
+
+        .search-input {
+            padding: 7px 12px;
+            background: #ffffff;
+            border: 1.5px solid #c7d9f5;
+            color: #0f172a;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            outline: none;
+            width: 200px;
+            transition: border-color 0.2s;
+            border-radius: 8px;
+        }
+        .search-input:focus { border-color: #2563eb; }
+        .search-input::placeholder { color: #cbd5e1; }
+
+        /* ─── TABLE ─── */
+        table { width: 100%; border-collapse: collapse; }
+        .hist-table tr { display: grid; grid-template-columns: 50px 1fr 130px 110px 80px 130px; }
+        th, td { padding: 12px 14px; text-align: left; font-size: 12px; }
+        th { background: #f5f9ff; color: #64748b; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid #ddeaff; }
+        td { color: #334155; border-bottom: 1px solid #f1f5f9; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #f8faff; }
+
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; font-size: 10px; font-weight: 700; font-family: 'Space Mono', monospace; letter-spacing: 0.06em; border-radius: 20px; }
+        .badge-accepted { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .badge-failed   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .badge-expired  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        .action-entry { color: #2563eb; font-weight: 700; font-family: 'Space Mono', monospace; font-size: 10px; }
+        .action-exit  { color: #ef4444; font-weight: 700; font-family: 'Space Mono', monospace; font-size: 10px; }
+
+        .empty-row { display: block !important; }
+        .empty-row td {
+            display: block;
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+
+        /* ─── FILTER TABS ─── */
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            padding: 0 20px 14px;
+            border-bottom: 1px solid #ddeaff;
+            background: #f5f9ff;
+        }
+        .ftab {
+            padding: 5px 14px;
+            border: 1.5px solid #c7d9f5;
+            background: #fff;
+            color: #64748b;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .ftab:hover { border-color: #93c5fd; color: #2563eb; }
+        .ftab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 768px) {
+            aside { display: none; }
+
+            .mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: #1e3a8a;
+                z-index: 200;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .mobile-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px 4px;
+                text-decoration: none;
+                color: rgba(186,210,255,0.7);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                transition: all 0.2s;
+            }
+            .mobile-nav a i { font-size: 18px; }
+            .mobile-nav a.active,
+            .mobile-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+            .header { padding: 16px 20px; }
+            .header h1 { font-size: 17px; }
+
+            .stat-row { grid-template-columns: 1fr 1fr; padding: 16px 16px 0; gap: 10px; }
+            .stat-item .num { font-size: 28px; }
+
+            .section { margin: 16px; }
+
+            .hist-table tr {
+                grid-template-columns: 40px 1fr 110px 90px;
+            }
+            /* hide action and date columns on very small screens */
+            .hist-table th:nth-child(5),
+            .hist-table td:nth-child(5),
+            .hist-table th:nth-child(6),
+            .hist-table td:nth-child(6) { display: none; }
+
+            .right { padding-bottom: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Desktop sidebar -->
+    <aside>
+        <div class="logos">
+            <div class="circle">G</div>
+            <span>GUARD PORTAL</span>
+        </div>
+        <div class="buttons">
+            <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+            <a href="/guard/history" class="active"><i class="bi bi-clock-history"></i> My History</a>
+        </div>
+        <div class="logout">
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        </div>
+    </aside>
+
+    <!-- Mobile bottom nav -->
+    <nav class="mobile-nav" style="display:none;">
+        <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+        <a href="/guard/history" class="active"><i class="bi bi-clock-history"></i> History</a>
+        <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </nav>
+
+    <div class="right">
+        <div class="header">
+            <h1><i class="bi bi-clock-history"></i> My Scan History</h1>
+            <p>ALL QR CODES YOU HAVE SCANNED</p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-item">
+                <h4><i class="bi bi-list-check"></i> Total Scans</h4>
+                <div class="num" id="statTotal">—</div>
+            </div>
+            <div class="stat-item">
+                <h4><i class="bi bi-check-circle"></i> Accepted</h4>
+                <div class="num" id="statAccepted">—</div>
+            </div>
+            <div class="stat-item">
+                <h4><i class="bi bi-hourglass-bottom"></i> Expired</h4>
+                <div class="num" id="statExpired">—</div>
+            </div>
+            <div class="stat-item">
+                <h4><i class="bi bi-x-circle"></i> Failed</h4>
+                <div class="num" id="statFailed">—</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <i class="bi bi-table"></i>
+                    <h2>Scan Log</h2>
+                </div>
+                <input type="text" class="search-input" id="searchInput"
+                       placeholder="🔍 Search plate or code..."
+                       oninput="filterTable()">
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="filter-tabs">
+                <button class="ftab active" onclick="setFilter('all', this)">All</button>
+                <button class="ftab" onclick="setFilter('accepted', this)">Accepted</button>
+                <button class="ftab" onclick="setFilter('expired', this)">Expired</button>
+                <button class="ftab" onclick="setFilter('failed', this)">Failed</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr class="hist-table">
+                        <th>#</th>
+                        <th>QR Code</th>
+                        <th>Plate</th>
+                        <th>Result</th>
+                        <th>Action</th>
+                        <th>Scanned At</th>
+                    </tr>
+                </thead>
+                <tbody id="histBody">
+                    <tr class="empty-row">
+                        <td>Loading scan history…</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allHistory = [];
+        let activeFilter = 'all';
+
+        async function loadHistory() {
+            try {
+                const res = await API.get("/guard/my_history");
+                if (res && res.status === "good") {
+                    allHistory = res.data;
+                    renderStats(allHistory);
+                    renderTable(allHistory);
+                } else {
+                    allHistory = [];
+                    renderTable([]);
+                }
+            } catch (e) {
+                console.error(e);
+                renderTable([]);
+            }
+        }
+
+        function renderStats(data) {
+            const total    = data.length;
+            const accepted = data.filter(d => d[2] === 'accepted').length;
+            const expired  = data.filter(d => d[2] === 'expired').length;
+            const failed   = data.filter(d => d[2] === 'failed').length;
+
+            document.getElementById('statTotal').textContent    = total;
+            document.getElementById('statAccepted').textContent = accepted;
+            document.getElementById('statExpired').textContent  = expired;
+            document.getElementById('statFailed').textContent   = failed;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('histBody');
+
+            if (!data.length) {
+                tbody.innerHTML = `<tr class="empty-row"><td>📭&nbsp; NO RECORDS FOUND</td></tr>`;
+                return;
+            }
+
+            // d = [id, data, status, created_at, plate, owner_name, action]
+            tbody.innerHTML = data.map((d, i) => {
+                const statusClass = d[2] === 'accepted' ? 'badge-accepted'
+                                  : d[2] === 'expired'  ? 'badge-expired'
+                                  : 'badge-failed';
+                const actionLabel = (d[6] || 'entry').toLowerCase();
+                const actionClass = actionLabel === 'exit' ? 'action-exit' : 'action-entry';
+                const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
+                const plate       = d[4] || '—';
+
+                return `
+                <tr class="hist-table">
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
+                    <td style="color:#2563eb;font-family:'Space Mono',monospace;font-size:11px;
+                               font-weight:700;white-space:nowrap;overflow:hidden;
+                               text-overflow:ellipsis;">${d[1] || '—'}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">
+                        ${plate}
+                    </td>
+                    <td><span class="badge ${statusClass}">${d[2] || '—'}</span></td>
+                    <td><span class="${actionClass}">${actionLabel.toUpperCase()}</span></td>
+                    <td style="font-size:11px;color:#64748b;font-family:'Space Mono',monospace;">
+                        ${createdAt}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setFilter(filter, el) {
+            activeFilter = filter;
+            document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            filterTable();
+        }
+
+        function filterTable() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            let filtered = allHistory;
+
+            if (activeFilter !== 'all') {
+                filtered = filtered.filter(d => (d[2] || '').toLowerCase() === activeFilter);
+            }
+            if (q) {
+                filtered = filtered.filter(d =>
+                    (d[1] || '').toLowerCase().includes(q) ||
+                    (d[4] || '').toLowerCase().includes(q) ||
+                    (d[5] || '').toLowerCase().includes(q)
+                );
+            }
+            renderTable(filtered);
+        }
+
+        loadHistory();
+        setInterval(loadHistory, 30000);
+    </script>
+</body>
+</html>
