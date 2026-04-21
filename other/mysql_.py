@@ -36,29 +36,21 @@ class SQL:
         except Exception:
             return False
 
-    def _generate_qr_image(self, data: str) -> bytes:
-        """Generate a QR code image and return as PNG bytes."""
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_H,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(data)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="#2563eb", back_color="white")
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        return buf.getvalue()
-
     # ─── User queries ──────────────────────────────────────
 
-    def getalluser(self):
+    def getalluser(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        cur.execute("SELECT id, username, role, created_at FROM users")
+        cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
         users = cur.fetchall()
         cur.close()
         return users
+
+    def countallusers(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM users")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def getuser(self, id):
         cur = self.sql.cursor()
@@ -130,12 +122,30 @@ class SQL:
         cur.close()
         return qr
 
-    def getqrbyuser(self, id):
+    def getqrbyid(self, qr_id):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE created_by=%s ORDER BY created_at DESC", (id,))
+        cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
+        qr = cur.fetchone()
+        cur.close()
+        return qr
+
+    def getqrbyuser(self, user_id, limit=5, offset=0):
+        cur = self.sql.cursor()
+        cur.execute("""SELECT qrcode.*, users.username
+                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                       WHERE qrcode.created_by = %s
+                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                    (user_id, limit, offset))
         qr = cur.fetchall()
         cur.close()
         return qr
+
+    def countqrbyuser(self, user_id):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def getqrbyowner_email(self, email):
         cur = self.sql.cursor()
@@ -144,20 +154,22 @@ class SQL:
         cur.close()
         return qr
 
-    def getallqr(self, limit=0, offset=0):
+    def getallqr(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        if limit:
-            cur.execute("""SELECT qrcode.*, users.username
-                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                           ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                        (limit, offset))
-        else:
-            cur.execute("""SELECT qrcode.*, users.username
-                           FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                           ORDER BY qrcode.created_at DESC""")
+        cur.execute("""SELECT qrcode.*, users.username
+                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                    (limit, offset))
         result = cur.fetchall()
         cur.close()
         return result
+
+    def countallqr(self):
+        cur = self.sql.cursor()
+        cur.execute("SELECT COUNT(*) FROM qrcode")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def saveqr(self, data, plate, expiry, created_by, owner_name="", owner_email=""):
         cur = self.sql.cursor()
@@ -178,6 +190,15 @@ class SQL:
         self.sql.commit()
         cur.close()
 
+    def renewqr_any(self, qr_id, new_expiry):
+        cur = self.sql.cursor()
+        cur.execute(
+            "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
+            (new_expiry, qr_id)
+        )
+        self.sql.commit()
+        cur.close()
+
     def deleteqr(self, qr_id, user_id):
         cur = self.sql.cursor()
         cur.execute("DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id))
@@ -193,29 +214,19 @@ class SQL:
         self.sql.commit()
         cur.close()
 
-    def gethistory(self):
+    def gethistory(self, limit=5, offset=0):
         cur = self.sql.cursor()
-        cur.execute("SELECT * FROM history")
+        cur.execute("SELECT * FROM history ORDER BY id DESC LIMIT %s OFFSET %s", (limit, offset))
         data = cur.fetchall()
         cur.close()
         return data
 
-    def gethistorybyguard(self, guard_id):
-        """Get scan history for a specific guard, joined with qrcode for plate/owner info."""
+    def counthistory(self):
         cur = self.sql.cursor()
-        cur.execute("""
-            SELECT h.id, h.data, h.status, h.created_at,
-                   COALESCE(q.plate, '—') AS plate,
-                   COALESCE(q.owner_name, '—') AS owner_name,
-                   COALESCE(h.action, 'entry') AS action
-            FROM history h
-            LEFT JOIN qrcode q ON h.data = q.data
-            WHERE h.guard = %s
-            ORDER BY h.created_at DESC
-        """, (guard_id,))
-        data = cur.fetchall()
+        cur.execute("SELECT COUNT(*) FROM history")
+        count = cur.fetchone()[0]
         cur.close()
-        return data
+        return count
 
     def updateparking(self):
         try:
@@ -223,8 +234,7 @@ class SQL:
                 data = json.load(f)
 
             res = self.get_total_entry_exit()
-            entry = res["entry"][0]
-
+            entry = res["entry"]
             data["occupied"] = min(entry, data["total"])
             data["available"] = data["total"] - data["occupied"]
 
@@ -246,17 +256,18 @@ class SQL:
     def get_total_entry_exit(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
-        entry = cur.fetchone()
+        entry = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
-        exit_ = cur.fetchone()
+        exit_ = cur.fetchone()[0]
+        cur.close()
         return {"entry": entry, "exit": exit_}
 
     def get_total_scan(self):
         cur = self.sql.cursor()
         cur.execute("SELECT COUNT(*) FROM history")
-        total = cur.fetchone()
+        total = cur.fetchone()[0]
+        cur.close()
         return total
-
 
     def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
                       plate: str = "", valid_until: str = "") -> bool:

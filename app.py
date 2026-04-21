@@ -131,5 +131,3 @@ class Main:
 app_instance = Main()
 app = app_instance.app
 
-if __name__ == "__main__":
-    app.run(debug=True)
