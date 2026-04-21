@@ -3,7 +3,7 @@ from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
 from functools import wraps
-import mysql.connector as mysql
+from other.mysql_ import SQL
 import bcrypt
 import os
 from dotenv import load_dotenv
@@ -18,13 +18,7 @@ class Main:
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-        self.sql = mysql.connect(
-            user= os.getenv("USER"),
-            host= os.getenv("LOCALHOST"),
-            database= os.getenv("DATABASE"),
-            passwd= os.getenv("PASSW"),
-             port=int(os.getenv("MYSQLPORT"))
-        )
+        self.sql = SQL()
         
         print(os.getenv("DATABASE"))
         self.blueprints()
@@ -53,7 +47,7 @@ class Main:
             if not email or not password or not role:
                 return jsonify({"status": "failed", "message": "Missing required fields"})
 
-            cur = self.sql.cursor()
+            cur = self.sql.sql.cursor()
 
             user = None
             if role == "admin":
@@ -131,3 +125,5 @@ class Main:
 app_instance = Main()
 app = app_instance.app
 
+if __name__ == "__main__":
+    app.run(debug=True)

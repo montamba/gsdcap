@@ -268,6 +268,20 @@ class SQL:
         total = cur.fetchone()[0]
         cur.close()
         return total
+    
+    def _generate_qr_image(self, data: str) -> bytes:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#2563eb", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
 
     def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
                       plate: str = "", valid_until: str = "") -> bool:
