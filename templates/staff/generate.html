@@ -312,7 +312,6 @@
             btn.disabled  = false;
         }
 
-        // ── My QR paginated ───────────────────────────────
         async function getQrdata(page = 1) {
             myPage = page;
             const res = await API.get(`/staff/my_qr?page=${page}&limit=${LIMIT}`);

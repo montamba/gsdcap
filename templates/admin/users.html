@@ -277,7 +277,6 @@
                 return;
             }
 
-            // Client-side text filter on returned page
             let rows = res.data;
             if (searchQuery) {
                 rows = rows.filter(u =>
@@ -289,9 +288,7 @@
             renderUsers(rows);
             updatePager(res.total, res.page, res.pages);
 
-            // Stats from full total — fetch once without limit for counts
             document.getElementById("cnt-total").textContent = res.total;
-            // For guard/staff counts we use visible page rows as approximation
             const guards = res.data.filter(u => u[2] === "guard").length;
             const staff  = res.data.filter(u => u[2] === "user" || u[2] === "staff").length;
             document.getElementById("cnt-guard").textContent = guards;

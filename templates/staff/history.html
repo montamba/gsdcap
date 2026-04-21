@@ -96,7 +96,6 @@
             <div class="stat-item"><h4><i class="bi bi-check-circle"></i> Active</h4><div class="num" id="statActive">—</div></div>
         </div>
 
-        <!-- Recently Created (top 5) -->
         <div class="section">
             <div class="section-head">
                 <div class="section-head-left">
@@ -114,7 +113,6 @@
             </table>
         </div>
 
-        <!-- All QR codes — paginated -->
         <div class="section" style="margin-bottom:32px;">
             <div class="section-head">
                 <div class="section-head-left">
@@ -147,7 +145,6 @@
         let allPage  = 1;
         let allPages = 1;
 
-        // ── Recent QR (fixed top 5) ───────────────────────
         async function getRecentQR() {
             const res = await API.get("/staff/recentqr");
             if (!res || res.status !== "good") {
@@ -165,7 +162,6 @@
                 </tr>`).join("");
         }
 
-        // ── All QR paginated ──────────────────────────────
         async function getAllQR(page = 1) {
             allPage = page;
             const res = await API.get(`/staff/all_qr?page=${page}&limit=${LIMIT}`);

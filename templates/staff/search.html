@@ -209,17 +209,16 @@
     <script>
         const LIMIT = 5;
         let currentPage  = 1;
-        let totalPages   = 1;
+        let totalPages = 1;
         let totalRecords = 0;
-        let activeQrId   = null;
-        let filterTimer  = null;
+        let activeQrId = null;
+        let filterTimer = null;
 
         async function loadPage(page = 1) {
             currentPage = page;
-            const q      = document.getElementById("searchInput").value.trim();
+            const q = document.getElementById("searchInput").value.trim();
             const status = document.getElementById("statusFilter").value;
 
-            // Build URL — server handles limit; client filters text/status in the same request window
             const url = `/staff/all_qr?page=${page}&limit=${LIMIT}`;
             const res = await API.get(url);
 
@@ -322,13 +321,13 @@
             // 0:id 1:data 2:plate 3:owner_name 4:owner_email 5:expiry 6:status 7:created_by 8:created_at 9:car_status 10:username
             activeQrId = d[0];
 
-            document.getElementById("dData").textContent      = d[1]  || "—";
-            document.getElementById("dPlate").textContent     = d[2]  || "—";
-            document.getElementById("dOwner").textContent     = d[3]  || "—";
-            document.getElementById("dEmail").textContent     = d[4]  || "—";
-            document.getElementById("dStatus").textContent    = (d[6] || "active").toUpperCase();
+            document.getElementById("dData").textContent = d[1]  || "—";
+            document.getElementById("dPlate").textContent = d[2]  || "—";
+            document.getElementById("dOwner").textContent = d[3]  || "—";
+            document.getElementById("dEmail").textContent = d[4]  || "—";
+            document.getElementById("dStatus").textContent = (d[6] || "active").toUpperCase();
             document.getElementById("dCarStatus").textContent = d[9]  || "NOT SCANNED";
-            document.getElementById("dExpiry").textContent    = d[5]  || "No expiry set";
+            document.getElementById("dExpiry").textContent = d[5]  || "No expiry set";
             document.getElementById("dCreatedAt").textContent = d[8]  || "—";
             document.getElementById("dCreatedBy").textContent = d[10] || "—";
 

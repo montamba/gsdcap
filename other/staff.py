@@ -19,7 +19,6 @@ class Staff:
     def routes(self):
         self.staff.before_request(self._protect)
 
-        # ─── PAGES ────────────────────────────────────────
 
         @self.staff.route("/generate")
         def generate():
@@ -56,7 +55,6 @@ class Staff:
                 return jsonify({"status": "bad", "message": "Failed to update"})
             return jsonify({"status": "good", "message": "Updated successfully"})
 
-        # ─── QR API ───────────────────────────────────────
 
         @self.staff.route("/recentqr")
         def recent():
@@ -77,7 +75,7 @@ class Staff:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            qrs   = self.sql.getallqr(limit=limit, offset=offset)
+            qrs = self.sql.getallqr(limit=limit, offset=offset)
             total = self.sql.countallqr()
 
             serialized = [
@@ -90,7 +88,7 @@ class Staff:
                 "total":  total,
                 "page":   page,
                 "limit":  limit,
-                "pages":  max(1, -(-total // limit))   # ceil division
+                "pages":  max(1, -(-total // limit))   
             })
 
         @self.staff.route("/my_qr", methods=["GET"])

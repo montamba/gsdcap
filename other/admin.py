@@ -39,7 +39,6 @@ class Admin:
         def users():
             return render_template("admin/users.html")
 
-        # ─── PARKING API ──────────────────────────────────
 
         @self.admin.route("/parking", methods=["GET"])
         def parking():
@@ -61,7 +60,6 @@ class Admin:
                 json.dump(jdata, file, indent=4)
             return jsonify({"status": "ok", "message": "Updated successfully", "total": total})
 
-        # ─── USER MANAGEMENT API ──────────────────────────
 
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
@@ -162,7 +160,6 @@ class Admin:
                 "pages":  max(1, -(-total // limit))
             })
 
-        # ─── DASHBOARD API ────────────────────────────────
 
         @self.admin.route("/dashboard_data")
         def dashboard_data():
@@ -179,7 +176,6 @@ class Admin:
 
         @self.admin.route("/activity_chart")
         def activity_chart():
-            # Placeholder — extend with real weekly data as needed
             return jsonify({"status": "good", "labels": [], "data": []})
 
         @self.admin.route("/recent_activity")
@@ -189,9 +185,9 @@ class Admin:
             for r in rows:
                 result.append({
                     "qr_code": r[1],
-                    "time":    str(r[8]),
-                    "action":  "entry" if r[9] == "IN" else "exit",
-                    "plate":   r[2] or "—",
-                    "status":  "accepted"
+                    "time": str(r[8]),
+                    "action":"entry" if r[9] == "IN" else "exit",
+                    "plate": r[2] or "—",
+                    "status": "accepted"
                 })
             return jsonify({"status": "good", "data": result})
