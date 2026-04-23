@@ -145,6 +145,20 @@
         let allPage  = 1;
         let allPages = 1;
 
+        /**
+         * Returns the effective display status for a QR row.
+         * If the DB status is still 'active' but the expiry date has passed,
+         * we show 'expired' instead so the label is always accurate.
+         */
+        function effectiveStatus(dbStatus, expiryStr) {
+            if (dbStatus && dbStatus !== 'active') return dbStatus; // revoked, etc.
+            if (expiryStr && expiryStr !== 'None' && expiryStr !== '—') {
+                const expiry = new Date(expiryStr);
+                if (!isNaN(expiry) && expiry < new Date()) return 'expired';
+            }
+            return dbStatus || 'active';
+        }
+
         async function getRecentQR() {
             const res = await API.get("/staff/recentqr");
             if (!res || res.status !== "good") {
@@ -152,14 +166,17 @@
                     `<tr class="empty-row"><td>No recent records</td></tr>`;
                 return;
             }
-            document.getElementById("recentBody").innerHTML = res.data.map((d, i) => `
+            document.getElementById("recentBody").innerHTML = res.data.map((d, i) => {
+                const status = effectiveStatus(d[6], d[5]);
+                return `
                 <tr>
                     <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
                     <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;">${d[1]}</td>
                     <td style="color:#334155;font-family:'Space Mono',monospace;">${d[2] || "—"}</td>
-                    <td><span class="badge ${d[6] || 'active'}">${d[6] || 'active'}</span></td>
+                    <td><span class="badge ${status}">${status}</span></td>
                     <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
-                </tr>`).join("");
+                </tr>`;
+            }).join("");
         }
 
         async function getAllQR(page = 1) {
@@ -174,24 +191,34 @@
             allPages = res.pages;
             updateStats(res.total, res.data);
 
-            document.getElementById("allBody").innerHTML = res.data.map((d, i) => `
+            document.getElementById("allBody").innerHTML = res.data.map((d, i) => {
+                const status = effectiveStatus(d[6], d[5]);
+                return `
                 <tr>
                     <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${(page - 1) * LIMIT + i + 1}</td>
                     <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d[1]}</td>
                     <td style="color:#334155;font-family:'Space Mono',monospace;">${d[2] || "—"}</td>
-                    <td><span class="badge ${d[6] || 'active'}">${d[6] || 'active'}</span></td>
+                    <td><span class="badge ${status}">${status}</span></td>
                     <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
                     <td style="color:#64748b;font-size:11px;">${d[10] || "—"}</td>
-                </tr>`).join("");
+                </tr>`;
+            }).join("");
 
             updatePager(res.total, page, res.pages);
         }
 
         function updateStats(total, rows) {
-            document.getElementById("statTotal").textContent   = total;
-            const active  = rows.filter(d => (d[6] || "active") === "active").length;
-            const expired = rows.filter(d => (d[6] || "") === "expired").length;
-            const revoked = rows.filter(d => (d[6] || "") === "revoked").length;
+            const now = new Date();
+            document.getElementById("statTotal").textContent = total;
+
+            // Count using effectiveStatus so expired-but-not-updated rows are counted correctly
+            let active = 0, expired = 0, revoked = 0;
+            rows.forEach(d => {
+                const s = effectiveStatus(d[6], d[5]);
+                if (s === 'active')  active++;
+                else if (s === 'expired') expired++;
+                else if (s === 'revoked') revoked++;
+            });
             document.getElementById("statActive").textContent  = active;
             document.getElementById("statExpired").textContent = expired;
             document.getElementById("statRevoked").textContent = revoked;

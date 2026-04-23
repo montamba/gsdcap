@@ -36,7 +36,6 @@ class Guard:
         def my_history():
             try:
                 data = self.sql.gethistorybyguard(session["user_id"])
-                # Serialize: convert datetime / non-JSON-native types to strings
                 serialized = []
                 for row in data:
                     serialized.append([
@@ -52,7 +51,7 @@ class Guard:
         def check_qr():
             data = request.get_json()
             qrdata = (data.get("data") or "").strip()
-            action = (data.get("action") or "entry").strip()
+            action = (data.get("action") or "entry").strip()   # "entry" or "exit"
 
             new_action = "IN" if action == "entry" else "OUT"
 
@@ -63,91 +62,90 @@ class Guard:
 
             # ── QR NOT FOUND ──────────────────────────────
             if not qr:
-                self._log(qrdata, "failed")
+                self._log(qrdata, "failed", action)
                 return jsonify({
-                    "status":  "bad",
-                    "message": "QR code not recognized",
+                    "status":      "bad",
+                    "message":     "QR code not recognized",
                     "scan_result": "failed"
                 })
 
             # qrcode columns:
             # 0:id  1:data  2:plate  3:owner_name  4:owner_email
             # 5:expiry  6:status  7:created_by  8:created_at  9:car_status
-            plate = qr[2] or "—"
+            plate       = qr[2] or "—"
             owner_name  = qr[3] or "—"
             owner_email = qr[4] or "—"
-            expiry = qr[5]
-            qr_status = (qr[6] or "active").lower()
+            expiry      = qr[5]
+            qr_status   = (qr[6] or "active").lower()
             car_status  = qr[9]
 
             if qr_status == "revoked":
-                self._log(qrdata, "failed")
+                self._log(qrdata, "failed", action)
                 return jsonify({
-                    "status": "bad",
-                    "message": "QR code has been revoked",
+                    "status":      "bad",
+                    "message":     "QR code has been revoked",
                     "scan_result": "failed",
-                    "owner_name": owner_name,
-                    "plate": plate
+                    "owner_name":  owner_name,
+                    "plate":       plate
                 })
 
             # ── EXPIRED ───────────────────────────────────
             if expiry and datetime.now() > expiry:
-                self._log(qrdata, "expired")
+                self._log(qrdata, "expired", action)
                 return jsonify({
-                    "status": "expired",
-                    "message": "QR code has expired",
+                    "status":      "expired",
+                    "message":     "QR code has expired",
                     "scan_result": "expired",
-                    "owner_name": owner_name,
-                    "plate": plate,
+                    "owner_name":  owner_name,
+                    "plate":       plate,
                     "valid_until": str(expiry)
                 })
 
             # ── DUPLICATE ACTION ──────────────────────────
             if car_status == new_action:
-                self._log(qrdata, "failed")
+                self._log(qrdata, "failed", action)
                 return jsonify({
-                    "status": "Invalid",
-                    "message": f"The vehicle is already {car_status}",
+                    "status":      "Invalid",
+                    "message":     f"The vehicle is already {car_status}",
                     "scan_result": "failed",
-                    "owner_name": owner_name,
-                    "plate": plate,
+                    "owner_name":  owner_name,
+                    "plate":       plate,
                     "valid_until": str(expiry) if expiry else "—"
                 })
 
             # ── ACCEPTED ──────────────────────────────────
-            self._log(qrdata, "accepted")
+            self._log(qrdata, "accepted", action)
 
             try:
                 cur = self.sql.sql.cursor()
                 if action == "entry":
                     cur.execute("UPDATE qrcode SET car_status='IN' WHERE data=%s", (qrdata,))
-                    self.sql.sql.commit()
-                    self.sql.updateparking()
                 else:
                     cur.execute("UPDATE qrcode SET car_status='OUT' WHERE data=%s", (qrdata,))
-                    self.sql.sql.commit()
-                    self.sql.updateparking()
+                self.sql.sql.commit()
                 cur.close()
+                self.sql.updateparking()
             except Exception as e:
                 print("Parking update error:", e)
 
             return jsonify({
-                "status": "good",
-                "message": "Access Granted",
+                "status":      "good",
+                "message":     "Access Granted",
                 "scan_result": "accepted",
-                "action": action,
-                "owner_name": owner_name,
+                "action":      action,
+                "owner_name":  owner_name,
                 "owner_email": owner_email,
-                "plate": plate,
+                "plate":       plate,
                 "valid_until": str(expiry) if expiry else "—"
             })
 
-    def _log(self, qrdata, status):
+    def _log(self, qrdata, status, action="entry"):
+        """Insert a scan record into history. action is 'entry' or 'exit'."""
         try:
             cur = self.sql.sql.cursor()
             cur.execute(
-                "INSERT INTO history(data, guard, status) VALUES (%s, %s, %s)",
-                (qrdata, session["user_id"], status)
+                "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
+                (qrdata, session["user_id"], status, action)
             )
             self.sql.sql.commit()
             cur.close()

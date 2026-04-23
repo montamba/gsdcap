@@ -228,6 +228,28 @@ class SQL:
         cur.close()
         return count
 
+    def gethistorybyguard(self, guard_id):
+        """Fetch all scan history for a specific guard, joined with qrcode for plate/owner info.
+        Requires the migrate_history.sql migration to have been applied so that
+        h.created_at and h.action columns exist."""
+        cur = self.sql.cursor()
+        cur.execute("""
+            SELECT h.id,
+                   h.data,
+                   h.status,
+                   h.created_at                   AS created_at,
+                   COALESCE(q.plate, '')          AS plate,
+                   COALESCE(q.owner_name, '')     AS owner_name,
+                   COALESCE(h.action, 'entry')    AS action
+            FROM history h
+            LEFT JOIN qrcode q ON h.data = q.data
+            WHERE h.guard = %s
+            ORDER BY h.id DESC
+        """, (guard_id,))
+        data = cur.fetchall()
+        cur.close()
+        return data
+
     def updateparking(self):
         try:
             with open(self.parking_file, "r") as f:
@@ -268,7 +290,7 @@ class SQL:
         total = cur.fetchone()[0]
         cur.close()
         return total
-    
+
     def _generate_qr_image(self, data: str) -> bytes:
         qr = qrcode.QRCode(
             version=1,
@@ -323,7 +345,6 @@ class SQL:
                   Your parking QR pass is ready. Show this code at the entrance — the guard will scan it.
                 </p>
 
-                <!-- QR Image block -->
                 <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
                             padding:28px 36px;display:inline-block;margin-bottom:28px;">
                   <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
@@ -354,7 +375,6 @@ class SQL:
                 </table>
               </div>
 
-              <!-- Footer -->
               <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
                           text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
                 GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
