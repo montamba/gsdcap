@@ -189,7 +189,6 @@
 
         function updateStats(total, rows) {
             document.getElementById("statTotal").textContent   = total;
-            // Count per-page visible; full counts require separate API calls or backend aggregation
             const active  = rows.filter(d => (d[6] || "active") === "active").length;
             const expired = rows.filter(d => (d[6] || "") === "expired").length;
             const revoked = rows.filter(d => (d[6] || "") === "revoked").length;
