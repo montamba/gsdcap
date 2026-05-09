@@ -21,6 +21,7 @@
 
         .inner { padding:28px 36px; }
 
+        /* ── STAT STRIP ── */
         .stat-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
         .stat { background:#ffffff; border:1px solid #c7d9f5; padding:24px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
@@ -37,10 +38,11 @@
         .stat:nth-child(2) .stat-icon { background:#fef3c7; color:#f59e0b; }
         .stat:nth-child(3) .stat-icon { background:#d1fae5; color:#10b981; }
 
+        /* ── SECTION ── */
         .section { background:#ffffff; border:1px solid #c7d9f5; margin-bottom:24px; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         .section-head {
             padding:14px 22px; background:#f5f9ff; border-bottom:1px solid #ddeaff;
-            display:flex; align-items:center; justify-content:space-between;
+            display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
         }
         .section-head-left { display:flex; align-items:center; gap:10px; }
         .section-head-left::before { content:''; width:3px; height:14px; background:#2563eb; flex-shrink:0; border-radius:2px; }
@@ -54,21 +56,37 @@
         .leg-exp  { color:#f59e0b; } .leg-exp::before  { color:#f59e0b; }
         .leg-ok   { color:#10b981; } .leg-ok::before   { color:#10b981; }
 
+        /* ── TABLE ── */
         table { width:100%; border-collapse:collapse; }
-        th,td { padding:13px 22px; text-align:left; font-size:12px; }
+        th,td { padding:13px 16px; text-align:left; font-size:12px; }
         th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
         td { color:#334155; border-bottom:1px solid #f1f5f9; }
         tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:#f8faff; }
-        .rep-table tr { display:grid; grid-template-columns:50px 130px 1fr 110px 100px 100px 120px; }
+
+        /* 7 cols: # | Date | Guard | Plate | QR Code | Action | Result */
+        .rep-table tr { display:grid; grid-template-columns:50px 130px 1fr 110px 120px 80px 120px; }
+        /* 4 cols: # | Data | Created At | By */
         .qr-table  tr { display:grid; grid-template-columns:50px 1fr 150px 110px; }
 
         .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; border-radius:20px; }
-        .badge-ok  { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
-        .badge-fail{ background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
-        .badge-exp { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        .badge-ok      { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+        .badge-fail    { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge-exp     { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        .action-entry  { color:#2563eb; font-weight:700; font-family:'Space Mono',monospace; font-size:10px; }
+        .action-exit   { color:#ef4444; font-weight:700; font-family:'Space Mono',monospace; font-size:10px; }
 
-        .empty-row td { color:#94a3b8; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.08em; }
+        .empty-row { display:block !important; }
+        .empty-row td { display:block; padding:36px; text-align:center; color:#94a3b8; font-family:'Space Mono',monospace; font-size:11px; border-bottom:none !important; }
+
+        /* ── PAGINATION ── */
+        .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #ddeaff; flex-wrap:wrap; gap:8px; }
+        .pg-info { font-size:11px; font-family:'Space Mono',monospace; color:#94a3b8; }
+        .pg-btns { display:flex; gap:5px; }
+        .pg-btn { padding:5px 11px; border:1.5px solid #c7d9f5; background:#fff; color:#64748b; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer; border-radius:6px; transition:all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+        .pg-btn.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+        .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
     </style>
 </head>
 <body>
@@ -85,6 +103,8 @@
             <button onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
             <p class="sml">Analytics</p>
             <button class="active-nav" onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+            <p class="sml">Account</p>
+            <button onclick="window.location.href='/admin/profile'"><i class="bi bi-person-circle"></i> Profile</button>
         </div>
         <div class="sidebar-footer">
             <button class="logout-btn" onclick="window.location.href='/auth/logout'">
@@ -102,6 +122,8 @@
         </div>
 
         <div class="inner">
+
+            <!-- ── STAT STRIP ── -->
             <div class="stat-strip">
                 <div class="stat">
                     <div><div class="stat-label">Today Entries</div><div class="stat-num entries">0</div></div>
@@ -117,87 +139,227 @@
                 </div>
             </div>
 
+            <!-- ── REPORT LOGS ── -->
             <div class="section">
                 <div class="section-head">
                     <div class="section-head-left">
                         <i class="bi bi-newspaper"></i>
                         <h2>Report Logs</h2>
                     </div>
-                    <div class="legend">
-                        <span class="leg leg-fail">Failed</span>
-                        <span class="leg leg-exp">Expired</span>
-                        <span class="leg leg-ok">Success</span>
+                    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                        <div class="legend">
+                            <span class="leg leg-fail">Failed</span>
+                            <span class="leg leg-exp">Expired</span>
+                            <span class="leg leg-ok">Accepted</span>
+                        </div>
+                        <span class="pg-info" id="repPgInfo">—</span>
                     </div>
                 </div>
                 <table class="rep-table">
                     <thead>
-                        <tr><th>#</th><th>Date</th><th>Guard</th><th>Plate</th><th>QR Code</th><th>Action</th><th>Scan Result</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr class="empty-row">
-                            <td>—</td><td colspan="6" style="color:#94a3b8;">No records yet</td>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Guard</th>
+                            <th>Plate</th>
+                            <th>QR Code</th>
+                            <th>Action</th>
+                            <th>Scan Result</th>
                         </tr>
+                    </thead>
+                    <tbody id="repBody">
+                        <tr class="empty-row"><td>Loading…</td></tr>
                     </tbody>
                 </table>
+                <div class="pagination">
+                    <span class="pg-info" id="repPgBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="repPrev" onclick="changeRepPage(repPage - 1)" disabled>‹ Prev</button>
+                        <div id="repPgNums" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="repNext" onclick="changeRepPage(repPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
             </div>
 
+            <!-- ── RECENTLY CREATED QR ── -->
             <div class="section">
                 <div class="section-head">
                     <div class="section-head-left">
                         <i class="bi bi-qr-code-scan"></i>
                         <h2>Recently Created QR</h2>
                     </div>
+                    <span class="pg-info" id="qrPgInfo">—</span>
                 </div>
                 <table class="qr-table">
                     <thead>
                         <tr><th>#</th><th>Data</th><th>Created At</th><th>By</th></tr>
                     </thead>
-                    <tbody>
-                        <tr class="empty-row">
-                            <td>—</td><td>No records yet</td><td>—</td><td>—</td>
-                        </tr>
+                    <tbody id="qrBody">
+                        <tr class="empty-row"><td>Loading…</td></tr>
                     </tbody>
                 </table>
+                <div class="pagination">
+                    <span class="pg-info" id="qrPgBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="qrPrev" onclick="changeQrPage(qrPage - 1)" disabled>‹ Prev</button>
+                        <div id="qrPgNums" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="qrNext" onclick="changeQrPage(qrPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        async function getRecentQR(){
-            let data = await API.get("/admin/get_qr")
-            let tbody = document.querySelector(".qr-table > tbody")
-            let html = ""
-            if(data.status == "good"){
-                data.data.forEach((users,index)=>{
-                    html += `<tr class="empty-row"><td>${index}</td><td>${users[0]}</td><td>${users[1]}</td><td>${users[2]}</td></tr>`
-                })
-            } else {
-                html = `<tr class="empty-row"><td>-</td><td>no data</td><td>-</td><td>-</td></tr>`
+        const LIMIT = 5;
+
+        // ── Report Logs ───────────────────────────────────────
+        let repPage  = 1;
+        let repPages = 1;
+
+        async function loadReportLogs(page = 1) {
+            repPage = page;
+            const res = await API.get(`/admin/get_report_logs?page=${page}&limit=${LIMIT}`);
+            const tbody = document.getElementById("repBody");
+
+            if (!res || res.status !== "good" || !res.data.length) {
+                tbody.innerHTML = `<tr class="empty-row"><td>No scan records yet</td></tr>`;
+                updateRepPager(0, 1, 1);
+                return;
             }
-            tbody.innerHTML = html
+
+            // row: [0:id, 1:date, 2:guard_name, 3:plate, 4:qr_code, 5:action, 6:scan_result]
+            tbody.innerHTML = res.data.map((r, i) => {
+                const result = (r[6] || "").toLowerCase();
+                let badgeHtml;
+                if (result === "accepted") {
+                    badgeHtml = `<span class="badge badge-ok">✓ Accepted</span>`;
+                } else if (result === "expired") {
+                    badgeHtml = `<span class="badge badge-exp">⏰ Expired</span>`;
+                } else {
+                    badgeHtml = `<span class="badge badge-fail">✗ Failed</span>`;
+                }
+
+                const action = (r[5] || "entry").toLowerCase();
+                const actionHtml = action === "exit"
+                    ? `<span class="action-exit">EXIT</span>`
+                    : `<span class="action-entry">ENTRY</span>`;
+
+                const date = r[1] ? String(r[1]).slice(0, 16) : "—";
+
+                return `<tr>
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${(page - 1) * LIMIT + i + 1}</td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${date}</td>
+                    <td style="color:#0f172a;font-weight:600;">${r[2] || "—"}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${r[3] || "—"}</td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#2563eb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r[4] || "—"}</td>
+                    <td>${actionHtml}</td>
+                    <td>${badgeHtml}</td>
+                </tr>`;
+            }).join("");
+
+            updateRepPager(res.total, page, res.pages);
         }
 
+        function updateRepPager(total, page, pages) {
+            repPages = pages;
+            const info = `Page ${page} of ${pages} (${total} records)`;
+            document.getElementById("repPgInfo").textContent   = info;
+            document.getElementById("repPgBottom").textContent = info;
+            document.getElementById("repPrev").disabled = page <= 1;
+            document.getElementById("repNext").disabled = page >= pages;
 
-        async function getEntries(){
-            let data = await API.get("/admin/get_entries");
-
-            document.querySelector(".entries").innerHTML = data.entry;
-            document.querySelector(".exits").innerHTML = data.exit;
-            document.querySelector(".scn").innerHTML = data.scan;
-
-            
-
+            const nums = document.getElementById("repPgNums");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changeRepPage(p);
+                nums.appendChild(btn);
+            }
         }
 
-
-        async function loadAll(){
-        
-            await getRecentQR();
-            await getEntries();
-
+        function changeRepPage(p) {
+            if (p < 1 || p > repPages) return;
+            loadReportLogs(p);
         }
 
-        loadAll()
+        // ── Recently Created QR ───────────────────────────────
+        let qrPage  = 1;
+        let qrPages = 1;
+
+        async function loadRecentQR(page = 1) {
+            qrPage = page;
+            const res = await API.get(`/admin/get_qr?page=${page}&limit=${LIMIT}`);
+            const tbody = document.getElementById("qrBody");
+
+            if (!res || res.status !== "good" || !res.data.length) {
+                tbody.innerHTML = `<tr class="empty-row"><td>No QR codes yet</td></tr>`;
+                updateQrPager(0, 1, 1);
+                return;
+            }
+
+            // get_qr returns: [0:data, 1:created_at, 2:username]
+            tbody.innerHTML = res.data.map((d, i) => `
+                <tr>
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${(page - 1) * LIMIT + i + 1}</td>
+                    <td style="color:#2563eb;font-family:'Space Mono',monospace;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d[0] || "—"}</td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${d[1] || "—"}</td>
+                    <td style="color:#334155;font-weight:600;">${d[2] || "—"}</td>
+                </tr>`).join("");
+
+            updateQrPager(res.total, page, res.pages);
+        }
+
+        function updateQrPager(total, page, pages) {
+            qrPages = pages;
+            const info = `Page ${page} of ${pages} (${total} total)`;
+            document.getElementById("qrPgInfo").textContent   = info;
+            document.getElementById("qrPgBottom").textContent = info;
+            document.getElementById("qrPrev").disabled = page <= 1;
+            document.getElementById("qrNext").disabled = page >= pages;
+
+            const nums = document.getElementById("qrPgNums");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changeQrPage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changeQrPage(p) {
+            if (p < 1 || p > qrPages) return;
+            loadRecentQR(p);
+        }
+
+        // ── Stat strip ────────────────────────────────────────
+        async function loadEntries() {
+            const data = await API.get("/admin/get_entries");
+            document.querySelector(".entries").textContent = data.entry ?? 0;
+            document.querySelector(".exits").textContent   = data.exit  ?? 0;
+            document.querySelector(".scn").textContent     = data.scan  ?? 0;
+        }
+
+        // ── Init ──────────────────────────────────────────────
+        async function loadAll() {
+            await loadEntries();
+            await loadReportLogs(1);
+            await loadRecentQR(1);
+        }
+
+        loadAll();
+        setInterval(loadAll, 30000);
     </script>
 </body>
 </html>

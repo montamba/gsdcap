@@ -113,6 +113,39 @@ class SQL:
         self.sql.commit()
         cur.close()
 
+    # ─── Admin profile queries ─────────────────────────────
+
+    def getadminbyid(self, id):
+        """Return (username, email) for an admin row."""
+        cur = self.sql.cursor()
+        cur.execute("SELECT username, email FROM admin WHERE id=%s", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return row
+
+    def updateadmin_email(self, id, email):
+        """Update the admin's email address."""
+        cur = self.sql.cursor()
+        cur.execute("UPDATE admin SET email=%s WHERE id=%s", (email, id))
+        self.sql.commit()
+        cur.close()
+
+    def updateadmin_password(self, id, new_password):
+        """Hash and store a new password for the admin."""
+        hashed = self._hash(new_password)
+        cur = self.sql.cursor()
+        cur.execute("UPDATE admin SET password=%s WHERE id=%s", (hashed, id))
+        self.sql.commit()
+        cur.close()
+
+    def getadmin_password(self, id):
+        """Return the raw stored password hash for the admin."""
+        cur = self.sql.cursor()
+        cur.execute("SELECT password FROM admin WHERE id=%s", (id,))
+        row = cur.fetchone()
+        cur.close()
+        return row[0] if row else None
+
     # ─── QR queries ────────────────────────────────────────
 
     def getqrbydata(self, data):
@@ -227,6 +260,27 @@ class SQL:
         count = cur.fetchone()[0]
         cur.close()
         return count
+
+    def gethistory_full(self, limit=5, offset=0):
+        """History joined with users (guard name) and qrcode (plate) for admin report logs."""
+        cur = self.sql.cursor()
+        cur.execute("""
+            SELECT h.id,
+                   h.created_at                    AS date,
+                   COALESCE(u.username, '—')       AS guard_name,
+                   COALESCE(q.plate, '—')          AS plate,
+                   h.data                          AS qr_code,
+                   COALESCE(h.action, 'entry')     AS action,
+                   h.status                        AS scan_result
+            FROM   history h
+            LEFT JOIN users   u ON h.guard = u.id
+            LEFT JOIN qrcode  q ON h.data  = q.data
+            ORDER  BY h.id DESC
+            LIMIT %s OFFSET %s
+        """, (limit, offset))
+        data = cur.fetchall()
+        cur.close()
+        return data
 
     def gethistorybyguard(self, guard_id):
         """Fetch all scan history for a specific guard, joined with qrcode for plate/owner info.

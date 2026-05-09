@@ -23,6 +23,8 @@ class Admin:
     def routes(self):
         self.admin.before_request(self._protect)
 
+        # ─── PAGES ────────────────────────────────────────
+
         @self.admin.route("/dashboard")
         def dashboard():
             return render_template("admin/dashboard.html")
@@ -39,6 +41,11 @@ class Admin:
         def users():
             return render_template("admin/users.html")
 
+        @self.admin.route("/profile")
+        def profile():
+            return render_template("admin/profile.html")
+
+        # ─── PARKING ──────────────────────────────────────
 
         @self.admin.route("/parking", methods=["GET"])
         def parking():
@@ -60,6 +67,7 @@ class Admin:
                 json.dump(jdata, file, indent=4)
             return jsonify({"status": "ok", "message": "Updated successfully", "total": total})
 
+        # ─── USERS ────────────────────────────────────────
 
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
@@ -111,6 +119,8 @@ class Admin:
             self.sql.adduser(username, email, password, role)
             return jsonify({"status": "good", "message": "User added successfully"})
 
+        # ─── QR / REPORTS ─────────────────────────────────
+
         @self.admin.route("/get_qr", methods=["GET"])
         def getqr():
             page  = max(1, int(request.args.get("page", 1)))
@@ -160,6 +170,28 @@ class Admin:
                 "pages":  max(1, -(-total // limit))
             })
 
+        @self.admin.route("/get_report_logs")
+        def get_report_logs():
+            page   = max(1, int(request.args.get("page", 1)))
+            limit  = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            data  = self.sql.gethistory_full(limit=limit, offset=offset)
+            total = self.sql.counthistory()
+
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
+                for row in data
+            ]
+            return jsonify({
+                "status": "good",
+                "data":   serialized,
+                "total":  total,
+                "page":   page,
+                "pages":  max(1, -(-total // limit))
+            })
+
+        # ─── DASHBOARD ────────────────────────────────────
 
         @self.admin.route("/dashboard_data")
         def dashboard_data():
@@ -191,3 +223,73 @@ class Admin:
                     "status": "accepted"
                 })
             return jsonify({"status": "good", "data": result})
+
+        # ─── ADMIN PROFILE ────────────────────────────────
+
+        @self.admin.route("/get_profile", methods=["GET"])
+        def get_profile():
+            row = self.sql.getadminbyid(session["user_id"])
+            if not row:
+                return jsonify({"status": "bad", "message": "Admin not found"})
+            return jsonify({
+                "status":   "good",
+                "username": row[0],
+                "email":    row[1]
+            })
+
+        @self.admin.route("/update_email", methods=["PUT"])
+        def update_email():
+            data  = request.get_json()
+            email = (data.get("email") or "").strip()
+
+            if not email:
+                return jsonify({"status": "bad", "message": "Email is required"})
+            if "@" not in email:
+                return jsonify({"status": "bad", "message": "Enter a valid email address"})
+
+            try:
+                self.sql.updateadmin_email(session["user_id"], email)
+                session["email"] = email
+            except Exception as e:
+                print(e)
+                return jsonify({"status": "bad", "message": "Failed to update email"})
+
+            return jsonify({"status": "good", "message": "Email updated successfully"})
+
+        @self.admin.route("/update_password", methods=["PUT"])
+        def update_password():
+            data         = request.get_json()
+            current_pw   = data.get("current_password", "")
+            new_pw       = data.get("new_password", "")
+            confirm_pw   = data.get("confirm_password", "")
+
+            if not all([current_pw, new_pw, confirm_pw]):
+                return jsonify({"status": "bad", "message": "All password fields are required"})
+
+            if len(new_pw) < 8:
+                return jsonify({"status": "bad", "message": "New password must be at least 8 characters"})
+
+            if new_pw != confirm_pw:
+                return jsonify({"status": "bad", "message": "New passwords do not match"})
+
+            # Verify current password (supports both bcrypt and plain-text legacy)
+            stored = self.sql.getadmin_password(session["user_id"])
+            if stored is None:
+                return jsonify({"status": "bad", "message": "Admin not found"})
+
+            password_ok = False
+            try:
+                password_ok = self.sql._check(current_pw, stored)
+            except Exception:
+                password_ok = (current_pw == stored)
+
+            if not password_ok:
+                return jsonify({"status": "bad", "message": "Current password is incorrect"})
+
+            try:
+                self.sql.updateadmin_password(session["user_id"], new_pw)
+            except Exception as e:
+                print(e)
+                return jsonify({"status": "bad", "message": "Failed to update password"})
+
+            return jsonify({"status": "good", "message": "Password updated successfully"})
