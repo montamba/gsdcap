@@ -42,6 +42,8 @@ class Main:
             email = data.get("email").strip()
             password = data.get("password")
             role = data.get("role")
+            
+            print("goods collect")
                         
 
             if not email or not password or not role:
@@ -51,10 +53,12 @@ class Main:
 
             user = None
             if role == "admin":
+                print("start admincheck")
                 cur.execute(
                     "SELECT id, email, password FROM admin WHERE email=%s",
                     (email,)
                 )
+                print("end check")
             elif role in ("users", "guard", "staff"):
                 cur.execute(
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
