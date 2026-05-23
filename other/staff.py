@@ -170,8 +170,10 @@ class Staff:
                 
             
             def send_in_background():
+                print(f"sending on {owner_email}")
                 try:
                     self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+                    print("print send succesfull")
                 except Exception as e:
                     print("Background email error:", e)
 
@@ -186,3 +188,4 @@ class Staff:
         def delete_qr(id):
             self.sql.deleteqr(id, session["user_id"])
             return jsonify({"status": "ok", "message": "QR deleted"})
+        
