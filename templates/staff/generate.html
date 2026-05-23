@@ -301,10 +301,10 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
             const res = await API.post("/staff/send_qr_email", {
-                data:        code,
+                data: code,
                 owner_name:  document.getElementById("owner_name").value.trim(),
                 owner_email: email,
-                plate:       document.getElementById("plate").value.trim(),
+                plate: document.getElementById("plate").value.trim(),
                 valid_until: document.getElementById("validuntil").value,
             });
             showMessageModal(res.message, res.status);

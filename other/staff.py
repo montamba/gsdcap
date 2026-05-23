@@ -100,18 +100,21 @@ class Staff:
             qrs   = self.sql.getqrbyuser(session["user_id"], limit=limit, offset=offset)
             total = self.sql.countqrbyuser(session["user_id"])
 
-            serialized = [
-                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
-                for row in qrs
-            ]
+            
             return jsonify({
                 "status": "good",
-                "data":   serialized,
+                "data":   qrs,
                 "total":  total,
                 "page":   page,
                 "limit":  limit,
                 "pages":  max(1, -(-total // limit))
             })
+            
+        @self.staff.route("/stats")
+        def getStats():
+            data = self.sql.getqrstats()
+            
+            return data
 
         @self.staff.route("/save_qr", methods=["POST"])
         def save_qr():

@@ -152,12 +152,18 @@
          */
         function effectiveStatus(dbStatus, expiryStr) {
             if (dbStatus && dbStatus !== 'active') return dbStatus; // revoked, etc.
-            if (expiryStr && expiryStr !== 'None' && expiryStr !== '—') {
-                const expiry = new Date(expiryStr);
-                if (!isNaN(expiry) && expiry < new Date()) return 'expired';
+            if (expiryStr !== 'None' && expiryStr !== '—') {
+                const expiry = new Date(String(expiryStr));
+
+                
+
+                if (expiry < new Date()) return 'expired';
             }
+
+            
             return dbStatus || 'active';
         }
+        
 
         async function getRecentQR() {
             const res = await API.get("/staff/recentqr");
@@ -168,6 +174,7 @@
             }
             document.getElementById("recentBody").innerHTML = res.data.map((d, i) => {
                 const status = effectiveStatus(d[6], d[5]);
+
                 return `
                 <tr>
                     <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
@@ -189,7 +196,6 @@
             }
 
             allPages = res.pages;
-            updateStats(res.total, res.data);
 
             document.getElementById("allBody").innerHTML = res.data.map((d, i) => {
                 const status = effectiveStatus(d[6], d[5]);
@@ -207,14 +213,16 @@
             updatePager(res.total, page, res.pages);
         }
 
-        function updateStats(total, rows) {
+        async function updateStats() {
+            d = await API.get("/staff/stats");
+            console.log(d)
             const now = new Date();
             document.getElementById("statTotal").textContent = total;
 
             // Count using effectiveStatus so expired-but-not-updated rows are counted correctly
             let active = 0, expired = 0, revoked = 0;
             rows.forEach(d => {
-                const s = effectiveStatus(d[6], d[5]);
+                const s = effectiveStatus(d[0], d[1]);
                 if (s === 'active')  active++;
                 else if (s === 'expired') expired++;
                 else if (s === 'revoked') revoked++;
@@ -253,6 +261,8 @@
         async function init() {
             await getRecentQR();
             await getAllQR(1);
+            await updateStats();
+
         }
 
         init();
