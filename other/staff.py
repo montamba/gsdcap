@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from other.mysql_ import SQL
+import threading
 
 
 class Staff:
@@ -167,13 +168,19 @@ class Staff:
 
             
                 
-            success = self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
             
+            def send_in_background():
+                try:
+                    self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+                except Exception as e:
+                    print("Background email error:", e)
+
+            thread = threading.Thread(target=send_in_background, daemon=True)
+            thread.start()
                 
             
-            if success:
-                return jsonify({"status": "good", "message": f"QR sent to {owner_email}"})
-            return jsonify({"status": "bad", "message": "Failed to send email. Check SMTP settings in .env"})
+            
+            return jsonify({"status": "good", "message": f"QR will be sent to {owner_email} shortly"})
 
         @self.staff.route("/delete_qr/<int:id>", methods=["DELETE"])
         def delete_qr(id):
