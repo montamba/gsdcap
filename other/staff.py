@@ -150,19 +150,29 @@ class Staff:
 
         @self.staff.route("/send_qr_email", methods=["POST"])
         def send_qr_email():
-            data        = request.get_json()
-            qr_data     = (data.get("data") or "").strip()
+            print("Start to send")
+            data  = request.get_json()
+            qr_data = (data.get("data") or "").strip()
             owner_name  = (data.get("owner_name") or "Anonymous").strip()
             owner_email = (data.get("owner_email") or "").strip()
-            plate       = (data.get("plate") or "").strip()
+            plate = (data.get("plate") or "").strip()
             valid_until = (data.get("valid_until") or "").strip()
+            
+            print("data to send ", data)
 
             if not owner_email:
                 return jsonify({"status": "bad", "message": "Owner email is required to send"})
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
 
-            success = self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+            try: 
+                print("testing ...")
+                
+                success = self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+            except:
+                print("failed")
+                
+            print("done")
             if success:
                 return jsonify({"status": "good", "message": f"QR sent to {owner_email}"})
             return jsonify({"status": "bad", "message": "Failed to send email. Check SMTP settings in .env"})
