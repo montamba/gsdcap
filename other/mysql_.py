@@ -375,85 +375,99 @@ class SQL:
     
         
 
-    def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
-                    plate: str = "", valid_until: str = "") -> bool:
-
-        api_key = os.getenv("RESEND_API", "")
-        if not api_key:
-            print("Email error: RESEND_API_KEY not set")
+def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
+                      plate: str = "", valid_until: str = "") -> bool:
+        
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", 587))
+        smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
+        smtp_pass = os.getenv("SMTP_PASSWORD", "")
+ 
+        if not smtp_user or not smtp_pass:
             return False
-
+ 
         try:
-            resend.api_key = api_key
-
-            # Generate QR image and convert to base64 for embedding
             qr_bytes = self._generate_qr_image(qr_data)
             qr_b64   = base64.b64encode(qr_bytes).decode("utf-8")
-
+ 
+            msg = MIMEMultipart("related")
+            msg["Subject"] = "Your GSD Parking QR Code"
+            msg["From"] = smtp_user
+            msg["To"] = to_email
+ 
             html_body = f"""
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;
                         background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;
                         overflow:hidden;">
-
-            <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
-                        padding:28px 32px;text-align:center;">
+ 
+              <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
+                          padding:28px 32px;text-align:center;">
                 <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
-                🅿️ GSD PARKING
+                  🅿️ GSD PARKING
                 </h1>
                 <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;
-                        letter-spacing:1px;">VEHICLE MONITORING SYSTEM</p>
-            </div>
-
-            <div style="padding:32px;text-align:center;">
+                           letter-spacing:1px;">VEHICLE MONITORING SYSTEM</p>
+              </div>
+ 
+              <div style="padding:32px;text-align:center;">
                 <h2 style="color:#0f172a;margin:0 0 8px;">Hello, {owner_name}!</h2>
                 <p style="color:#64748b;font-size:14px;margin:0 0 28px;">
-                Your parking QR pass is ready. Show this code at the entrance.
+                  Your parking QR pass is ready. Show this code at the entrance — the guard will scan it.
                 </p>
-
+ 
                 <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
                             padding:28px 36px;display:inline-block;margin-bottom:28px;">
-                <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
-                            letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
-                <img src="data:image/png;base64,{qr_b64}"
-                    alt="QR Code" width="200" height="200"
-                    style="display:block;margin:0 auto 16px;border-radius:8px;
-                            border:1px solid #ddeaff;" />
-                <p style="margin:0;font-size:18px;font-weight:800;color:#2563eb;
-                            font-family:monospace;letter-spacing:3px;">{qr_data}</p>
+                  <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
+                             letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
+                  <img src="cid:qrimage"
+                       alt="QR Code"
+                       width="200" height="200"
+                       style="display:block;margin:0 auto 16px;border-radius:8px;
+                              border:1px solid #ddeaff;" />
+                  <p style="margin:0;font-size:18px;font-weight:800;color:#2563eb;
+                             font-family:monospace;letter-spacing:3px;">{qr_data}</p>
+                  <p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">
+                    Show this QR code or the image above to the guard at the entrance.
+                  </p>
                 </div>
-
+ 
                 <table style="margin:0 auto;border-collapse:collapse;font-size:13px;
-                            width:100%;max-width:340px;background:#f8faff;
-                            border:1px solid #ddeaff;border-radius:8px;overflow:hidden;">
-                <tr style="border-bottom:1px solid #ddeaff;">
+                              width:100%;max-width:340px;background:#f8faff;
+                              border:1px solid #ddeaff;border-radius:8px;overflow:hidden;">
+                  <tr style="border-bottom:1px solid #ddeaff;">
                     <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">PLATE</td>
                     <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{plate or "—"}</td>
-                </tr>
-                <tr>
+                  </tr>
+                  <tr>
                     <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">VALID UNTIL</td>
                     <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{valid_until or "—"}</td>
-                </tr>
+                  </tr>
                 </table>
-            </div>
-
-            <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
-                        text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
+              </div>
+ 
+              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
+                          text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
                 GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
-            </div>
+              </div>
             </div>
             """
-
-            params = {
-                "from": "GSD Parking <onboarding@resend.dev>",  # use this until you verify a domain
-                "to": [to_email],
-                "subject": "Your GSD Parking QR Code",
-                "html": html_body,
-            }
-
-            response = resend.Emails.send(params)
-            print("Email sent:", response)
+ 
+            alt_part = MIMEMultipart("alternative")
+            alt_part.attach(MIMEText(html_body, "html"))
+            msg.attach(alt_part)
+ 
+            img_part = MIMEImage(qr_bytes, _subtype="png")
+            img_part.add_header("Content-ID", "<qrimage>")
+            img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
+            msg.attach(img_part)
+ 
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, to_email, msg.as_string())
+ 
             return True
-
+ 
         except Exception as e:
             print("Email error:", e)
             return False
