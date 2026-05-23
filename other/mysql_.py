@@ -368,18 +368,27 @@ class SQL:
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         return buf.getvalue()
+    
+    
+    
+        
 
     def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
                       plate: str = "", valid_until: str = "") -> bool:
         
-        try:
+        print("Preparing to send ==========================================")
         
+        try: 
+            print("checking  ")
             smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
             smtp_port = int(os.getenv("SMTP_PORT", 587))
             smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
             smtp_pass = os.getenv("SMTP_PASSWORD", "")
-        except e:
-            return "Error "
+            print("check success")
+        except:
+            print("SMPT failed")
+        
+    
 
         if not smtp_user or not smtp_pass:
             return False
