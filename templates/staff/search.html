@@ -241,10 +241,7 @@
         let activeQrId = null;
         let filterTimer = null;
 
-        /**
-         * Returns effective status — same logic as history.html so badges are consistent.
-         * If DB says 'active' but expiry has passed, show 'expired'.
-         */
+        
         function effectiveStatus(dbStatus, expiryStr) {
             if (dbStatus && dbStatus !== 'active') return dbStatus;
             if (expiryStr && expiryStr !== 'None' && expiryStr !== '—') {
@@ -277,7 +274,6 @@
                 );
             }
             if (status) {
-                // Filter using effectiveStatus so expired-but-still-'active' in DB are caught
                 rows = rows.filter(d => effectiveStatus(d[6], d[5]) === status);
             }
 
@@ -380,7 +376,6 @@
                 document.getElementById("renewDate").value = "";
             }
 
-            // Enable/disable Send Email button based on whether owner email exists
             const emailBtn = document.getElementById("btnSendEmail");
             const hasEmail = d[4] && d[4] !== "—" && d[4] !== "None" && d[4].trim() !== "";
             emailBtn.disabled = !hasEmail;

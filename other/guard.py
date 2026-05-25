@@ -1,12 +1,16 @@
 from flask import Blueprint, request, jsonify, render_template, session, redirect
 from other.mysql_ import SQL
 from datetime import datetime
+from other.cache import Cache
 
 
 class Guard:
     def __init__(self):
         self.guard = Blueprint("guard", __name__, url_prefix="/guard")
         self.sql = SQL()
+        self.cache = Cache()
+        
+        
         self.routes()
 
     def _protect(self):
@@ -31,11 +35,24 @@ class Guard:
             return render_template("guard/history.html")
 
         # ─── API ──────────────────────────────────────────
+        
+        @self.guard.route("/getParking")
+        def getParking():
+            parking = self.sql.getparking()
+            return parking
+            
+                
 
         @self.guard.route("/my_history", methods=["GET"])
         def my_history():
+            name = "history"
             try:
-                data = self.sql.gethistorybyguard(session["user_id"])
+                if not self.cache.check_key(name):
+                    sqldata = self.sql.gethistorybyguard(session["user_id"])
+                    self.cache.add(name, sqldata)
+                    
+                data = self.cache.get(name)
+                    
                 serialized = []
                 for row in data:
                     serialized.append([
@@ -59,7 +76,10 @@ class Guard:
                 return jsonify({"status": "bad", "message": "No QR data provided"})
 
             qr = self.sql.getqrbydata(qrdata)
-
+            parking = self.sql.getparking()
+            available = parking["available"]
+            
+            self.cache.delete("history")#removing stored cache history
             # ── QR NOT FOUND ──────────────────────────────
             if not qr:
                 self._log(qrdata, "failed", action)
@@ -78,6 +98,16 @@ class Guard:
             expiry      = qr[5]
             qr_status   = (qr[6] or "active").lower()
             car_status  = qr[9]
+            
+            if available <= 0 and new_action == "IN":
+                self._log(qrdata, "failed", action)
+                return jsonify({
+                    "status":      "bad",
+                    "message":     "Parking lot has no available space",
+                    "scan_result": "failed",
+                    "owner_name":  owner_name,
+                    "plate":       plate
+                })
 
             if qr_status == "revoked":
                 self._log(qrdata, "failed", action)
@@ -138,6 +168,9 @@ class Guard:
                 "plate":       plate,
                 "valid_until": str(expiry) if expiry else "—"
             })
+            
+            
+    
 
     def _log(self, qrdata, status, action="entry"):
         """Insert a scan record into history. action is 'entry' or 'exit'."""

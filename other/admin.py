@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 import json, os
 from other.mysql_ import SQL
+from other.cache import Cache
 
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
@@ -10,6 +11,9 @@ class Admin:
     def __init__(self):
         self.admin = Blueprint("admin", __name__, url_prefix="/admin")
         self.sql = SQL()
+        self.cache = Cache()
+        
+        
         self.routes()
 
     def _protect(self):
@@ -63,6 +67,7 @@ class Admin:
             with open(file_path, "r") as file:
                 jdata = json.load(file)
             jdata["total"] = total
+            jdata["available"] = total - jdata["occupied"]
             with open(file_path, "w") as file:
                 json.dump(jdata, file, indent=4)
             return jsonify({"status": "ok", "message": "Updated successfully", "total": total})
@@ -71,12 +76,26 @@ class Admin:
 
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
+            name = "users"
             page  = max(1, int(request.args.get("page", 1)))
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            users = self.sql.getalluser(limit=limit, offset=offset)
-            total = self.sql.countallusers()
+            if not self.cache.check_key(name + str(offset)):
+                sqlusers = self.sql.getalluser(limit=limit, offset=offset)
+                self.cache.add(name + str(offset), sqlusers)
+                print("getting from sql................")
+                
+            else:
+                print("...........getting from cache")
+                
+            users = self.cache.get(name + str(offset))
+            
+            if not self.cache.check_key(name + "count"):
+                sqltotal = self.sql.countallusers()
+                self.cache.add(name + "count", sqltotal)
+                
+            total = self.cache.get(name+"count")
 
             serialized = [
                 [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in u]
@@ -117,6 +136,7 @@ class Admin:
                 return jsonify({"status": "bad", "message": f"Username '{username}' is already taken"})
 
             self.sql.adduser(username, email, password, role)
+            self.cache.deletethathas("users")
             return jsonify({"status": "good", "message": "User added successfully"})
 
         # ─── QR / REPORTS ─────────────────────────────────
@@ -142,7 +162,12 @@ class Admin:
         @self.admin.route("/get_entries")
         def entries():
             data   = self.sql.get_total_entry_exit()
-            scanned = self.sql.get_total_scan()
+            
+            if not self.cache.check_key("history_total_scan"):
+                sqlscanned = self.sql.get_total_scan()
+                self.cache.add("history_total_scan", sqlscanned)
+                
+            scanned = self.cache.get("history_total_scan")
             return jsonify({
                 "entry": data["entry"],
                 "exit":  data["exit"],
@@ -155,7 +180,13 @@ class Admin:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            data  = self.sql.gethistory(limit=limit, offset=offset)
+            if not self.cache.check_key("history" + str(offset)):
+                sqldata = self.sql.gethistory(limit=limit, offset=offset)
+                self.cache.add("history"+str(offset), sqldata)
+                
+            data = self.cache.get("history"+offset)
+            
+            
             total = self.sql.counthistory()
 
             serialized = [

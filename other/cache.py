@@ -1,17 +1,30 @@
-DATA = {}
-
-
-def inCahce(name):
-    return name in DATA
-
-def addCache(key, value):
-    DATA[key] = value
-    
-def removeCache(key):
-    DATA.pop(key)
-    
-def clearCache():
-    DATA.clear
+class Cache:
+    def __init__(self):
+        self.__DATA = {}
         
+    def add(self,name,value):
+        self.__DATA[name] = value
+    
+    def delete(self,name):
+        self.__DATA.pop(name)
+        
+    def clear(self):
+        self.__DATA.clear()    
+        
+    def get(self, name):
+        return self.__DATA[name] 
+    
+    def deletethathas(self,name):
+        newdata = {}
+        for k,v in self.__DATA.items():
+            if name not in k:
+                newdata[k] = v
+        self.__DATA = newdata
+        
+    def check_key(self, name):
+        return name in self.__DATA 
+    
+    def prin(self):
+        print(self.__DATA)
 
 
