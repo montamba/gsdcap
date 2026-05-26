@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking — GSD Parking</title>
+    <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
+
+        body {
+            background: #eef4ff;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ─── SIDEBAR ─── */
+        aside {
+            position: sticky;
+            top: 0; left: 0;
+            height: 100vh;
+            width: 240px;
+            min-width: 240px;
+            background: #1e3a8a;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+        }
+
+        .logos {
+            padding: 26px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: #172e72;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .circle {
+            width: 60px; height: 60px;
+            display: grid; place-items: center;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.2);
+            font-size: 20px; font-weight: 800;
+            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .logos span {
+            font-size: 10px; font-weight: 700;
+            color: rgba(148,163,184,0.7);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .buttons { display: flex; flex-direction: column; padding: 14px 0; flex: 1; }
+
+        .buttons a {
+            text-decoration: none;
+            color: rgba(186,210,255,0.75);
+            font-size: 14px; font-weight: 600;
+            padding: 11px 20px;
+            display: flex; align-items: center; gap: 10px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .buttons a:hover { background: rgba(255,255,255,0.07); color: #ffffff; border-left-color: rgba(255,255,255,0.3); }
+        .buttons a.active { background: rgba(255,255,255,0.12); color: #ffffff; border-left-color: #60a5fa; }
+
+        .logout { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .logout button {
+            width: 100%; padding: 10px;
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border-radius: 6px;
+        }
+        .logout button:hover { background: rgba(239,68,68,0.22); color: #ffffff; }
+
+        /* ─── MAIN ─── */
+        .right { flex: 1; overflow-x: hidden; min-width: 0; }
+
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #c7d9f5;
+            padding: 22px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
+        }
+        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .header h1 i { color: #2563eb; }
+        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+        .live-badge {
+            font-size: 10px; font-family: 'Space Mono', monospace; color: #10b981;
+            background: #d1fae5; border: 1px solid #6ee7b7;
+            padding: 5px 12px; letter-spacing: 0.1em;
+            display: flex; align-items: center; gap: 6px; border-radius: 20px;
+        }
+        .live-badge::before {
+            content: ''; width: 6px; height: 6px;
+            background: #10b981; border-radius: 50%;
+            animation: blink 1.4s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .inner { padding: 28px 32px; }
+
+        /* ─── STAT STRIP ─── */
+        .stat-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; border-radius: 12px 12px 0 0;
+        }
+        .stat-card.total::before    { background: #2563eb; }
+        .stat-card.available::before { background: #10b981; }
+        .stat-card.occupied::before  { background: #ef4444; }
+
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            display: grid; place-items: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .stat-card.total .stat-icon    { background: #dbeafe; color: #2563eb; }
+        .stat-card.available .stat-icon { background: #d1fae5; color: #10b981; }
+        .stat-card.occupied .stat-icon  { background: #fee2e2; color: #ef4444; }
+
+        .stat-label {
+            font-size: 9px; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.15em;
+            font-family: 'Space Mono', monospace; margin-bottom: 4px;
+        }
+        .stat-num {
+            font-size: 36px; font-weight: 800;
+            font-family: 'Space Mono', monospace; line-height: 1;
+        }
+        .stat-card.total .stat-num    { color: #2563eb; }
+        .stat-card.available .stat-num { color: #10b981; }
+        .stat-card.occupied .stat-num  { color: #ef4444; }
+
+        /* ─── OCCUPANCY BAR ─── */
+        .occ-bar-card {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+        }
+        .occ-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .occ-bar-title {
+            font-size: 11px; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: 0.12em;
+            font-family: 'Space Mono', monospace;
+        }
+        .occ-pct {
+            font-size: 13px; font-weight: 800;
+            font-family: 'Space Mono', monospace; color: #0f172a;
+        }
+        .occ-track {
+            height: 10px;
+            background: #e0f2fe;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .occ-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .occ-legend {
+            display: flex; gap: 18px;
+            margin-top: 10px;
+        }
+        .leg {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 10px; font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            color: #64748b;
+        }
+        .leg-dot {
+            width: 10px; height: 10px;
+            border-radius: 2px;
+        }
+        .leg-dot.avail { background: #10b981; }
+        .leg-dot.occ   { background: #ef4444; }
+
+        /* ─── VISUAL GRID SECTION ─── */
+        .grid-section {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+        }
+
+        .grid-head {
+            padding: 14px 20px;
+            background: #f5f9ff;
+            border-bottom: 1px solid #ddeaff;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .grid-head-left { display: flex; align-items: center; gap: 8px; }
+        .grid-head-left::before {
+            content: ''; width: 3px; height: 14px;
+            background: #2563eb; border-radius: 2px; flex-shrink: 0;
+        }
+        .grid-head h2 {
+            font-size: 12px; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+        .grid-head i { color: #2563eb; }
+
+        .grid-legend { display: flex; gap: 14px; }
+        .gl-item {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 10px; font-weight: 700;
+            font-family: 'Space Mono', monospace;
+        }
+        .gl-box {
+            width: 14px; height: 14px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+        }
+        .gl-box.avail { background: #d1fae5; border-color: #6ee7b7; }
+        .gl-box.occ   { background: #fee2e2; border-color: #fca5a5; }
+        .gl-item.avail { color: #065f46; }
+        .gl-item.occ   { color: #991b1b; }
+
+        .slot-grid {
+            padding: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 120px;
+            align-content: flex-start;
+        }
+
+        .slot-box {
+            width: 64px;
+            height: 72px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: default;
+            position: relative;
+            transition: transform 0.15s, box-shadow 0.15s;
+            font-family: 'Space Mono', monospace;
+        }
+        .slot-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        /* Available slot */
+        .slot-box.avail {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-color: #86efac;
+        }
+        .slot-box.avail .slot-icon { color: #16a34a; font-size: 22px; }
+        .slot-box.avail .slot-num  { color: #15803d; font-size: 10px; font-weight: 700; }
+        .slot-box.avail .slot-lbl  { color: #86efac; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+        /* Occupied slot */
+        .slot-box.occ {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-color: #fca5a5;
+        }
+        .slot-box.occ .slot-icon { color: #dc2626; font-size: 22px; }
+        .slot-box.occ .slot-num  { color: #b91c1c; font-size: 10px; font-weight: 700; }
+        .slot-box.occ .slot-lbl  { color: #fca5a5; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+        /* Empty state */
+        .grid-empty {
+            width: 100%;
+            padding: 48px 16px;
+            text-align: center;
+            color: #94a3b8;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+        .grid-empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+        /* Grid footer note */
+        .grid-note {
+            padding: 12px 20px;
+            background: #f8faff;
+            border-top: 1px solid #ddeaff;
+            font-size: 10px;
+            color: #94a3b8;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .grid-note i { color: #2563eb; }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 768px) {
+            aside { display: none; }
+
+            .mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: #1e3a8a;
+                z-index: 200;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .mobile-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px 4px;
+                text-decoration: none;
+                color: rgba(186,210,255,0.7);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                transition: all 0.2s;
+            }
+            .mobile-nav a i { font-size: 18px; }
+            .mobile-nav a.active,
+            .mobile-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+            .header { padding: 16px 18px; }
+            .header h1 { font-size: 17px; }
+            .live-badge { display: none; }
+
+            .inner { padding: 16px 16px 90px; }
+
+            .stat-strip { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+            .stat-num { font-size: 26px; }
+            .stat-icon { width: 38px; height: 38px; font-size: 16px; }
+
+            .slot-grid { padding: 16px; gap: 8px; }
+            .slot-box { width: 54px; height: 62px; }
+            .slot-box .slot-icon { font-size: 18px; }
+        }
+
+        @media (max-width: 400px) {
+            .stat-strip { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Desktop sidebar -->
+    <aside>
+        <div class="logos">
+            <div class="circle">G</div>
+            <span>GUARD PORTAL</span>
+        </div>
+        <div class="buttons">
+            <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+            <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
+            <a href="/guard/parking" class="active"><i class="bi bi-p-circle"></i> Parking</a>
+        </div>
+        <div class="logout">
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        </div>
+    </aside>
+
+    <!-- Mobile bottom nav -->
+    <nav class="mobile-nav" style="display:none;">
+        <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+        <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
+        <a href="/guard/parking" class="active"><i class="bi bi-p-circle"></i> Parking</a>
+        <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </nav>
+
+    <div class="right">
+        <div class="header">
+            <div>
+                <h1><i class="bi bi-p-circle-fill"></i> Parking Status</h1>
+                <p>REAL-TIME SLOT AVAILABILITY</p>
+            </div>
+            <div class="live-badge">Live</div>
+        </div>
+
+        <div class="inner">
+
+            <!-- Stat strip -->
+            <div class="stat-strip">
+                <div class="stat-card total">
+                    <div class="stat-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                    <div>
+                        <div class="stat-label">Total Slots</div>
+                        <div class="stat-num" id="sTotal">—</div>
+                    </div>
+                </div>
+                <div class="stat-card available">
+                    <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <div>
+                        <div class="stat-label">Available</div>
+                        <div class="stat-num" id="sAvail">—</div>
+                    </div>
+                </div>
+                <div class="stat-card occupied">
+                    <div class="stat-icon"><i class="bi bi-car-front-fill"></i></div>
+                    <div>
+                        <div class="stat-label">Occupied</div>
+                        <div class="stat-num" id="sOcc">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Occupancy bar -->
+            <div class="occ-bar-card">
+                <div class="occ-bar-top">
+                    <span class="occ-bar-title"><i class="bi bi-bar-chart-fill" style="color:#2563eb;margin-right:6px;"></i>Occupancy Rate</span>
+                    <span class="occ-pct" id="occPct">0%</span>
+                </div>
+                <div class="occ-track">
+                    <div class="occ-fill" id="occFill" style="width:0%"></div>
+                </div>
+                <div class="occ-legend">
+                    <div class="leg"><div class="leg-dot avail"></div> Available</div>
+                    <div class="leg"><div class="leg-dot occ"></div> Occupied</div>
+                </div>
+            </div>
+
+            <!-- Visual slot grid -->
+            <div class="grid-section">
+                <div class="grid-head">
+                    <div class="grid-head-left">
+                        <i class="bi bi-grid-fill"></i>
+                        <h2>Slot Map</h2>
+                    </div>
+                    <div class="grid-legend">
+                        <div class="gl-item avail"><div class="gl-box avail"></div> Available</div>
+                        <div class="gl-item occ"><div class="gl-box occ"></div> Occupied</div>
+                    </div>
+                </div>
+
+                <div class="slot-grid" id="slotGrid">
+                    <div class="grid-empty">
+                        <i class="bi bi-hourglass-split"></i>
+                        LOADING SLOT DATA…
+                    </div>
+                </div>
+
+                <div class="grid-note">
+                    <i class="bi bi-info-circle-fill"></i>
+                    Slots are numbered in order. Occupied slots are filled first based on current car_status data. Refreshes every 15 seconds.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function loadParking() {
+            try {
+                const data = await API.get("/guard/getParking");
+
+                const total    = data.total    ?? 0;
+                const occupied = data.occupied  ?? 0;
+                const available = data.available ?? (total - occupied);
+                const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
+
+                // Stats
+                document.getElementById("sTotal").textContent = total;
+                document.getElementById("sAvail").textContent = available;
+                document.getElementById("sOcc").textContent   = occupied;
+
+                // Bar
+                document.getElementById("occFill").style.width = pct + "%";
+                document.getElementById("occPct").textContent  = pct + "%";
+
+                // Slot grid
+                renderGrid(total, occupied);
+
+            } catch (e) {
+                console.error("Parking load error:", e);
+                document.getElementById("slotGrid").innerHTML =
+                    `<div class="grid-empty"><i class="bi bi-exclamation-triangle"></i>FAILED TO LOAD SLOT DATA</div>`;
+            }
+        }
+
+        function renderGrid(total, occupied) {
+            const grid = document.getElementById("slotGrid");
+
+            if (total === 0) {
+                grid.innerHTML = `<div class="grid-empty"><i class="bi bi-p-circle"></i>NO SLOTS CONFIGURED</div>`;
+                return;
+            }
+
+            let html = "";
+            for (let i = 1; i <= total; i++) {
+                // First `occupied` slots = red, rest = green
+                const isOcc = i <= occupied;
+                const cls   = isOcc ? "occ" : "avail";
+                const icon  = isOcc ? "bi-car-front-fill" : "bi-p-square";
+                const lbl   = isOcc ? "TAKEN" : "FREE";
+
+                html += `
+                <div class="slot-box ${cls}" title="Slot ${i} — ${lbl}">
+                    <i class="bi ${icon} slot-icon"></i>
+                    <span class="slot-num">${String(i).padStart(2, "0")}</span>
+                    <span class="slot-lbl">${lbl}</span>
+                </div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        loadParking();
+        setInterval(loadParking, 15000);
+    </script>
+</body>
+</html>

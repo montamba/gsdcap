@@ -11,21 +11,43 @@ import qrcode
 import io
 import base64
 
-import resend
 
 load_dotenv()
 
 class SQL:
     def __init__(self):
-        self.sql = mysql.connect(
-            user= os.getenv("USER"),
-            host= os.getenv("LOCALHOST"),
-            database= os.getenv("DATABASE"),
-            passwd= os.getenv("PASSW"),
-            port=int(os.getenv("MYSQLPORT"))
-        )
+        print("establishing connection")
+        self.attempt = 0
+        self.max_attempt = 10
+        self.conected = False
+        self.sql = self.__connect()
+        
+        
+        
+        
         self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
 
+    def __connect(self):
+        try:
+            sql = mysql.connect(
+                user= os.getenv("USER"),
+                host= os.getenv("LOCALHOST"),
+                database= os.getenv("DATABASE"),
+                passwd= os.getenv("PASSW"),
+                port=int(os.getenv("MYSQLPORT"))
+                    
+            )
+            self.conected = True
+            print("sql connection success")
+            return sql
+        except:
+            self.attempt += 1
+            print("Failed to connect, Attempt : ", self.attempt)
+            if self.attempt < self.max_attempt and not self.conected:
+                return self.__connect()
+            
+            print("Connection failed")
+            return None
     def _hash(self, password: str) -> str:
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 

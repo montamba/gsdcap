@@ -99,22 +99,115 @@
         .header h1 i { color: #2563eb; }
         .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
 
+        /* ─── PARKING STATUS STRIP ─── */
+        .parking-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 20px 32px 0;
+        }
+
+        .pk-card {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+            transition: transform 0.2s;
+        }
+        .pk-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 10px 10px 0 0;
+        }
+        .pk-card.pk-total::before  { background: #2563eb; }
+        .pk-card.pk-avail::before  { background: #10b981; }
+        .pk-card.pk-occ::before    { background: #ef4444; }
+
+        .pk-icon {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            display: grid; place-items: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .pk-card.pk-total .pk-icon  { background: #dbeafe; color: #2563eb; }
+        .pk-card.pk-avail .pk-icon  { background: #d1fae5; color: #10b981; }
+        .pk-card.pk-occ .pk-icon    { background: #fee2e2; color: #ef4444; }
+
+        .pk-label {
+            font-size: 9px; font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 2px;
+        }
+        .pk-num {
+            font-size: 26px; font-weight: 800;
+            font-family: 'Space Mono', monospace;
+            line-height: 1;
+        }
+        .pk-card.pk-total .pk-num { color: #2563eb; }
+        .pk-card.pk-avail .pk-num { color: #10b981; }
+        .pk-card.pk-occ .pk-num   { color: #ef4444; }
+
+        /* Full status bar */
+        .pk-bar-wrap {
+            margin: 12px 32px 0;
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            border-radius: 10px;
+            padding: 12px 18px;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+        }
+        .pk-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.1em;
+            margin-bottom: 7px;
+        }
+        .pk-bar-label span:first-child { color: #10b981; }
+        .pk-bar-label span:last-child  { color: #ef4444; }
+        .pk-bar-track {
+            height: 6px;
+            background: #dbeafe;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .pk-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ─── ACTION SELECTOR ─── */
         .scanner-wrap {
-            padding: 32px;
+            padding: 16px 32px 32px;
             display: flex;
             gap: 24px;
             align-items: flex-start;
             flex-wrap: wrap;
         }
 
-        /* ─── ACTION SELECTOR ─── */
         .action-selector {
             background: #ffffff;
             border: 1px solid #c7d9f5;
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 1px 6px rgba(37,99,235,0.07);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             width: 100%;
         }
         .action-head {
@@ -200,7 +293,6 @@
         }
         @keyframes scanMove { 0%{top:10%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:90%;opacity:0} }
 
-        /* scanning pulse ring */
         .scan-pulse {
             display: none;
             position: absolute;
@@ -289,7 +381,6 @@
         @media (max-width: 768px) {
             aside { display: none; }
 
-            /* Mobile bottom nav */
             .mobile-nav {
                 display: flex !important;
                 position: fixed;
@@ -322,32 +413,26 @@
             .header { padding: 16px 18px; }
             .header h1 { font-size: 17px; }
 
-            /* Stack scanner vertically and fill the screen */
+            .parking-strip { grid-template-columns: repeat(3, 1fr); padding: 14px 16px 0; gap: 8px; }
+            .pk-bar-wrap { margin: 10px 16px 0; }
+            .pk-num { font-size: 20px; }
+
             .scanner-wrap {
-                padding: 16px 16px 90px; /* extra bottom for mobile nav */
+                padding: 14px 16px 90px;
                 flex-direction: column;
                 gap: 16px;
             }
 
             .video-card, .result-card, .action-selector { width: 100%; }
-
-            /* Make video fill width on mobile */
             #reader { width: 100%; }
             .video-frame { max-width: 100%; }
-
             .video-body { padding: 14px; }
             .action-buttons { padding: 14px; gap: 8px; }
             .action-btn { padding: 14px 10px; font-size: 13px; }
-
             .result-body { padding: 16px; }
             .result-banner { padding: 16px; }
             .result-banner .banner-icon { font-size: 32px; }
             .result-banner .banner-title { font-size: 14px; }
-        }
-
-        @media (max-width: 480px) {
-            .action-btn { gap: 6px; }
-            .action-btn i { font-size: 18px; }
         }
     </style>
 </head>
@@ -361,6 +446,7 @@
         <div class="buttons">
             <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
             <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
+            <a href="/guard/parking" ><i class="bi bi-p-circle"></i> Parking</a>
         </div>
         <div class="logout">
             <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
@@ -371,6 +457,7 @@
     <nav class="mobile-nav" style="display:none;">
         <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
         <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
+        <a href="/guard/parking" ><i class="bi bi-p-circle"></i> Parking</a>
         <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </nav>
 
@@ -382,8 +469,44 @@
             </div>
         </div>
 
+        <!-- Parking Status Strip -->
+        <div class="parking-strip">
+            <div class="pk-card pk-total">
+                <div class="pk-icon"><i class="bi bi-p-circle-fill"></i></div>
+                <div>
+                    <div class="pk-label">Total Slots</div>
+                    <div class="pk-num" id="pkTotal">—</div>
+                </div>
+            </div>
+            <div class="pk-card pk-avail">
+                <div class="pk-icon"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <div class="pk-label">Available</div>
+                    <div class="pk-num" id="pkAvail">—</div>
+                </div>
+            </div>
+            <div class="pk-card pk-occ">
+                <div class="pk-icon"><i class="bi bi-car-front-fill"></i></div>
+                <div>
+                    <div class="pk-label">Occupied</div>
+                    <div class="pk-num" id="pkOcc">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupancy progress bar -->
+        <div class="pk-bar-wrap">
+            <div class="pk-bar-label">
+                <span id="pkAvailLabel">— Available</span>
+                <span id="pkOccLabel">— Occupied</span>
+            </div>
+            <div class="pk-bar-track">
+                <div class="pk-bar-fill" id="pkBarFill" style="width:0%"></div>
+            </div>
+        </div>
+
         <!-- Action Selector -->
-        <div style="padding: 28px 32px 0;">
+        <div style="padding: 16px 32px 0;">
             <div class="action-selector">
                 <div class="action-head">
                     <i class="bi bi-arrow-left-right"></i>
@@ -448,17 +571,41 @@
     <script>
         let scanning = false;
         let currentAction = "entry";
-        let processingLock  = false;   // prevents double-processing
+        let processingLock = false;
 
+        // ─── PARKING STATUS ────────────────────────────────────
+        async function getParking() {
+            try {
+                const data = await API.get("/guard/getParking");
+                const total    = data.total    ?? 0;
+                const occupied = data.occupied  ?? 0;
+                const available = data.available ?? (total - occupied);
+
+                document.getElementById("pkTotal").textContent = total;
+                document.getElementById("pkAvail").textContent = available;
+                document.getElementById("pkOcc").textContent   = occupied;
+
+                document.getElementById("pkAvailLabel").textContent = `${available} Available`;
+                document.getElementById("pkOccLabel").textContent   = `${occupied} Occupied`;
+
+                const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
+                document.getElementById("pkBarFill").style.width = pct + "%";
+            } catch (e) {
+                console.error("Parking fetch error:", e);
+            }
+        }
+
+        // ─── ACTION ────────────────────────────────────────────
         function setAction(action) {
             currentAction = action;
             document.getElementById("entryBtn").className = "action-btn" + (action === "entry" ? " entry-active" : "");
-            document.getElementById("exitBtn").className = "action-btn" + (action === "exit"  ? " exit-active"  : "");
+            document.getElementById("exitBtn").className  = "action-btn" + (action === "exit"  ? " exit-active"  : "");
         }
 
+        // ─── SCANNER ───────────────────────────────────────────
         const html5QrCode = new Html5Qrcode("reader");
         const cameraConfig = window.innerWidth < 600
-            ? { facingMode: "environment" }   // rear camera on mobile
+            ? { facingMode: "environment" }
             : { facingMode: "user" };
 
         html5QrCode.start(
@@ -478,9 +625,11 @@
                 setBanner("scanning", "🔍", "PROCESSING…", "Verifying QR code…");
 
                 await checkData(decodedText);
+                // Refresh parking after a scan (entry/exit changes counts)
+                await getParking();
 
                 captureBtn.disabled = false;
-                captureBtn.innerHTML = '<i class="bi bi-camera" id="captureIcon"></i><span id="captureText">Capture &amp; Scan</span>';
+                captureBtn.innerHTML = '<i class="bi bi-camera"></i><span>Capture &amp; Scan</span>';
                 captureBtn.classList.remove("scanning-state");
                 processingLock = false;
             },
@@ -544,11 +693,8 @@
             banner.querySelector(".banner-msg").textContent   = msg;
         }
 
-        async function getParking(){
-            let data = await API.get("/guard/getParking");
-            let parking = await data.json();
-            
-        }
+        getParking();
+        setInterval(getParking, 20000);
     </script>
 </body>
 </html>

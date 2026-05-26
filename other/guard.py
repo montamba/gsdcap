@@ -34,12 +34,16 @@ class Guard:
         def history():
             return render_template("guard/history.html")
 
+        @self.guard.route("/parking")
+        def parking():
+            return render_template("guard/parking.html")
+
         # ─── API ──────────────────────────────────────────
         
         @self.guard.route("/getParking")
         def getParking():
             parking = self.sql.getparking()
-            return parking
+            return jsonify(parking)
             
                 
 
@@ -50,6 +54,10 @@ class Guard:
                 if not self.cache.check_key(name):
                     sqldata = self.sql.gethistorybyguard(session["user_id"])
                     self.cache.add(name, sqldata)
+                    print("getting from sql")
+                    
+                else:
+                    print("getting from cacche")
                     
                 data = self.cache.get(name)
                     
@@ -79,7 +87,8 @@ class Guard:
             parking = self.sql.getparking()
             available = parking["available"]
             
-            self.cache.deletethathas("history")#removing stored cache history
+            self.cache.deletethathas("history")  # removing stored cache history
+
             # ── QR NOT FOUND ──────────────────────────────
             if not qr:
                 self._log(qrdata, "failed", action)
