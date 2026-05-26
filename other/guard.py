@@ -45,7 +45,7 @@ class Guard:
 
         @self.guard.route("/my_history", methods=["GET"])
         def my_history():
-            name = "history"
+            name = "guard_history"
             try:
                 if not self.cache.check_key(name):
                     sqldata = self.sql.gethistorybyguard(session["user_id"])
@@ -79,7 +79,7 @@ class Guard:
             parking = self.sql.getparking()
             available = parking["available"]
             
-            self.cache.delete("history")#removing stored cache history
+            self.cache.deletethathas("history")#removing stored cache history
             # ── QR NOT FOUND ──────────────────────────────
             if not qr:
                 self._log(qrdata, "failed", action)

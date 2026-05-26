@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from other.mysql_ import SQL
+from other.cache import Cache
 import threading
 
 
@@ -7,7 +8,10 @@ class Staff:
     def __init__(self):
         self.staff = Blueprint("staff", __name__, url_prefix="/staff")
         self.sql = SQL()
+        self.cache = Cache()
+        
         self.routes()
+        
 
     def _protect(self):
         if "user_id" not in session or session["role"] != "staff":
@@ -52,6 +56,7 @@ class Staff:
             email = data.get("email")
             try:
                 self.sql.updateuser(username, email, session["user_id"])
+                self.cache.deletethathas("users")
             except:
                 return jsonify({"status": "bad", "message": "Failed to update"})
             return jsonify({"status": "good", "message": "Updated successfully"})
@@ -59,8 +64,14 @@ class Staff:
 
         @self.staff.route("/recentqr")
         def recent():
+            name = "staff_qrcode"
+            keyname = name + str(0)
             try:
-                data = self.sql.getallqr(limit=5, offset=0)
+                if not self.cache.check_key(keyname):
+                    sqldata = self.sql.getallqr(limit=5, offset=0)
+                    self.cache.add(keyname, sqldata)
+                data = self.cache.get(keyname)
+                
                 serialized = [
                     [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
                     for row in data
@@ -72,12 +83,22 @@ class Staff:
 
         @self.staff.route("/all_qr", methods=["GET"])
         def all_qr():
+            name = "staff_qrcode"
             page  = max(1, int(request.args.get("page", 1)))
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
-
-            qrs = self.sql.getallqr(limit=limit, offset=offset)
-            total = self.sql.countallqr()
+            
+            keyname = name + str(offset)
+            if not self.cache.check_key(keyname):
+                sqlqrs = self.sql.getallqr(limit=limit, offset=offset)
+                self.cache.add(keyname, sqlqrs)
+            qrs = self.cache.get(keyname)
+            
+            keyname1 = name + "count"
+            if not self.cache.check_key(keyname1):
+                sqltotal = self.sql.countallqr()
+                self.cache.add(keyname1, sqltotal)
+            total = self.cache.get(keyname1)
 
             serialized = [
                 [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
@@ -94,12 +115,22 @@ class Staff:
 
         @self.staff.route("/my_qr", methods=["GET"])
         def my_qr():
+            name = "staff_qrcode"
             page  = max(1, int(request.args.get("page", 1)))
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
-
-            qrs   = self.sql.getqrbyuser(session["user_id"], limit=limit, offset=offset)
-            total = self.sql.countqrbyuser(session["user_id"])
+            
+            keyname = name + str(offset)
+            if not self.cache.check_key(keyname):
+                sqlqrs   = self.sql.getqrbyuser(session["user_id"], limit=limit, offset=offset)
+                self.cache.add(keyname, sqlqrs)
+            qrs = self.cache.get(keyname)
+                
+            keyname1 = name + "count_by_user"
+            if not self.cache.check_key(keyname1):
+                sqltotal = self.sql.countqrbyuser(session["user_id"])
+                self.cache.add(keyname1, sqltotal)
+            total = self.cache.get(keyname1)
 
             
             return jsonify({
@@ -113,7 +144,11 @@ class Staff:
             
         @self.staff.route("/stats")
         def getStats():
-            data = self.sql.getqrstats()
+            keyname = "staff_qrcode_qrstats"
+            if not self.cache.check_key(keyname):
+                sqldata = self.sql.getqrstats()
+                self.cache.add(keyname, sqldata)
+            data = self.cache.get(keyname)
             
             return data
 
@@ -129,7 +164,9 @@ class Staff:
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
             try:
+                
                 self.sql.saveqr(qr_data, plate, valid_until, session["user_id"], owner_name, owner_email)
+                self.cache.deletethathas("qrcode")
             except Exception as e:
                 print(e)
                 return jsonify({"status": "bad", "message": "Please fill in all required fields"})
@@ -138,12 +175,14 @@ class Staff:
         @self.staff.route("/renew_qr/<int:qr_id>", methods=["PUT"])
         def renew_qr(qr_id):
             """Set a new expiry date on any QR code — staff can manage all."""
+            
             data = request.get_json()
             new_expiry = (data.get("expiry") or "").strip()
             if not new_expiry:
                 return jsonify({"status": "bad", "message": "Expiry date is required"})
             try:
                 self.sql.renewqr_any(qr_id, new_expiry)
+                self.cache.deletethathas("qrcode")
             except Exception as e:
                 print(e)
                 return jsonify({"status": "bad", "message": "Failed to renew QR"})
@@ -187,5 +226,6 @@ class Staff:
         @self.staff.route("/delete_qr/<int:id>", methods=["DELETE"])
         def delete_qr(id):
             self.sql.deleteqr(id, session["user_id"])
+            self.cache.deletethathas("qrcode")
             return jsonify({"status": "ok", "message": "QR deleted"})
         
