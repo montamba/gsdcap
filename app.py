@@ -119,9 +119,9 @@ class Main:
             })
 
     def blueprints(self):
-        self.app.register_blueprint(Admin().admin)
-        self.app.register_blueprint(Staff().staff)
-        self.app.register_blueprint(Guard().guard)
+        self.app.register_blueprint(Admin(self.sql).admin)
+        self.app.register_blueprint(Staff(self.sql).staff)
+        self.app.register_blueprint(Guard(self.sql).guard)
 
     
 

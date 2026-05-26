@@ -1,405 +1,528 @@
 import mysql.connector as mysql
 import os
-from dotenv import load_dotenv
-import bcrypt
+import time
+import io
+import json
+import base64
 import smtplib
+import qrcode
+import bcrypt
+
+from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-import json
-import qrcode
-import io
-import base64
-
 
 load_dotenv()
 
+
 class SQL:
     def __init__(self):
-        print("establishing connection")
-        self.attempt = 0
-        self.max_attempt = 5
-        self.conected = False
-        self.sql = self.__connect()
-        
-        self.fetch_attempt = 0
-        self.max_fetch_attempt = 5
-        
         self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
+        self.sql = self._connect()
 
-    def __connect(self):
+
+    def _connect(self) -> mysql.MySQLConnection | None:
+        for attempt in range(1, 6):
+            try:
+                conn = mysql.connect(
+                    user=os.getenv("USER"),
+                    host=os.getenv("LOCALHOST"),
+                    database=os.getenv("DATABASE"),
+                    passwd=os.getenv("PASSW"),
+                    port=int(os.getenv("MYSQLPORT", 3306)),
+                    connection_timeout=10,
+                    autocommit=False,
+                )
+                print(f"[DB] Connected on attempt {attempt}")
+                return conn
+            except Exception as e:
+                wait = 2 ** (attempt - 1)
+                print(f"[DB] Attempt {attempt} failed: {e}  — retrying in {wait}s")
+                time.sleep(wait)
+
+        print("[DB] All connection attempts failed.")
+        return None
+
+    def _ping(self) -> None:
         try:
-            sql = mysql.connect(
-                user= os.getenv("USER"),
-                host= os.getenv("LOCALHOST"),
-                database= os.getenv("DATABASE"),
-                passwd= os.getenv("PASSW"),
-                port=int(os.getenv("MYSQLPORT"))
-                    
-            )
-            self.conected = True
-            print("sql connection success")
-            return sql
-        except:
-            self.attempt += 1
-            print("Failed to connect, Attempt : ", self.attempt)
-            if self.attempt < self.max_attempt and not self.conected:
-                return self.__connect()
-            
-            print("Connection failed")
-            return None
-        
-    def __reconnecting(self, func, *args):
-        self.sql = self.__connect()
-        if self.fetch_attempt <= self.max_fetch_attempt:
-            self.fetch_attempt += 1
-            return func(*args)
-        else:
-            self.fetch_attempt = 0
-            return None
-            
-        
-        
+            self.sql.ping(reconnect=True, attempts=3, delay=2)
+        except Exception as e:
+            print(f"[DB] Ping failed ({e}), reconnecting…")
+            self.sql = self._connect()
+
+    # ──────────────────────────────────────────────────────────────
+    # HELPERS
+    # ──────────────────────────────────────────────────────────────
+
     def _hash(self, password: str) -> str:
-        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def _check(self, password: str, hashed: str) -> bool:
         try:
             return bcrypt.checkpw(
-                password.encode("utf-8"),
-                hashed.encode("utf-8") if isinstance(hashed, str) else hashed
+                password.encode(),
+                hashed.encode() if isinstance(hashed, str) else hashed,
             )
         except Exception:
             return False
 
-    # ─── User queries ──────────────────────────────────────
+    def _cursor(self):
+        """Return a fresh cursor, guaranteeing the connection is live."""
+        self._ping()
+        return self.sql.cursor()
+
+    def _commit(self):
+        self.sql.commit()
+
+    # ──────────────────────────────────────────────────────────────
+    # USER QUERIES
+    # ──────────────────────────────────────────────────────────────
 
     def getalluser(self, limit=5, offset=0):
         try:
-            cur = self.sql.cursor()
-            cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
-            users = cur.fetchall()
+            cur = self._cursor()
+            cur.execute(
+                "SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s",
+                (limit, offset),
+            )
+            result = cur.fetchall()
             cur.close()
-            return users
-        except:
-            return self.__reconnecting(self.getalluser, limit, offset)
-               
+            return result
+        except Exception as e:
+            print(f"[DB] getalluser error: {e}")
+            return []
 
-    def countallusers(self):
+    def countallusers(self) -> int:
         try:
-            cur = self.sql.cursor()
+            cur = self._cursor()
             cur.execute("SELECT COUNT(*) FROM users")
             count = cur.fetchone()[0]
             cur.close()
             return count
-        except:
-            return self.__reconnecting(self.countallusers)
+        except Exception as e:
+            print(f"[DB] countallusers error: {e}")
+            return 0
 
-    def getuser(self, id):
+    def getuser(self, user_id):
         try:
-            cur = self.sql.cursor()
-            cur.execute("SELECT * FROM users WHERE id=%s", (id,))
-            user = cur.fetchone()
+            cur = self._cursor()
+            cur.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            result = cur.fetchone()
             cur.close()
-            return user
-        except:
-            return self.__reconnecting(self.getuser, id)
-            
-            
+            return result
+        except Exception as e:
+            print(f"[DB] getuser error: {e}")
+            return None
 
     def getuserbyemail(self, email: str):
         try:
-            cur = self.sql.cursor()
+            cur = self._cursor()
             cur.execute("SELECT * FROM users WHERE email=%s", (email,))
-            user = cur.fetchone()
+            result = cur.fetchone()
             cur.close()
-            return user
-        except:
-            return self.__reconnecting(self.getuserbyemail,email)
+            return result
+        except Exception as e:
+            print(f"[DB] getuserbyemail error: {e}")
+            return None
 
     def getuserbyusername(self, username: str):
         try:
-            cur = self.sql.cursor()
+            cur = self._cursor()
             cur.execute("SELECT * FROM users WHERE username=%s", (username,))
-            user = cur.fetchone()
+            result = cur.fetchone()
             cur.close()
-            return user
-        except:
-            return self.__reconnecting(self.getuserbyusername, username)
+            return result
+        except Exception as e:
+            print(f"[DB] getuserbyusername error: {e}")
+            return None
 
-    def deleteuser(self, id):
+    def getuserbyid(self, user_id):
         try:
-            cur = self.sql.cursor()
-            cur.execute("DELETE FROM users WHERE id=%s", (id,))
-            self.sql.commit()
-            cur.close()
-        except:
-            return self.__reconnecting(self.deleteuser, id)
-
-    def adduser(self, username: str, email: str, password: str, role: str):
-        hashed = self._hash(password)
-        cur = self.sql.cursor()
-        try:
+            cur = self._cursor()
             cur.execute(
-                "INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, %s)",
-                (username, email, hashed, role)
+                "SELECT username, email, role FROM users WHERE id=%s", (user_id,)
             )
-        except mysql.connector.errors.IntegrityError as e:
-            print(e)
-            
-            
-        self.sql.commit()
-        cur.close()
+            result = cur.fetchone()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getuserbyid error: {e}")
+            return None
+
+    def adduser(self, username: str, email: str, password: str, role: str) -> bool:
+        try:
+            hashed = self._hash(password)
+            cur = self._cursor()
+            cur.execute(
+                "INSERT INTO users (username, email, password, role) VALUES (%s,%s,%s,%s)",
+                (username, email, hashed, role),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except mysql.errors.IntegrityError as e:
+            print(f"[DB] adduser integrity error: {e}")
+            return False
+        except Exception as e:
+            print(f"[DB] adduser error: {e}")
+            return False
+
+    def deleteuser(self, user_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] deleteuser error: {e}")
+            return False
+
+    def updateuser(self, username: str, email: str, user_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE users SET username=%s, email=%s WHERE id=%s",
+                (username, email, user_id),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] updateuser error: {e}")
+            return False
 
     def verifyuser(self, email: str, password: str):
         user = self.getuserbyemail(email)
         if not user:
             return None
-        if self._check(password, user[3]):
-            return user
-        return None
+        return user if self._check(password, user[3]) else None
 
-    def getuserbyid(self, id):
+    # ──────────────────────────────────────────────────────────────
+    # ADMIN PROFILE QUERIES
+    # ──────────────────────────────────────────────────────────────
+
+    def getadminbyid(self, admin_id):
         try:
-            cur = self.sql.cursor()
-            cur.execute("SELECT username, email, role FROM users WHERE id=%s", (id,))
-            user = cur.fetchone()
+            cur = self._cursor()
+            cur.execute("SELECT username, email FROM admin WHERE id=%s", (admin_id,))
+            result = cur.fetchone()
             cur.close()
-            return user
-        except:
-            
-            return self.__reconnecting(self.getuserbyid, id)
-            
+            return result
+        except Exception as e:
+            print(f"[DB] getadminbyid error: {e}")
+            return None
 
-    def updateuser(self, username, email, id):
-        cur = self.sql.cursor()
-        cur.execute("UPDATE users SET username=%s, email=%s WHERE id=%s", (username, email, id))
-        self.sql.commit()
-        cur.close()
-
-    # ─── Admin profile queries ─────────────────────────────
-
-    def getadminbyid(self, id):
-        """Return (username, email) for an admin row."""
-        
-        cur = self.sql.cursor()
-        cur.execute("SELECT username, email FROM admin WHERE id=%s", (id,))
-        row = cur.fetchone()
-        cur.close()
-        return row
-
-    def updateadmin_email(self, id, email):
-        """Update the admin's email address."""
-        cur = self.sql.cursor()
-        cur.execute("UPDATE admin SET email=%s WHERE id=%s", (email, id))
-        self.sql.commit()
-        cur.close()
-
-    def updateadmin_password(self, id, new_password):
-        """Hash and store a new password for the admin."""
-        hashed = self._hash(new_password)
-        cur = self.sql.cursor()
-        cur.execute("UPDATE admin SET password=%s WHERE id=%s", (hashed, id))
-        self.sql.commit()
-        cur.close()
-
-    def getadmin_password(self, id):
-        """Return the raw stored password hash for the admin."""
-        cur = self.sql.cursor()
-        cur.execute("SELECT password FROM admin WHERE id=%s", (id,))
-        row = cur.fetchone()
-        cur.close()
-        return row[0] if row else None
-
-    # ─── QR queries ────────────────────────────────────────
-
-    def getqrbydata(self, data):
+    def getadmin_password(self, admin_id):
         try:
-            cur = self.sql.cursor()
+            cur = self._cursor()
+            cur.execute("SELECT password FROM admin WHERE id=%s", (admin_id,))
+            row = cur.fetchone()
+            cur.close()
+            return row[0] if row else None
+        except Exception as e:
+            print(f"[DB] getadmin_password error: {e}")
+            return None
+
+    def updateadmin_email(self, admin_id, email: str) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute("UPDATE admin SET email=%s WHERE id=%s", (email, admin_id))
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] updateadmin_email error: {e}")
+            return False
+
+    def updateadmin_password(self, admin_id, new_password: str) -> bool:
+        try:
+            hashed = self._hash(new_password)
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE admin SET password=%s WHERE id=%s", (hashed, admin_id)
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] updateadmin_password error: {e}")
+            return False
+
+    # ──────────────────────────────────────────────────────────────
+    # QR QUERIES
+    # ──────────────────────────────────────────────────────────────
+
+    def getqrbydata(self, data: str):
+        try:
+            cur = self._cursor()
             cur.execute("SELECT * FROM qrcode WHERE data=%s", (data,))
-            qr = cur.fetchone()
+            result = cur.fetchone()
             cur.close()
-            return qr
-        except:
-            return self.__reconnecting(self.getqrbydata, data)
-            
+            return result
+        except Exception as e:
+            print(f"[DB] getqrbydata error: {e}")
+            return None
 
     def getqrbyid(self, qr_id):
         try:
-            cur = self.sql.cursor()
+            cur = self._cursor()
             cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
-            qr = cur.fetchone()
+            result = cur.fetchone()
             cur.close()
-            return qr
-        except:
-            return self.__reconnecting(self.getqrbyid, qr_id)
+            return result
+        except Exception as e:
+            print(f"[DB] getqrbyid error: {e}")
+            return None
 
     def getqrbyuser(self, user_id, limit=5, offset=0):
         try:
-            cur = self.sql.cursor()
-            cur.execute("""SELECT qrcode.*, users.username
-                        FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                        WHERE qrcode.created_by = %s
-                        ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                        (user_id, limit, offset))
-            qr = cur.fetchall()
+            cur = self._cursor()
+            cur.execute(
+                """SELECT qrcode.*, users.username
+                   FROM qrcode
+                   LEFT JOIN users ON qrcode.created_by = users.id
+                   WHERE qrcode.created_by = %s
+                   ORDER BY qrcode.created_at DESC
+                   LIMIT %s OFFSET %s""",
+                (user_id, limit, offset),
+            )
+            result = cur.fetchall()
             cur.close()
-            return qr
-        except:
-            return self.__reconnecting(self.getqrbyuser, user_id, limit, offset)
-    
-    def getqrstats(self):
-        cur = self.sql.cursor()
-        cur.execute("""SELECT status,expiry
-                       FROM qrcode""",
-                    )
-        qr = cur.fetchall()
-        cur.close()
-        return qr
-        
+            return result
+        except Exception as e:
+            print(f"[DB] getqrbyuser error: {e}")
+            return []
 
-    def countqrbyuser(self, user_id):
+    def getallqr(self, limit=5, offset=0):
         try:
-            cur = self.sql.cursor()
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
+            cur = self._cursor()
+            cur.execute(
+                """SELECT qrcode.*, users.username
+                   FROM qrcode
+                   LEFT JOIN users ON qrcode.created_by = users.id
+                   ORDER BY qrcode.created_at DESC
+                   LIMIT %s OFFSET %s""",
+                (limit, offset),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getallqr error: {e}")
+            return []
+
+    def countallqr(self) -> int:
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT COUNT(*) FROM qrcode")
             count = cur.fetchone()[0]
             cur.close()
             return count
-        except:
-            return self.__reconnecting(self.countqrbyuser, user_id)
+        except Exception as e:
+            print(f"[DB] countallqr error: {e}")
+            return 0
 
-    def getqrbyowner_email(self, email):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE owner_email=%s ORDER BY created_at DESC", (email,))
-        qr = cur.fetchall()
-        cur.close()
-        return qr
+    def countqrbyuser(self, user_id) -> int:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,)
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] countqrbyuser error: {e}")
+            return 0
 
-    def getallqr(self, limit=5, offset=0):
-        cur = self.sql.cursor()
-        cur.execute("""SELECT qrcode.*, users.username
-                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                    (limit, offset))
-        result = cur.fetchall()
-        cur.close()
-        return result
+    def getqrstats(self):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT status, expiry FROM qrcode")
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getqrstats error: {e}")
+            return []
 
-    def countallqr(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM qrcode")
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
+    def saveqr(
+        self,
+        data: str,
+        plate: str,
+        expiry,
+        created_by,
+        owner_name: str = "",
+        owner_email: str = "",
+    ) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by)
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                (data, plate, owner_name, owner_email, expiry, created_by),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] saveqr error: {e}")
+            return False
 
-    def saveqr(self, data, plate, expiry, created_by, owner_name="", owner_email=""):
-        cur = self.sql.cursor()
-        cur.execute(
-            """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by)
-               VALUES (%s, %s, %s, %s, %s, %s)""",
-            (data, plate, owner_name, owner_email, expiry, created_by)
-        )
-        self.sql.commit()
-        cur.close()
+    def renewqr(self, qr_id, new_expiry, owner_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE qrcode SET expiry=%s, status='active' WHERE id=%s AND created_by=%s",
+                (new_expiry, qr_id, owner_id),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] renewqr error: {e}")
+            return False
 
-    def renewqr(self, qr_id, new_expiry, owner_id):
-        cur = self.sql.cursor()
-        cur.execute(
-            "UPDATE qrcode SET expiry=%s, status='active' WHERE id=%s AND created_by=%s",
-            (new_expiry, qr_id, owner_id)
-        )
-        self.sql.commit()
-        cur.close()
+    def renewqr_any(self, qr_id, new_expiry) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
+                (new_expiry, qr_id),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] renewqr_any error: {e}")
+            return False
 
-    def renewqr_any(self, qr_id, new_expiry):
-        cur = self.sql.cursor()
-        cur.execute(
-            "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
-            (new_expiry, qr_id)
-        )
-        self.sql.commit()
-        cur.close()
+    def deleteqr(self, qr_id, user_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id)
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] deleteqr error: {e}")
+            return False
 
-    def deleteqr(self, qr_id, user_id):
-        cur = self.sql.cursor()
-        cur.execute("DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id))
-        self.sql.commit()
-        cur.close()
+    # ──────────────────────────────────────────────────────────────
+    # HISTORY QUERIES
+    # ──────────────────────────────────────────────────────────────
 
-    def inserthistory(self, data, guard, status, action="entry"):
-        cur = self.sql.cursor()
-        cur.execute(
-            "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
-            (data, guard, status, action)
-        )
-        self.sql.commit()
-        cur.close()
+    def inserthistory(self, data: str, guard, status: str, action: str = "entry") -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "INSERT INTO history(data, guard, status, action) VALUES (%s,%s,%s,%s)",
+                (data, guard, status, action),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] inserthistory error: {e}")
+            return False
 
     def gethistory(self, limit=5, offset=0):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM history ORDER BY id DESC LIMIT %s OFFSET %s", (limit, offset))
-        data = cur.fetchall()
-        cur.close()
-        return data
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "SELECT * FROM history ORDER BY id DESC LIMIT %s OFFSET %s",
+                (limit, offset),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] gethistory error: {e}")
+            return []
 
-    def counthistory(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM history")
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
+    def counthistory(self) -> int:
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT COUNT(*) FROM history")
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] counthistory error: {e}")
+            return 0
 
     def gethistory_full(self, limit=5, offset=0):
-        """History joined with users (guard name) and qrcode (plate) for admin report logs."""
-        cur = self.sql.cursor()
-        cur.execute("""
-            SELECT h.id,
-                   h.created_at                    AS date,
-                   COALESCE(u.username, '—')       AS guard_name,
-                   COALESCE(q.plate, '—')          AS plate,
-                   h.data                          AS qr_code,
-                   COALESCE(h.action, 'entry')     AS action,
-                   h.status                        AS scan_result
-            FROM   history h
-            LEFT JOIN users   u ON h.guard = u.id
-            LEFT JOIN qrcode  q ON h.data  = q.data
-            ORDER  BY h.id DESC
-            LIMIT %s OFFSET %s
-        """, (limit, offset))
-        data = cur.fetchall()
-        cur.close()
-        return data
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT h.id,
+                          h.created_at                    AS date,
+                          COALESCE(u.username, '—')       AS guard_name,
+                          COALESCE(q.plate,   '—')        AS plate,
+                          h.data                          AS qr_code,
+                          COALESCE(h.action,  'entry')    AS action,
+                          h.status                        AS scan_result
+                   FROM   history h
+                   LEFT JOIN users   u ON h.guard = u.id
+                   LEFT JOIN qrcode  q ON h.data  = q.data
+                   ORDER  BY h.id DESC
+                   LIMIT %s OFFSET %s""",
+                (limit, offset),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] gethistory_full error: {e}")
+            return []
 
     def gethistorybyguard(self, guard_id):
-        """Fetch all scan history for a specific guard, joined with qrcode for plate/owner info.
-        Requires the migrate_history.sql migration to have been applied so that
-        h.created_at and h.action columns exist."""
-        cur = self.sql.cursor()
-        cur.execute("""
-            SELECT h.id,
-                   h.data,
-                   h.status,
-                   h.created_at                   AS created_at,
-                   COALESCE(q.plate, '')          AS plate,
-                   COALESCE(q.owner_name, '')     AS owner_name,
-                   COALESCE(h.action, 'entry')    AS action
-            FROM history h
-            LEFT JOIN qrcode q ON h.data = q.data
-            WHERE h.guard = %s
-            ORDER BY h.id DESC
-        """, (guard_id,))
-        data = cur.fetchall()
-        cur.close()
-        return data
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT h.id,
+                          h.data,
+                          h.status,
+                          h.created_at                   AS created_at,
+                          COALESCE(q.plate,      '')     AS plate,
+                          COALESCE(q.owner_name, '')     AS owner_name,
+                          COALESCE(h.action,     'entry') AS action
+                   FROM history h
+                   LEFT JOIN qrcode q ON h.data = q.data
+                   WHERE h.guard = %s
+                   ORDER BY h.id DESC""",
+                (guard_id,),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] gethistorybyguard error: {e}")
+            return []
 
-    def updateparking(self):
+    # ──────────────────────────────────────────────────────────────
+    # PARKING
+    # ──────────────────────────────────────────────────────────────
+
+    def getparking(self) -> dict:
+        try:
+            with open(self.parking_file, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[DB] getparking error: {e}")
+            return {"total": 0, "occupied": 0, "available": 0}
+
+    def updateparking(self) -> bool:
         try:
             with open(self.parking_file, "r") as f:
                 data = json.load(f)
 
             res = self.get_total_entry_exit()
-            entry = res["entry"]
-            data["occupied"] = min(entry, data["total"])
+            data["occupied"]  = min(res["entry"], data["total"])
             data["available"] = data["total"] - data["occupied"]
 
             with open(self.parking_file, "w") as f:
@@ -407,34 +530,36 @@ class SQL:
 
             return True
         except Exception as e:
-            print(f"Error updating parking: {e}")
+            print(f"[DB] updateparking error: {e}")
             return False
 
-    def getparking(self):
+    def get_total_entry_exit(self) -> dict:
         try:
-            with open(self.parking_file, "r") as f:
-                return json.load(f)
-        except:
-            return {"total": 0, "occupied": 0, "available": 0}
-
-    def get_total_entry_exit(self):
-        try:
-            cur = self.sql.cursor()
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
+            cur = self._cursor()
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status='IN'")
             entry = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status='OUT'")
             exit_ = cur.fetchone()[0]
             cur.close()
             return {"entry": entry, "exit": exit_}
-        except:
-            self.sql = self.__connect()
+        except Exception as e:
+            print(f"[DB] get_total_entry_exit error: {e}")
+            return {"entry": 0, "exit": 0}
 
-    def get_total_scan(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM history")
-        total = cur.fetchone()[0]
-        cur.close()
-        return total
+    def get_total_scan(self) -> int:
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT COUNT(*) FROM history")
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] get_total_scan error: {e}")
+            return 0
+
+    # ──────────────────────────────────────────────────────────────
+    # EMAIL
+    # ──────────────────────────────────────────────────────────────
 
     def _generate_qr_image(self, data: str) -> bytes:
         qr = qrcode.QRCode(
@@ -449,104 +574,101 @@ class SQL:
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         return buf.getvalue()
-    
-    
-    
-        
 
-    def send_qr_email(self, to_email: str, owner_name: str, qr_data: str,
-                        plate: str = "", valid_until: str = "") -> bool:
-            
-            smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-            smtp_port = int(os.getenv("SMTP_PORT", 587))
-            smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
-            smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    
-            if not smtp_user or not smtp_pass:
-                return False
-    
-            try:
-                qr_bytes = self._generate_qr_image(qr_data)
-                qr_b64   = base64.b64encode(qr_bytes).decode("utf-8")
-    
-                msg = MIMEMultipart("related")
-                msg["Subject"] = "Your GSD Parking QR Code"
-                msg["From"] = smtp_user
-                msg["To"] = to_email
-    
-                html_body = f"""
-                <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;
-                            background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;
-                            overflow:hidden;">
-    
-                <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
-                            padding:28px 32px;text-align:center;">
-                    <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
-                    🅿️ GSD PARKING
-                    </h1>
-                    <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;
-                            letter-spacing:1px;">VEHICLE MONITORING SYSTEM</p>
+    def send_qr_email(
+        self,
+        to_email: str,
+        owner_name: str,
+        qr_data: str,
+        plate: str = "",
+        valid_until: str = "",
+    ) -> bool:
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", 587))
+        smtp_user = os.getenv("SMTP_EMAIL", "")
+        smtp_pass = os.getenv("SMTP_PASSWORD", "")
+
+        if not smtp_user or not smtp_pass:
+            print("[EMAIL] SMTP credentials not configured")
+            return False
+
+        try:
+            qr_bytes = self._generate_qr_image(qr_data)
+
+            msg = MIMEMultipart("related")
+            msg["Subject"] = "Your GSD Parking QR Code"
+            msg["From"]    = smtp_user
+            msg["To"]      = to_email
+
+            html_body = f"""
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;
+                        background:#f5f9ff;border:1px solid #c7d9f5;border-radius:12px;
+                        overflow:hidden;">
+
+              <div style="background:linear-gradient(135deg,#2563eb,#0ea5e9);
+                          padding:28px 32px;text-align:center;">
+                <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:2px;">
+                  🅿️ GSD PARKING
+                </h1>
+                <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:12px;
+                          letter-spacing:1px;">VEHICLE MONITORING SYSTEM</p>
+              </div>
+
+              <div style="padding:32px;text-align:center;">
+                <h2 style="color:#0f172a;margin:0 0 8px;">Hello, {owner_name}!</h2>
+                <p style="color:#64748b;font-size:14px;margin:0 0 28px;">
+                  Your parking QR pass is ready. Show this code at the entrance.
+                </p>
+
+                <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
+                            padding:28px 36px;display:inline-block;margin-bottom:28px;">
+                  <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
+                            letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
+                  <img src="cid:qrimage" alt="QR Code" width="200" height="200"
+                       style="display:block;margin:0 auto 16px;border-radius:8px;
+                              border:1px solid #ddeaff;" />
+                  <p style="margin:0;font-size:18px;font-weight:800;color:#2563eb;
+                            font-family:monospace;letter-spacing:3px;">{qr_data}</p>
                 </div>
-    
-                <div style="padding:32px;text-align:center;">
-                    <h2 style="color:#0f172a;margin:0 0 8px;">Hello, {owner_name}!</h2>
-                    <p style="color:#64748b;font-size:14px;margin:0 0 28px;">
-                    Your parking QR pass is ready. Show this code at the entrance — the guard will scan it.
-                    </p>
-    
-                    <div style="background:#fff;border:2px dashed #c7d9f5;border-radius:12px;
-                                padding:28px 36px;display:inline-block;margin-bottom:28px;">
-                    <p style="margin:0 0 14px;font-size:10px;font-weight:700;color:#94a3b8;
-                                letter-spacing:2px;text-transform:uppercase;">YOUR QR CODE</p>
-                    <img src="cid:qrimage"
-                        alt="QR Code"
-                        width="200" height="200"
-                        style="display:block;margin:0 auto 16px;border-radius:8px;
-                                border:1px solid #ddeaff;" />
-                    <p style="margin:0;font-size:18px;font-weight:800;color:#2563eb;
-                                font-family:monospace;letter-spacing:3px;">{qr_data}</p>
-                    <p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">
-                        Show this QR code or the image above to the guard at the entrance.
-                    </p>
-                    </div>
-    
-                    <table style="margin:0 auto;border-collapse:collapse;font-size:13px;
-                                width:100%;max-width:340px;background:#f8faff;
-                                border:1px solid #ddeaff;border-radius:8px;overflow:hidden;">
-                    <tr style="border-bottom:1px solid #ddeaff;">
-                        <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">PLATE</td>
-                        <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{plate or "—"}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">VALID UNTIL</td>
-                        <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{valid_until or "—"}</td>
-                    </tr>
-                    </table>
-                </div>
-    
-                <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
-                            text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
-                    GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
-                </div>
-                </div>
-                """
-    
-                alt_part = MIMEMultipart("alternative")
-                alt_part.attach(MIMEText(html_body, "html"))
-                msg.attach(alt_part)
-    
-                img_part = MIMEImage(qr_bytes, _subtype="png")
-                img_part.add_header("Content-ID", "<qrimage>")
-                img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
-                msg.attach(img_part)
-    
-                with smtplib.SMTP(smtp_host, smtp_port) as server:
-                    server.starttls()
-                    server.login(smtp_user, smtp_pass)
-                    server.sendmail(smtp_user, to_email, msg.as_string())
-    
-                return True
-    
-            except Exception as e:
-                print("Email error:", e)
-                return False
+
+                <table style="margin:0 auto;border-collapse:collapse;font-size:13px;
+                              width:100%;max-width:340px;background:#f8faff;
+                              border:1px solid #ddeaff;border-radius:8px;overflow:hidden;">
+                  <tr style="border-bottom:1px solid #ddeaff;">
+                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">PLATE</td>
+                    <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{plate or "—"}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 16px;color:#94a3b8;font-weight:700;text-align:left;">VALID UNTIL</td>
+                    <td style="padding:10px 16px;color:#0f172a;font-weight:700;text-align:right;">{valid_until or "—"}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="background:#f5f9ff;border-top:1px solid #ddeaff;padding:14px;
+                          text-align:center;font-size:10px;color:#94a3b8;letter-spacing:1px;">
+                GSD PARKING MONITORING SYSTEM &mdash; DO NOT SHARE THIS CODE
+              </div>
+            </div>
+            """
+
+            alt_part = MIMEMultipart("alternative")
+            alt_part.attach(MIMEText(html_body, "html"))
+            msg.attach(alt_part)
+
+            img_part = MIMEImage(qr_bytes, _subtype="png")
+            img_part.add_header("Content-ID", "<qrimage>")
+            img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
+            msg.attach(img_part)
+
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, to_email, msg.as_string())
+
+            print(f"[EMAIL] Sent to {to_email}")
+            return True
+
+        except Exception as e:
+            print(f"[EMAIL] send_qr_email error: {e}")
+            return False

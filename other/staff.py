@@ -1,13 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
-from other.mysql_ import SQL
 from other.cache import Cache
 import threading
 
 
 class Staff:
-    def __init__(self):
+    def __init__(self, sql):
         self.staff = Blueprint("staff", __name__, url_prefix="/staff")
-        self.sql = SQL()
+        self.sql = sql
         self.cache = Cache()
         
         self.routes()

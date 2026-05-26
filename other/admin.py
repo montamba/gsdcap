@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 import json, os
-from other.mysql_ import SQL
 from other.cache import Cache
 
 current_dir = os.path.dirname(__file__)
@@ -8,9 +7,9 @@ file_path = os.path.join(current_dir, "parking.json")
 
 
 class Admin:
-    def __init__(self):
+    def __init__(self, sql):
         self.admin = Blueprint("admin", __name__, url_prefix="/admin")
-        self.sql = SQL()
+        self.sql = sql
         self.cache = Cache()
         
         
