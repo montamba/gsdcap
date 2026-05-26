@@ -206,7 +206,7 @@ class Admin:
                 sqltotal = self.sql.counthistory()
                 self.cache.add(keyname1, sqltotal)
                 
-            total = self.cache.add(keyname1)
+            total = self.cache.get(keyname1)
 
             serialized = [
                 [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
@@ -227,15 +227,15 @@ class Admin:
             limit  = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
             
-            keyname = name + "full" + offset
+            keyname = name + "full" + str(offset)
             if not self.cache.check_key(keyname):
                 sqldata  = self.sql.gethistory_full(limit=limit, offset=offset)
                 self.cache.add(keyname, sqldata)
                 
-            data = self.cache.add(keyname)
+            data = self.cache.get(keyname)
 
             keyname1 = name + "count"
-            if not self.cache.check_key(keyname):
+            if not self.cache.check_key(keyname1):
                 sqltotal = self.sql.counthistory()
                 self.cache.add(keyname1, sqltotal)
             total = self.cache.get(keyname1)

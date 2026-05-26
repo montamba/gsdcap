@@ -18,12 +18,12 @@ class SQL:
     def __init__(self):
         print("establishing connection")
         self.attempt = 0
-        self.max_attempt = 10
+        self.max_attempt = 5
         self.conected = False
         self.sql = self.__connect()
         
-        
-        
+        self.fetch_attempt = 0
+        self.max_fetch_attempt = 5
         
         self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
 
@@ -63,45 +63,65 @@ class SQL:
     # ─── User queries ──────────────────────────────────────
 
     def getalluser(self, limit=5, offset=0):
-        cur = self.sql.cursor()
-        cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
-        users = cur.fetchall()
-        cur.close()
-        return users
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s", (limit, offset))
+            users = cur.fetchall()
+            cur.close()
+            return users
+        except:
+            self.sql = self.__connect()
 
     def countallusers(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM users")
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT COUNT(*) FROM users")
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except:
+            self.sql = self.__connect()
 
     def getuser(self, id):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM users WHERE id=%s", (id,))
-        user = cur.fetchone()
-        cur.close()
-        return user
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT * FROM users WHERE id=%s", (id,))
+            user = cur.fetchone()
+            cur.close()
+            return user
+        except:
+            self.sql = self.__connect()
+            
+            
 
     def getuserbyemail(self, email: str):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM users WHERE email=%s", (email,))
-        user = cur.fetchone()
-        cur.close()
-        return user
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT * FROM users WHERE email=%s", (email,))
+            user = cur.fetchone()
+            cur.close()
+            return user
+        except:
+            self.sql = self.__connect()
 
     def getuserbyusername(self, username: str):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM users WHERE username=%s", (username,))
-        user = cur.fetchone()
-        cur.close()
-        return user
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT * FROM users WHERE username=%s", (username,))
+            user = cur.fetchone()
+            cur.close()
+            return user
+        except:
+            self.sql = self.__connect()
 
     def deleteuser(self, id):
-        cur = self.sql.cursor()
-        cur.execute("DELETE FROM users WHERE id=%s", (id,))
-        self.sql.commit()
-        cur.close()
+        try:
+            cur = self.sql.cursor()
+            cur.execute("DELETE FROM users WHERE id=%s", (id,))
+            self.sql.commit()
+            cur.close()
+        except:
+            self.sql = self.__connect()
 
     def adduser(self, username: str, email: str, password: str, role: str):
         hashed = self._hash(password)
@@ -113,6 +133,8 @@ class SQL:
             )
         except mysql.connector.errors.IntegrityError as e:
             print(e)
+            
+            
         self.sql.commit()
         cur.close()
 
@@ -125,11 +147,16 @@ class SQL:
         return None
 
     def getuserbyid(self, id):
-        cur = self.sql.cursor()
-        cur.execute("SELECT username, email, role FROM users WHERE id=%s", (id,))
-        user = cur.fetchone()
-        cur.close()
-        return user
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT username, email, role FROM users WHERE id=%s", (id,))
+            user = cur.fetchone()
+            cur.close()
+            return user
+        except:
+            
+            self.sql = self.__connect()
+            
 
     def updateuser(self, username, email, id):
         cur = self.sql.cursor()
@@ -141,6 +168,7 @@ class SQL:
 
     def getadminbyid(self, id):
         """Return (username, email) for an admin row."""
+        
         cur = self.sql.cursor()
         cur.execute("SELECT username, email FROM admin WHERE id=%s", (id,))
         row = cur.fetchone()
@@ -173,11 +201,15 @@ class SQL:
     # ─── QR queries ────────────────────────────────────────
 
     def getqrbydata(self, data):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE data=%s", (data,))
-        qr = cur.fetchone()
-        cur.close()
-        return qr
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT * FROM qrcode WHERE data=%s", (data,))
+            qr = cur.fetchone()
+            cur.close()
+            return qr
+        except:
+            self.sql = self.__connect()
+            
 
     def getqrbyid(self, qr_id):
         cur = self.sql.cursor()
@@ -364,13 +396,16 @@ class SQL:
             return {"total": 0, "occupied": 0, "available": 0}
 
     def get_total_entry_exit(self):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
-        entry = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
-        exit_ = cur.fetchone()[0]
-        cur.close()
-        return {"entry": entry, "exit": exit_}
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'IN'")
+            entry = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status = 'OUT'")
+            exit_ = cur.fetchone()[0]
+            cur.close()
+            return {"entry": entry, "exit": exit_}
+        except:
+            self.sql = self.__connect()
 
     def get_total_scan(self):
         cur = self.sql.cursor()
