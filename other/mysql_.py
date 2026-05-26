@@ -48,6 +48,18 @@ class SQL:
             
             print("Connection failed")
             return None
+        
+    def __reconnecting(self, func, *args):
+        self.sql = self.__connect()
+        if self.fetch_attempt <= self.max_fetch_attempt:
+            self.fetch_attempt += 1
+            return func(*args)
+        else:
+            self.fetch_attempt = 0
+            return None
+            
+        
+        
     def _hash(self, password: str) -> str:
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -70,7 +82,8 @@ class SQL:
             cur.close()
             return users
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getalluser, limit, offset)
+               
 
     def countallusers(self):
         try:
@@ -80,7 +93,7 @@ class SQL:
             cur.close()
             return count
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.countallusers)
 
     def getuser(self, id):
         try:
@@ -90,7 +103,7 @@ class SQL:
             cur.close()
             return user
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getuser, id)
             
             
 
@@ -102,7 +115,7 @@ class SQL:
             cur.close()
             return user
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getuserbyemail,email)
 
     def getuserbyusername(self, username: str):
         try:
@@ -112,7 +125,7 @@ class SQL:
             cur.close()
             return user
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getuserbyusername, username)
 
     def deleteuser(self, id):
         try:
@@ -121,7 +134,7 @@ class SQL:
             self.sql.commit()
             cur.close()
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.deleteuser, id)
 
     def adduser(self, username: str, email: str, password: str, role: str):
         hashed = self._hash(password)
@@ -155,7 +168,7 @@ class SQL:
             return user
         except:
             
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getuserbyid, id)
             
 
     def updateuser(self, username, email, id):
@@ -208,26 +221,32 @@ class SQL:
             cur.close()
             return qr
         except:
-            self.sql = self.__connect()
+            return self.__reconnecting(self.getqrbydata, data)
             
 
     def getqrbyid(self, qr_id):
-        cur = self.sql.cursor()
-        cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
-        qr = cur.fetchone()
-        cur.close()
-        return qr
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
+            qr = cur.fetchone()
+            cur.close()
+            return qr
+        except:
+            return self.__reconnecting(self.getqrbyid, qr_id)
 
     def getqrbyuser(self, user_id, limit=5, offset=0):
-        cur = self.sql.cursor()
-        cur.execute("""SELECT qrcode.*, users.username
-                       FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
-                       WHERE qrcode.created_by = %s
-                       ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
-                    (user_id, limit, offset))
-        qr = cur.fetchall()
-        cur.close()
-        return qr
+        try:
+            cur = self.sql.cursor()
+            cur.execute("""SELECT qrcode.*, users.username
+                        FROM qrcode LEFT JOIN users ON qrcode.created_by = users.id
+                        WHERE qrcode.created_by = %s
+                        ORDER BY qrcode.created_at DESC LIMIT %s OFFSET %s""",
+                        (user_id, limit, offset))
+            qr = cur.fetchall()
+            cur.close()
+            return qr
+        except:
+            return self.__reconnecting(self.getqrbyuser, user_id, limit, offset)
     
     def getqrstats(self):
         cur = self.sql.cursor()
@@ -240,11 +259,14 @@ class SQL:
         
 
     def countqrbyuser(self, user_id):
-        cur = self.sql.cursor()
-        cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
-        count = cur.fetchone()[0]
-        cur.close()
-        return count
+        try:
+            cur = self.sql.cursor()
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except:
+            return self.__reconnecting(self.countqrbyuser, user_id)
 
     def getqrbyowner_email(self, email):
         cur = self.sql.cursor()
