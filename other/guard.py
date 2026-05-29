@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify, render_template, session, redirect
 from datetime import datetime
-from other.cache import Cache
+from other.cache import cache
 
 
 class Guard:
     def __init__(self,sql):
         self.guard = Blueprint("guard", __name__, url_prefix="/guard")
         self.sql = sql
-        self.cache = Cache()
+        self.cache = cache
         
         
         self.routes()

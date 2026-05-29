@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
-from other.cache import Cache
+from other.cache import cache
 import threading
 
 
@@ -7,7 +7,7 @@ class Staff:
     def __init__(self, sql):
         self.staff = Blueprint("staff", __name__, url_prefix="/staff")
         self.sql = sql
-        self.cache = Cache()
+        self.cache = cache
         
         self.routes()
         

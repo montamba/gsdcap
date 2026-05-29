@@ -26,5 +26,5 @@ class Cache:
     
     def prin(self):
         print(self.__DATA)
-
+cache = Cache()
 
