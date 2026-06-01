@@ -585,7 +585,7 @@ class SQL:
     ) -> bool:
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
-        smtp_user = os.getenv("SMTP_EMAIL", "")
+        smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
         smtp_pass = os.getenv("SMTP_PASSWORD", "")
 
         if not smtp_user or not smtp_pass:

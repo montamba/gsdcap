@@ -232,6 +232,18 @@
         .ftab:hover { border-color: #93c5fd; color: #2563eb; }
         .ftab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
 
+        @media print{
+            body *{
+                visibility: hidden;
+            }
+
+            .section,table, table *{
+                visibility: visible;
+            }
+
+            
+        }
+
         /* ─── MOBILE ─── */
         @media (max-width: 768px) {
             aside { display: none; }
@@ -311,7 +323,7 @@
         <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </nav>
 
-    <div class="right">
+    <div class="right" onclick="window.print()">
         <div class="header">
             <h1><i class="bi bi-clock-history"></i> My Scan History</h1>
             <p>ALL QR CODES YOU HAVE SCANNED</p>
