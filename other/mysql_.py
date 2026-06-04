@@ -3,7 +3,6 @@ import os
 import time
 import io
 import json
-import base64
 import smtplib
 import qrcode
 import bcrypt

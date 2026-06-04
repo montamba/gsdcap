@@ -435,8 +435,8 @@
                                   : 'badge-failed';
                 const actionLabel = (d[6] || 'entry').toLowerCase();
                 const actionClass = actionLabel === 'exit' ? 'action-exit' : 'action-entry';
-                const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
-                const plate       = d[4] || '—';
+                const createdAt = d[3] ? String(d[3]).slice(0, 16) : '—';
+                const plate = d[4] || '—';
 
                 return `
                 <tr class="hist-table">
