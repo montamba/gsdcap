@@ -42,6 +42,96 @@ class SQL:
 
         print("[DB] All connection attempts failed.")
         return None
+    
+    def request_deletion(self, user_id: int) -> bool:
+        """Mark a user's account as pending deletion (sets deletion_requested_at to NOW)."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE users SET deletion_requested_at = NOW() WHERE id = %s",
+                (user_id,)
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] request_deletion error: {e}")
+            return False
+    
+    def restore_user(self, user_id: int) -> bool:
+        """Cancel a user's deletion request (clears deletion_requested_at)."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE users SET deletion_requested_at = NULL WHERE id = %s",
+                (user_id,)
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] restore_user error: {e}")
+            return False
+    
+    def get_pending_deletions(self):
+        """Return all users who have requested account deletion."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT id, username, role, deletion_requested_at
+                FROM users
+                WHERE deletion_requested_at IS NOT NULL
+                ORDER BY deletion_requested_at ASC"""
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_pending_deletions error: {e}")
+            return []
+    
+    def purge_expired_deletions(self) -> int:
+        """Hard-delete accounts whose 30-day window has elapsed. Returns count deleted."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """DELETE FROM users
+                WHERE deletion_requested_at IS NOT NULL
+                    AND deletion_requested_at <= NOW() - INTERVAL 30 DAY"""
+            )
+            count = cur.rowcount
+            self._commit()
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] purge_expired_deletions error: {e}")
+            return 0
+    
+    def update_password(self, user_id: int, current_password: str, new_password: str) -> dict:
+        """Verify current password then update to the new hashed password."""
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT password FROM users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+            cur.close()
+    
+            if not row:
+                return {"ok": False, "message": "User not found"}
+    
+            if not self._check(current_password, row[0]):
+                return {"ok": False, "message": "Current password is incorrect"}
+    
+            hashed = self._hash(new_password)
+            cur = self._cursor()
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (hashed, user_id))
+            self._commit()
+            cur.close()
+            return {"ok": True, "message": "Password updated successfully"}
+        except Exception as e:
+            print(f"[DB] update_password error: {e}")
+            return {"ok": False, "message": "Failed to update password"}
+    
+    
 
     def _ping(self) -> None:
         try:

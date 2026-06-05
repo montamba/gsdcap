@@ -70,8 +70,26 @@ class Admin:
             with open(file_path, "w") as file:
                 json.dump(jdata, file, indent=4)
             return jsonify({"status": "ok", "message": "Updated successfully", "total": total})
+        
+        @self.admin.route("/pending_deletions", methods=["GET"])
+        def pending_deletions():
+            rows = self.sql.get_pending_deletions()
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in r]
+                for r in rows
+            ]
+            return jsonify({"status": "good", "data": serialized})
+ 
+        @self.admin.route("/restore_user/<int:id>", methods=["PUT"])
+        def restore_user(id):
+            ok = self.sql.restore_user(id)
+            self.cache.deletethathas("users")
+            if ok:
+                return jsonify({"status": "good", "message": "User account restored. Deletion cancelled."})
+            return jsonify({"status": "bad", "message": "Could not restore user."})
 
         # ─── USERS ────────────────────────────────────────
+        
 
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Profile – Guard</title>
+  <script src="/../../static/scripts/scrit.js"></script>
+  <link rel="stylesheet" href="/../../static/css/message.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
+
+    body { background: #eef4ff; color: #0f172a; min-height: 100vh; display: flex; }
+
+    /* ─── SIDEBAR ─── */
+    aside {
+      position: sticky; top: 0; left: 0; height: 100vh;
+      width: 240px; min-width: 240px; background: #1e3a8a;
+      display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+    }
+    .logos {
+      padding: 26px 20px; display: flex; flex-direction: column;
+      align-items: center; gap: 8px; background: #172e72;
+      border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;
+    }
+    .circle {
+      width: 60px; height: 60px; display: grid; place-items: center;
+      border-radius: 16px; background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2); font-size: 20px; font-weight: 800;
+      color: #fff; font-family: 'Space Mono', monospace;
+    }
+    .logos span { font-size: 10px; font-weight: 700; color: rgba(148,163,184,0.7); letter-spacing: 0.2em; text-transform: uppercase; }
+    .buttons { display: flex; flex-direction: column; padding: 14px 0; flex: 1; }
+    .buttons a {
+      text-decoration: none; color: rgba(186,210,255,0.75);
+      font-size: 14px; font-weight: 600; padding: 11px 20px;
+      display: flex; align-items: center; gap: 10px;
+      border-left: 3px solid transparent; transition: all 0.2s;
+    }
+    .buttons a:hover { background: rgba(255,255,255,0.07); color: #fff; border-left-color: rgba(255,255,255,0.3); }
+    .buttons a.active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: #60a5fa; }
+    .logout { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .logout button {
+      width: 100%; padding: 10px; background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; border-radius: 6px;
+    }
+    .logout button:hover { background: rgba(239,68,68,0.22); color: #fff; }
+
+    /* ─── MAIN ─── */
+    .right { flex: 1; overflow-x: hidden; padding: 40px 32px; display: flex; align-items: flex-start; justify-content: center; }
+
+    .profile-wrap { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Profile Card */
+    .profile-card {
+      background: #fff; border: 1px solid #c7d9f5; border-radius: 16px;
+      overflow: hidden; box-shadow: 0 4px 24px rgba(37,99,235,0.08);
+    }
+    .card-banner {
+      height: 120px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #0ea5e9 100%);
+      position: relative;
+    }
+    .card-banner::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M20 20h20v20H20V20zm0-20h20v20H20V0zm-20 0h20v20H0V0zm0 20h20v20H0V20z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .role-tag {
+      position: absolute; top: 14px; right: 18px; z-index: 2;
+      background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.3); color: #fff;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+      text-transform: uppercase; padding: 5px 14px; border-radius: 20px;
+      font-family: 'Space Mono', monospace;
+    }
+    .avatar-wrap {
+      position: absolute; bottom: -36px; left: 28px; z-index: 2;
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 4px solid #fff; background: #dbeafe;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; box-shadow: 0 4px 16px rgba(37,99,235,0.2);
+    }
+
+    .card-body { padding: 52px 28px 28px; }
+    .user-name { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+    .user-sub { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 22px; }
+
+    .info-grid { display: grid; gap: 10px; margin-bottom: 20px; }
+    .info-item {
+      background: #f5f9ff; border: 1px solid #ddeaff; border-radius: 10px;
+      padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .info-icon {
+      width: 34px; height: 34px; border-radius: 8px; background: #dbeafe;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0; color: #2563eb;
+    }
+    .info-label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .12em; font-family: 'Space Mono', monospace; margin-bottom: 2px; }
+    .info-value { font-size: 13px; font-weight: 600; color: #0f172a; }
+
+    .divider { height: 1px; background: #ddeaff; margin-bottom: 18px; }
+
+    /* Form cards */
+    .form-card {
+      background: #fff; border: 1px solid #c7d9f5; border-radius: 14px;
+      overflow: hidden; box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+    }
+    .form-head {
+      padding: 14px 20px; background: #f5f9ff; border-bottom: 1px solid #ddeaff;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .form-head::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; flex-shrink: 0; }
+    .form-head h3 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .1em; font-family: 'Space Mono', monospace; }
+    .form-head i { color: #2563eb; }
+    .form-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .12em; font-family: 'Space Mono', monospace; }
+    .field input {
+      padding: 11px 14px; background: #f8faff; border: 1.5px solid #c7d9f5;
+      color: #0f172a; font-family: 'Syne', sans-serif; font-size: 14px;
+      outline: none; transition: border-color .2s, box-shadow .2s; border-radius: 8px;
+    }
+    .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }
+    .field input::placeholder { color: #cbd5e1; }
+
+    .show-pw { display: flex; align-items: center; gap: 8px; }
+    .show-pw label { font-size: 11px; color: #64748b; cursor: pointer; font-family: 'Space Mono', monospace; }
+    .show-pw input[type=checkbox] { width: 14px; height: 14px; accent-color: #2563eb; cursor: pointer; }
+
+    .btn-save {
+      align-self: flex-start; padding: 11px 24px;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9); border: none; color: #fff;
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+      cursor: pointer; border-radius: 8px; letter-spacing: .04em;
+      display: flex; align-items: center; gap: 8px; transition: all .2s;
+      box-shadow: 0 3px 12px rgba(37,99,235,.25);
+    }
+    .btn-save:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-save:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    /* Danger Zone */
+    .danger-card {
+      background: #fff; border: 1.5px solid #fca5a5; border-radius: 14px; overflow: hidden;
+    }
+    .danger-head {
+      background: #fef2f2; padding: 14px 20px;
+      border-bottom: 1px solid #fecaca;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; color: #b91c1c;
+      text-transform: uppercase; letter-spacing: .1em; font-family: 'Space Mono', monospace;
+    }
+    .danger-body { padding: 20px; }
+    .danger-body p { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 16px; }
+    .danger-body p strong { color: #b91c1c; }
+    .btn-request-delete {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 20px; background: transparent;
+      border: 1.5px solid #fca5a5; color: #dc2626;
+      border-radius: 8px; font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all .2s; width: 100%; justify-content: center;
+    }
+    .btn-request-delete:hover { background: #fee2e2; border-color: #dc2626; }
+
+    /* Overlay Modal */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,.35); backdrop-filter: blur(4px);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 16px; padding: 32px;
+      width: 100%; max-width: 420px; margin: 16px;
+      border: 1px solid #c7d9f5; box-shadow: 0 20px 60px rgba(37,99,235,.15);
+      animation: pop .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .modal-header h3 { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .modal-sub { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+    .btn-x { background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer; line-height: 1; }
+    .btn-x:hover { color: #334155; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-cancel {
+      flex: 1; padding: 11px; border: 1.5px solid #c7d9f5; border-radius: 8px;
+      background: #fff; font-family: 'Syne', sans-serif; font-size: 13px;
+      color: #64748b; cursor: pointer; transition: background .2s;
+    }
+    .btn-cancel:hover { background: #f5f9ff; }
+    .btn-confirm-delete {
+      flex: 1; padding: 11px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff;
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn-confirm-delete:hover { opacity: .9; }
+
+    .warn-box {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .warn-box p { font-size: 12px; color: #b91c1c; line-height: 1.6; }
+    .warn-box ul { margin: 6px 0 0 14px; font-size: 12px; color: #991b1b; }
+    .warn-box li { margin-bottom: 3px; }
+
+    .hint { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      aside { display: none; }
+      .mobile-nav {
+        display: flex !important; position: fixed; bottom: 0; left: 0; right: 0;
+        background: #1e3a8a; z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .mobile-nav a {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 4px; padding: 10px 4px; text-decoration: none;
+        color: rgba(186,210,255,.7); font-size: 9px; font-weight: 700;
+        letter-spacing: .08em; text-transform: uppercase; transition: all .2s;
+      }
+      .mobile-nav a i { font-size: 18px; }
+      .mobile-nav a.active, .mobile-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+      .right { padding: 20px 16px 90px; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <div class="logos">
+      <div class="circle">G</div>
+      <span>GUARD PORTAL</span>
+    </div>
+    <div class="buttons">
+      <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+      <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
+      <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
+      <a href="/guard/profile" class="active"><i class="bi bi-person-circle"></i> Profile</a>
+    </div>
+    <div class="logout">
+      <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+    </div>
+  </aside>
+
+  <nav class="mobile-nav" style="display:none;">
+    <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+    <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
+    <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
+    <a href="/guard/profile" class="active"><i class="bi bi-person-circle"></i> Profile</a>
+  </nav>
+
+  <div class="right">
+    <div class="profile-wrap">
+
+      <!-- Info Card -->
+      <div class="profile-card">
+        <div class="card-banner">
+          <span class="role-tag">🛡️ Guard</span>
+          <div class="avatar-wrap">
+            <div class="avatar" id="avatarEl">🛡️</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="user-name" id="dUser">—</div>
+          <div class="user-sub">Security Guard</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-person-fill"></i></div>
+              <div>
+                <div class="info-label">Username</div>
+                <div class="info-value" id="dUser2">—</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-envelope-fill"></i></div>
+              <div>
+                <div class="info-label">Email</div>
+                <div class="info-value" id="dEmail">—</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-shield-fill"></i></div>
+              <div>
+                <div class="info-label">Role</div>
+                <div class="info-value" id="dRole">Guard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Card -->
+      <div class="form-card">
+        <div class="form-head">
+          <i class="bi bi-lock-fill"></i>
+          <h3>Change Password</h3>
+        </div>
+        <div class="form-body">
+          <div class="field">
+            <label>Current Password</label>
+            <input type="password" id="curPw" placeholder="Enter current password">
+          </div>
+          <div class="field">
+            <label>New Password</label>
+            <input type="password" id="newPw" placeholder="Min. 8 characters">
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input type="password" id="conPw" placeholder="Repeat new password">
+          </div>
+          <div class="show-pw">
+            <input type="checkbox" id="showPw" onchange="togglePw()">
+            <label for="showPw">Show passwords</label>
+          </div>
+          <span class="hint">Minimum 8 characters. You will stay logged in after changing.</span>
+          <button class="btn-save" id="btnPw" onclick="savePassword()">
+            <i class="bi bi-lock-fill"></i> Update Password
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="danger-card">
+        <div class="danger-head">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Danger Zone
+        </div>
+        <div class="danger-body">
+          <p>
+            Requesting deletion will flag your account. The admin will see your request.
+            Your account will be <strong>permanently deleted after 30 days</strong>.
+            The admin can restore it before the window expires.
+          </p>
+          <button class="btn-request-delete" onclick="openDeleteModal()">
+            <i class="bi bi-trash3"></i> Request Account Deletion
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="overlay" id="deleteOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="color:#dc2626;">⚠️ Delete Account</h3>
+        <button class="btn-x" onclick="document.getElementById('deleteOverlay').classList.remove('show')">✕</button>
+      </div>
+      <p class="modal-sub">Read carefully before proceeding.</p>
+      <div class="warn-box">
+        <p><strong>Your account will be scheduled for deletion.</strong></p>
+        <ul>
+          <li>Your account will be <strong>locked immediately</strong>.</li>
+          <li>The admin will be notified of your request.</li>
+          <li>Permanent deletion happens <strong>after 30 days</strong>.</li>
+          <li>You will be <strong>logged out</strong> right away.</li>
+          <li>Ask the admin to <strong>restore</strong> it before 30 days.</li>
+        </ul>
+      </div>
+      <div class="field">
+        <label>Type your password to confirm</label>
+        <input type="password" id="delPw" placeholder="Your current password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="document.getElementById('deleteOverlay').classList.remove('show')">Cancel</button>
+        <button class="btn-confirm-delete" onclick="confirmDelete()">🗑️ Delete My Account</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadProfile() {
+      const res = await API.get("/guard/getuserdata");
+      if (res && res.status === "good") {
+        const d = res.data;
+        document.getElementById("dUser").textContent  = d[0] || "—";
+        document.getElementById("dUser2").textContent = d[0] || "—";
+        document.getElementById("dEmail").textContent = d[1] || "—";
+        document.getElementById("dRole").textContent  = d[2] || "Guard";
+      }
+    }
+
+    function togglePw() {
+      const show = document.getElementById("showPw").checked;
+      ["curPw","newPw","conPw"].forEach(id => {
+        document.getElementById(id).type = show ? "text" : "password";
+      });
+    }
+
+    async function savePassword() {
+      const cur = document.getElementById("curPw").value;
+      const nw  = document.getElementById("newPw").value;
+      const con = document.getElementById("conPw").value;
+
+      if (!cur || !nw || !con) { showMessageModal("Please fill in all password fields.", "Missing Fields"); return; }
+      if (nw.length < 8) { showMessageModal("New password must be at least 8 characters.", "Too Short"); return; }
+      if (nw !== con) { showMessageModal("New passwords do not match.", "Mismatch"); return; }
+
+      const btn = document.getElementById("btnPw");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
+
+      const res = await API.put("/guard/update_password", {
+        current_password: cur, new_password: nw, confirm_password: con
+      });
+      showMessageModal(res.message, res.status);
+
+      if (res.status === "good") {
+        ["curPw","newPw","conPw"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("showPw").checked = false;
+        togglePw();
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-lock-fill"></i> Update Password';
+    }
+
+    function openDeleteModal() {
+      document.getElementById("deleteOverlay").classList.add("show");
+    }
+
+    async function confirmDelete() {
+      const pw = document.getElementById("delPw").value;
+      if (!pw) { showMessageModal("Please enter your password to confirm.", "Required"); return; }
+
+      const res = await API.post("/guard/request_deletion", { password: pw });
+      if (res.status === "good") {
+        showMessageModal(res.message, "Account Scheduled for Deletion");
+        setTimeout(() => { window.location.href = "/auth/logout"; }, 2500);
+      } else {
+        showMessageModal(res.message, res.status);
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

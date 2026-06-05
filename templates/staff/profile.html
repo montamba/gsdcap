@@ -86,6 +86,37 @@
     }
     .btn-reset:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,99,235,0.35); }
 
+    /* ── DELETE ZONE ── */
+    .danger-zone {
+      margin-top: 28px;
+      border: 1.5px solid #fca5a5;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .danger-zone-head {
+      background: #fef2f2;
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: .75rem; font-weight: 700; color: #b91c1c;
+      text-transform: uppercase; letter-spacing: .08em;
+      border-bottom: 1px solid #fecaca;
+    }
+    .danger-zone-body {
+      padding: 18px;
+      background: #fff;
+    }
+    .danger-zone-body p {
+      font-size: .82rem; color: #64748b; line-height: 1.6; margin-bottom: 16px;
+    }
+    .danger-zone-body p strong { color: #b91c1c; }
+    .btn-delete-account {
+      width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: transparent; color: #dc2626; border: 1.5px solid #fca5a5; border-radius: 10px;
+      padding: 11px 20px; font-family: 'DM Sans', sans-serif; font-size: .85rem;
+      font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .btn-delete-account:hover { background: #fee2e2; border-color: #dc2626; }
+
     /* ── MODALS ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -130,6 +161,13 @@
       cursor: pointer; transition: opacity .2s;
     }
     .btn-save:hover { opacity: .92; }
+    .btn-danger-confirm {
+      flex: 1; padding: 11px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn-danger-confirm:hover { opacity: .9; }
 
     .avatar-picker-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
     .av-opt {
@@ -139,6 +177,15 @@
     }
     .av-opt:hover { border-color: #93c5fd; transform: scale(1.08); }
     .av-opt.sel { border-color: #2563eb; background: #dbeafe; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+
+    /* delete modal special */
+    .delete-warning-box {
+      background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+      padding: 14px 16px; margin-bottom: 16px;
+    }
+    .delete-warning-box p { font-size: .82rem; color: #b91c1c; line-height: 1.6; }
+    .delete-warning-box ul { margin: 8px 0 0 16px; font-size: .8rem; color: #991b1b; }
+    .delete-warning-box li { margin-bottom: 4px; }
 
     .toast {
       position: fixed; bottom: 28px; left: 50%;
@@ -210,10 +257,25 @@
         <div class="btn-row">
           <button class="btn-reset" onclick="document.getElementById('pwModal').classList.add('show')">🔒 Reset Password</button>
         </div>
+
+        <!-- Danger Zone -->
+        <div class="danger-zone">
+          <div class="danger-zone-head">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Danger Zone
+          </div>
+          <div class="danger-zone-body">
+            <p>Requesting deletion will flag your account for removal. The admin will see your request and your account will be <strong>permanently deleted after 30 days</strong>. You may ask the admin to restore it before then.</p>
+            <button class="btn-delete-account" onclick="openDeleteModal()">
+              <i class="bi bi-trash3"></i> Request Account Deletion
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Edit Profile Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
       <div class="modal-header">
@@ -230,6 +292,7 @@
     </div>
   </div>
 
+  <!-- Avatar Modal -->
   <div class="modal-overlay" id="avatarModal">
     <div class="modal" style="max-width:360px">
       <div class="modal-header">
@@ -256,6 +319,7 @@
     </div>
   </div>
 
+  <!-- Reset Password Modal -->
   <div class="modal-overlay" id="pwModal">
     <div class="modal">
       <div class="modal-header">
@@ -263,12 +327,41 @@
         <button class="btn-close" onclick="document.getElementById('pwModal').classList.remove('show')">✕</button>
       </div>
       <p class="modal-sub">Enter your current password and choose a new one.</p>
-      <div class="field"><label>Current Password</label><input type="password" placeholder="••••••••"/></div>
-      <div class="field"><label>New Password</label><input type="password" placeholder="••••••••"/></div>
-      <div class="field"><label>Confirm New Password</label><input type="password" placeholder="••••••••"/></div>
+      <div class="field"><label>Current Password</label><input type="password" id="curPw" placeholder="••••••••"/></div>
+      <div class="field"><label>New Password</label><input type="password" id="newPw" placeholder="••••••••"/></div>
+      <div class="field"><label>Confirm New Password</label><input type="password" id="conPw" placeholder="••••••••"/></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="document.getElementById('pwModal').classList.remove('show')">Cancel</button>
         <button class="btn-save" onclick="savePw()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Account Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <h3 style="color:#dc2626;">⚠️ Delete Account</h3>
+        <button class="btn-close" onclick="document.getElementById('deleteModal').classList.remove('show')">✕</button>
+      </div>
+      <p class="modal-sub">Please read carefully before proceeding.</p>
+      <div class="delete-warning-box">
+        <p><strong>Your account will be scheduled for deletion.</strong></p>
+        <ul>
+          <li>Your account will be <strong>locked immediately</strong> after this request.</li>
+          <li>The admin will be notified of your deletion request.</li>
+          <li>Your account will be <strong>permanently deleted in 30 days</strong>.</li>
+          <li>You will be <strong>logged out</strong> right away.</li>
+          <li>Ask the admin to <strong>restore</strong> it before the 30-day window expires.</li>
+        </ul>
+      </div>
+      <div class="field">
+        <label>Type your password to confirm</label>
+        <input type="password" id="deleteConfirmPw" placeholder="Enter your current password"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="document.getElementById('deleteModal').classList.remove('show')">Cancel</button>
+        <button class="btn-danger-confirm" onclick="confirmDeleteAccount()">🗑️ Yes, Delete My Account</button>
       </div>
     </div>
   </div>
@@ -277,20 +370,22 @@
 
   <script>
     let pendingAv = null;
+
     function openEdit() {
       document.getElementById('editModal').classList.add('show');
-      document.getElementById('eUser').value = document.getElementById('dUser').innerText
-      document.getElementById('eEmail').value = document.getElementById('dEmail').innerText
+      document.getElementById('eUser').value = document.getElementById('dUser').innerText;
+      document.getElementById('eEmail').value = document.getElementById('dEmail').innerText;
     }
     function closeEdit() { document.getElementById('editModal').classList.remove('show'); }
     function openAvatar() { document.getElementById('avatarModal').classList.add('show'); }
+    function openDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }
 
     async function getUserData(){
       let user = await API.get("/staff/getuserdata");
-      let dat = user.data
-      document.getElementById('dUser').innerText = dat[0]
-      document.getElementById('dEmail').innerText = dat[1]
-      document.getElementById('role').innerText = dat[2]
+      let dat = user.data;
+      document.getElementById('dUser').innerText = dat[0];
+      document.getElementById('dEmail').innerText = dat[1];
+      document.getElementById('role').innerText = dat[2];
     }
 
     function pickAv(el, emoji) {
@@ -303,28 +398,59 @@
       document.getElementById('avatarModal').classList.remove('show');
       toast('🖼️ Avatar updated!');
     }
+
     async function saveProfile() {
       let user = {
         username: document.getElementById('eUser').value.trim(),
         email: document.getElementById('eEmail').value.trim()
-      }
-      let res = await API.put("/staff/updateuser", user)
-      showMessageModal(res.message, res.status)
-      getUserData()
+      };
+      let res = await API.put("/staff/updateuser", user);
+      showMessageModal(res.message, res.status);
+      getUserData();
       closeEdit();
-      toast('✅ Profile updated successfully!');
     }
-    function savePw() {
-      document.getElementById('pwModal').classList.remove('show');
-      toast('🔒 Password updated successfully!');
+
+    async function savePw() {
+      const cur = document.getElementById('curPw').value;
+      const nw  = document.getElementById('newPw').value;
+      const con = document.getElementById('conPw').value;
+      if (!cur || !nw || !con) { showMessageModal("Please fill in all fields.", "Missing Fields"); return; }
+      if (nw.length < 8) { showMessageModal("New password must be at least 8 characters.", "Too Short"); return; }
+      if (nw !== con) { showMessageModal("New passwords do not match.", "Mismatch"); return; }
+      const res = await API.put("/staff/update_password", {
+        current_password: cur,
+        new_password: nw,
+        confirm_password: con
+      });
+      showMessageModal(res.message, res.status);
+      if (res.status === "good") {
+        document.getElementById('curPw').value = '';
+        document.getElementById('newPw').value = '';
+        document.getElementById('conPw').value = '';
+        document.getElementById('pwModal').classList.remove('show');
+      }
     }
+
+    async function confirmDeleteAccount() {
+      const pw = document.getElementById('deleteConfirmPw').value;
+      if (!pw) { showMessageModal("Please enter your password to confirm.", "Required"); return; }
+      const res = await API.post("/staff/request_deletion", { password: pw });
+      if (res.status === "good") {
+        showMessageModal(res.message, "Account Scheduled for Deletion");
+        setTimeout(() => { window.location.href = '/auth/logout'; }, 2500);
+      } else {
+        showMessageModal(res.message, res.status);
+      }
+    }
+
     function toast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
-    getUserData()
+
+    getUserData();
   </script>
 </body>
 </html>

@@ -39,6 +39,57 @@ class Guard:
 
         # ─── API ──────────────────────────────────────────
         
+        @self.guard.route("/profile")
+        def profile():
+            return render_template("guard/profile.html")
+ 
+        @self.guard.route("/getuserdata", methods=["GET"])
+        def getuserdata():
+            try:
+                data = self.sql.getuserbyid(session["user_id"])
+            except Exception as e:
+                print(e)
+                return jsonify({"status": "bad", "message": "Something went wrong"})
+            return jsonify({"status": "good", "data": data})
+ 
+        @self.guard.route("/update_password", methods=["PUT"])
+        def update_password():
+            data   = request.get_json()
+            cur_pw = data.get("current_password", "")
+            new_pw = data.get("new_password", "")
+            con_pw = data.get("confirm_password", "")
+            if not all([cur_pw, new_pw, con_pw]):
+                return jsonify({"status": "bad", "message": "All fields are required."})
+            if len(new_pw) < 8:
+                return jsonify({"status": "bad", "message": "New password must be at least 8 characters."})
+            if new_pw != con_pw:
+                return jsonify({"status": "bad", "message": "New passwords do not match."})
+            result = self.sql.update_password(session["user_id"], cur_pw, new_pw)
+            status = "good" if result["ok"] else "bad"
+            return jsonify({"status": status, "message": result["message"]})
+ 
+        @self.guard.route("/request_deletion", methods=["POST"])
+        def request_deletion():
+            data     = request.get_json()
+            password = (data.get("password") or "").strip()
+            if not password:
+                return jsonify({"status": "bad", "message": "Password is required to confirm."})
+            try:
+                cur = self.sql._cursor()
+                cur.execute("SELECT password FROM users WHERE id = %s", (session["user_id"],))
+                row = cur.fetchone()
+                cur.close()
+                if not row or not self.sql._check(password, row[0]):
+                    return jsonify({"status": "bad", "message": "Incorrect password. Please try again."})
+            except Exception as e:
+                print(e)
+                return jsonify({"status": "bad", "message": "Could not verify password."})
+ 
+            ok = self.sql.request_deletion(session["user_id"])
+            if ok:
+                return jsonify({"status": "good", "message": "Your account has been scheduled for deletion in 30 days. You will now be logged out."})
+            return jsonify({"status": "bad", "message": "Something went wrong. Please try again."})
+        
         @self.guard.route("/getParking")
         def getParking():
             parking = self.sql.getparking()
