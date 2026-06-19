@@ -38,8 +38,6 @@ function showMessageModal(text,texttitle){
             ${text}
             </p>
         </div>
-
-    
     `
     let dialog = document.createElement("dialog");
     dialog.id = "message-modal"
@@ -47,7 +45,4 @@ function showMessageModal(text,texttitle){
 
     document.body.prepend(dialog)
     dialog.showModal()
-
-
-
 }

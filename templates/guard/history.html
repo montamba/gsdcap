@@ -181,7 +181,8 @@
 
         /* ─── TABLE ─── */
         table { width: 100%; border-collapse: collapse; }
-        .hist-table tr { display: grid; grid-template-columns: 50px 1fr 130px 110px 80px 130px; }
+        /* # | QR Code | Owner | Plate | Result | Action | Scanned At */
+        .hist-table tr { display: grid; grid-template-columns: 46px 1fr 120px 110px 100px 70px 130px; }
         th, td { padding: 12px 14px; text-align: left; font-size: 12px; }
         th { background: #f5f9ff; color: #64748b; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid #ddeaff; }
         td { color: #334155; border-bottom: 1px solid #f1f5f9; }
@@ -232,16 +233,27 @@
         .ftab:hover { border-color: #93c5fd; color: #2563eb; }
         .ftab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
 
+        /* ─── PAGINATION ─── */
+        .pagination {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: #f5f9ff;
+            border-top: 1px solid #ddeaff; flex-wrap: wrap; gap: 8px;
+        }
+        .pg-info { font-size: 11px; font-family: 'Space Mono', monospace; color: #94a3b8; }
+        .pg-btns { display: flex; gap: 5px; }
+        .pg-btn {
+            padding: 5px 11px; border: 1.5px solid #c7d9f5; background: #fff;
+            color: #64748b; font-family: 'Space Mono', monospace;
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            border-radius: 6px; transition: all 0.2s;
+        }
+        .pg-btn:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+        .pg-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+        .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
         @media print{
-            body *{
-                visibility: hidden;
-            }
-
-            .section,table, table *{
-                visibility: visible;
-            }
-
-            
+            body * { visibility: hidden; }
+            .section, table, table * { visibility: visible; }
         }
 
         /* ─── MOBILE ─── */
@@ -284,14 +296,14 @@
 
             .section { margin: 16px; }
 
-            .hist-table tr {
-                grid-template-columns: 40px 1fr 110px 90px;
-            }
-            /* hide action and date columns on very small screens */
-            .hist-table th:nth-child(5),
-            .hist-table td:nth-child(5),
+            /* On mobile hide owner & action columns to keep it readable */
+            .hist-table tr { grid-template-columns: 36px 1fr 100px 90px 80px; }
+            .hist-table th:nth-child(3),
+            .hist-table td:nth-child(3),
             .hist-table th:nth-child(6),
-            .hist-table td:nth-child(6) { display: none; }
+            .hist-table td:nth-child(6),
+            .hist-table th:nth-child(7),
+            .hist-table td:nth-child(7) { display: none; }
 
             .right { padding-bottom: 70px; }
         }
@@ -325,7 +337,7 @@
         <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </nav>
 
-    <div class="right" onclick="window.print()">
+    <div class="right">
         <div class="header">
             <h1><i class="bi bi-clock-history"></i> My Scan History</h1>
             <p>ALL QR CODES YOU HAVE SCANNED</p>
@@ -356,9 +368,12 @@
                     <i class="bi bi-table"></i>
                     <h2>Scan Log</h2>
                 </div>
-                <input type="text" class="search-input" id="searchInput"
-                       placeholder="🔍 Search plate or code..."
-                       oninput="filterTable()">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="pg-info" id="pgInfoTop">—</span>
+                    <input type="text" class="search-input" id="searchInput"
+                           placeholder="🔍 Search plate, owner or code..."
+                           oninput="onSearch()">
+                </div>
             </div>
 
             <!-- Filter tabs -->
@@ -374,9 +389,10 @@
                     <tr class="hist-table">
                         <th>#</th>
                         <th>QR Code</th>
+                        <th>Owner</th>
                         <th>Plate</th>
                         <th>Result</th>
-                        <th>Action</th>
+                        <th>Act.</th>
                         <th>Scanned At</th>
                     </tr>
                 </thead>
@@ -386,43 +402,93 @@
                     </tr>
                 </tbody>
             </table>
+
+            <div class="pagination">
+                <span class="pg-info" id="pgInfoBottom">—</span>
+                <div class="pg-btns">
+                    <button class="pg-btn" id="btnPrev" onclick="changePage(currentPage - 1)" disabled>‹ Prev</button>
+                    <div id="pgNumbers" style="display:flex;gap:5px;"></div>
+                    <button class="pg-btn" id="btnNext" onclick="changePage(currentPage + 1)" disabled>Next ›</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let allHistory = [];
+        const LIMIT = 10;
+        let currentPage  = 1;
+        let totalPages   = 1;
         let activeFilter = 'all';
+        let searchTimer  = null;
 
-        async function loadHistory() {
+        // Stats are updated from the full-count response
+        let statTotals = { total: 0, accepted: 0, expired: 0, failed: 0 };
+
+        async function loadHistory(page = 1) {
+            currentPage = page;
+
+            const q      = document.getElementById("searchInput").value.trim();
+            const filter = activeFilter !== 'all' ? activeFilter : '';
+
+            // Build URL — server paginates, client filters within page for instant feel
+            const url = `/guard/my_history?page=${page}&limit=${LIMIT}`;
+
             try {
-                const res = await API.get("/guard/my_history");
-                if (res && res.status === "good") {
-                    allHistory = res.data;
-                    renderStats(allHistory);
-                    renderTable(allHistory);
-                } else {
-                    allHistory = [];
+                const res = await API.get(url);
+                if (!res || res.status !== "good") {
                     renderTable([]);
+                    updatePager(0, 1, 1);
+                    return;
                 }
+
+                // Update total stat counters only on page 1 or when no filters active
+                // (server returns total across all pages, so we track it separately)
+                updateStats(res.total, res.data);
+
+                // Client-side filter + search within the current page
+                let rows = res.data;
+                if (filter) {
+                    rows = rows.filter(d => (d[2] || '').toLowerCase() === filter);
+                }
+                if (q) {
+                    rows = rows.filter(d =>
+                        (d[1] || '').toLowerCase().includes(q.toLowerCase()) ||
+                        (d[4] || '').toLowerCase().includes(q.toLowerCase()) ||
+                        (d[5] || '').toLowerCase().includes(q.toLowerCase())
+                    );
+                }
+
+                renderTable(rows, (page - 1) * LIMIT);
+                updatePager(res.total, page, res.pages);
             } catch (e) {
                 console.error(e);
                 renderTable([]);
             }
         }
 
-        function renderStats(data) {
-            const total    = data.length;
-            const accepted = data.filter(d => d[2] === 'accepted').length;
-            const expired  = data.filter(d => d[2] === 'expired').length;
-            const failed   = data.filter(d => d[2] === 'failed').length;
+        function updateStats(total, pageData) {
+            // Stats cards show totals from the server (total) + breakdown from current page data
+            // For full accuracy we accumulate as pages load — but the total count from server is exact
+            document.getElementById('statTotal').textContent = total;
 
-            document.getElementById('statTotal').textContent    = total;
-            document.getElementById('statAccepted').textContent = accepted;
-            document.getElementById('statExpired').textContent  = expired;
-            document.getElementById('statFailed').textContent   = failed;
+            // Count within current page for the breakdown display
+            // This gives a live feel; a dedicated stats endpoint would be more accurate for breakdowns
+            let accepted = 0, expired = 0, failed = 0;
+            pageData.forEach(d => {
+                const s = (d[2] || '').toLowerCase();
+                if (s === 'accepted') accepted++;
+                else if (s === 'expired') expired++;
+                else failed++;
+            });
+            // Only override the breakdown if we're on page 1 and no filters (fresh load)
+            if (currentPage === 1 && activeFilter === 'all') {
+                document.getElementById('statAccepted').textContent = accepted;
+                document.getElementById('statExpired').textContent  = expired;
+                document.getElementById('statFailed').textContent   = failed;
+            }
         }
 
-        function renderTable(data) {
+        function renderTable(data, offset = 0) {
             const tbody = document.getElementById('histBody');
 
             if (!data.length) {
@@ -430,60 +496,73 @@
                 return;
             }
 
-            // d = [id, data, status, created_at, plate, owner_name, action]
+            // d = [0:id, 1:data, 2:status, 3:created_at, 4:plate, 5:owner_name, 6:action]
             tbody.innerHTML = data.map((d, i) => {
                 const statusClass = d[2] === 'accepted' ? 'badge-accepted'
                                   : d[2] === 'expired'  ? 'badge-expired'
                                   : 'badge-failed';
                 const actionLabel = (d[6] || 'entry').toLowerCase();
                 const actionClass = actionLabel === 'exit' ? 'action-exit' : 'action-entry';
-                const createdAt = d[3] ? String(d[3]).slice(0, 16) : '—';
-                const plate = d[4] || '—';
+                const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
+                const plate       = d[4] || '—';
+                const ownerName   = d[5] || '—';
 
                 return `
                 <tr class="hist-table">
-                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${i + 1}</td>
+                    <td style="color:#94a3b8;font-family:'Space Mono',monospace;">${offset + i + 1}</td>
                     <td style="color:#2563eb;font-family:'Space Mono',monospace;font-size:11px;
                                font-weight:700;white-space:nowrap;overflow:hidden;
                                text-overflow:ellipsis;">${d[1] || '—'}</td>
-                    <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">
-                        ${plate}
-                    </td>
+                    <td style="color:#334155;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ownerName}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${plate}</td>
                     <td><span class="badge ${statusClass}">${d[2] || '—'}</span></td>
-                    <td><span class="${actionClass}">${actionLabel.toUpperCase()}</span></td>
-                    <td style="font-size:11px;color:#64748b;font-family:'Space Mono',monospace;">
-                        ${createdAt}
-                    </td>
+                    <td><span class="${actionClass}">${actionLabel === 'exit' ? 'OUT' : 'IN'}</span></td>
+                    <td style="font-size:11px;color:#64748b;font-family:'Space Mono',monospace;">${createdAt}</td>
                 </tr>`;
             }).join('');
+        }
+
+        function updatePager(total, page, pages) {
+            totalPages = pages;
+            const info = `Page ${page} of ${pages}  (${total} total)`;
+            document.getElementById("pgInfoTop").textContent    = info;
+            document.getElementById("pgInfoBottom").textContent = info;
+            document.getElementById("btnPrev").disabled = page <= 1;
+            document.getElementById("btnNext").disabled = page >= pages;
+
+            const nums = document.getElementById("pgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end   = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => changePage(p);
+                nums.appendChild(btn);
+            }
+        }
+
+        function changePage(p) {
+            if (p < 1 || p > totalPages) return;
+            loadHistory(p);
         }
 
         function setFilter(filter, el) {
             activeFilter = filter;
             document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            filterTable();
+            loadHistory(1);
         }
 
-        function filterTable() {
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            let filtered = allHistory;
-
-            if (activeFilter !== 'all') {
-                filtered = filtered.filter(d => (d[2] || '').toLowerCase() === activeFilter);
-            }
-            if (q) {
-                filtered = filtered.filter(d =>
-                    (d[1] || '').toLowerCase().includes(q) ||
-                    (d[4] || '').toLowerCase().includes(q) ||
-                    (d[5] || '').toLowerCase().includes(q)
-                );
-            }
-            renderTable(filtered);
+        function onSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadHistory(1), 320);
         }
 
-        loadHistory();
-        setInterval(loadHistory, 30000);
+        loadHistory(1);
+        setInterval(() => loadHistory(currentPage), 30000);
     </script>
 </body>
 </html>

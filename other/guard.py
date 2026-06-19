@@ -95,29 +95,42 @@ class Guard:
             parking = self.sql.getparking()
             return jsonify(parking)
             
-                
 
         @self.guard.route("/my_history", methods=["GET"])
         def my_history():
-            name = "guard_history"
+            page  = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 10))
+            offset = (page - 1) * limit
+
+            name_data  = f"guard_history_{session['user_id']}_{offset}_{limit}"
+            name_count = f"guard_history_count_{session['user_id']}"
+
             try:
-                if not self.cache.check_key(name):
-                    sqldata = self.sql.gethistorybyguard(session["user_id"])
-                    self.cache.add(name, sqldata)
-                    print("getting from sql")
-                    
-                else:
-                    print("getting from cacche")
-                    
-                data = self.cache.get(name)
-                    
+                if not self.cache.check_key(name_data):
+                    sqldata = self.sql.gethistorybyguard(session["user_id"], limit=limit, offset=offset)
+                    self.cache.add(name_data, sqldata)
+                data = self.cache.get(name_data)
+
+                if not self.cache.check_key(name_count):
+                    sqltotal = self.sql.counthistorybyguard(session["user_id"])
+                    self.cache.add(name_count, sqltotal)
+                total = self.cache.get(name_count)
+
                 serialized = []
                 for row in data:
                     serialized.append([
                         str(v) if not isinstance(v, (int, str, float, type(None))) else v
                         for v in row
                     ])
-                return jsonify({"status": "good", "data": serialized})
+
+                return jsonify({
+                    "status": "good",
+                    "data":   serialized,
+                    "total":  total,
+                    "page":   page,
+                    "limit":  limit,
+                    "pages":  max(1, -(-total // limit))
+                })
             except Exception as e:
                 print("History error:", e)
                 return jsonify({"status": "bad", "message": "Failed to fetch history"})

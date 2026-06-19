@@ -4,6 +4,7 @@ import time
 class Cache:
     def __init__(self):
         self.__DATA = {}
+        self.__clearcount = 0
         threading.Thread(target=self.self_clear).start()
         
         
@@ -20,6 +21,8 @@ class Cache:
     def self_clear(self):
         while True:
             time.sleep(100)
+            print("clearing cache")
+            self.__clearcount += 1
             self.clear()
             
                

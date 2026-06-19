@@ -228,6 +228,10 @@
         </div>
     </div>
 
+    <div>
+        <p>Do you want to save</p>
+    </div>
+
     <script>
         const LIMIT = 5;
         let myPage  = 1;
@@ -293,10 +297,14 @@
             }
         }
 
+        
+
         async function sendEmail() {
             const btn   = document.getElementById("sendBtn");
             const code  = document.getElementById("text").value.trim();
             const email = document.getElementById("owner_email").value.trim();
+
+
             if (!code || !email) { showMessageModal("A QR code and owner email are both required.", "Missing Info"); return; }
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
@@ -355,6 +363,12 @@
             if (p < 1 || p > myPages) return;
             getQrdata(p);
         }
+
+        function CofirmationSave(){
+            //"ask to save qr"
+        }
+
+        
 
         regenerateCode();
         getQrdata(1);

@@ -157,7 +157,6 @@ class SQL:
             return False
 
     def _cursor(self):
-        """Return a fresh cursor, guaranteeing the connection is live."""
         self._ping()
         return self.sql.cursor()
 
@@ -569,7 +568,7 @@ class SQL:
             print(f"[DB] gethistory_full error: {e}")
             return []
 
-    def gethistorybyguard(self, guard_id):
+    def gethistorybyguard(self, guard_id, limit=10, offset=0):
         try:
             cur = self._cursor()
             cur.execute(
@@ -583,8 +582,9 @@ class SQL:
                    FROM history h
                    LEFT JOIN qrcode q ON h.data = q.data
                    WHERE h.guard = %s
-                   ORDER BY h.id DESC""",
-                (guard_id,),
+                   ORDER BY h.id DESC
+                   LIMIT %s OFFSET %s""",
+                (guard_id, limit, offset),
             )
             result = cur.fetchall()
             cur.close()
@@ -593,6 +593,18 @@ class SQL:
             print(f"[DB] gethistorybyguard error: {e}")
             return []
 
+    def counthistorybyguard(self, guard_id) -> int:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "SELECT COUNT(*) FROM history WHERE guard = %s", (guard_id,)
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] counthistorybyguard error: {e}")
+            return 0
     # ──────────────────────────────────────────────────────────────
     # PARKING
     # ──────────────────────────────────────────────────────────────
