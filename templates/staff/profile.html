@@ -400,6 +400,7 @@
     }
 
     async function saveProfile() {
+      showLoading();
       let user = {
         username: document.getElementById('eUser').value.trim(),
         email: document.getElementById('eEmail').value.trim()
@@ -408,6 +409,7 @@
       showMessageModal(res.message, res.status);
       getUserData();
       closeEdit();
+      hideLoading();
     }
 
     async function savePw() {

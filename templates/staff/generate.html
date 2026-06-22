@@ -276,6 +276,7 @@
         }
 
         async function saveQR() {
+            showLoading();
             const code = document.getElementById("text").value.trim();
             if (!code) { showMessageModal("Generate a code first.", "No Code"); return; }
             const payload = {
@@ -295,6 +296,7 @@
                 document.getElementById("qrcode").innerHTML = `<span class="placeholder-text">CLICK<br>PREVIEW<br>TO SEE QR</span>`;
                 document.getElementById("qrLabel").style.display = "none";
             }
+            hideLoading();
         }
 
         

@@ -276,6 +276,7 @@
 
         /* ── ADD USER ── */
         async function adduser(e) {
+            showLoading() 
             e.preventDefault();
             const user = {
                 username: document.getElementById("username").value,
@@ -290,6 +291,7 @@
                 document.getElementById("useradd").close();
                 getUsers(1);
             }
+            hideLoading();
         }
 
         function showmodal() { document.getElementById("useradd").show(); }

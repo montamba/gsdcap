@@ -68,3 +68,13 @@
     line-height: 1.6;
     font-family: 'Syne', sans-serif;
 }
+
+#loading{
+    background: rgba(244, 0, 0, 0.581);
+    width: 100%;
+    min-height: 100%;
+    position: fixed;
+    top: 0;left: 0;
+    display: grid;
+    place-items: center;
+}

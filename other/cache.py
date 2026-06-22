@@ -19,9 +19,10 @@ class Cache:
         self.__DATA.clear() 
         
     def self_clear(self):
+        print("start")
         while True:
-            time.sleep(100)
-            print("clearing cache")
+            time.sleep(10)
+            print("clearing cache +", self.__clearcount)
             self.__clearcount += 1
             self.clear()
             
@@ -43,7 +44,9 @@ class Cache:
     
     def prin(self):
         print(self.__DATA)
+
 cache = Cache()
+
 
 
 
