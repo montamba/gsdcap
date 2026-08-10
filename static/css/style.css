@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
 
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
+    border-radius: 0 !important;
 }
 
 body {
@@ -30,11 +31,11 @@ aside {
     width: 260px;
     min-width: 260px;
     background: #1e3a8a;
-    border-right: none;
+    border-right: 1px solid #000000;
     display: flex;
     flex-direction: column;
     z-index: 100;
-    box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.18);
 }
 
 aside .logos {
@@ -43,7 +44,7 @@ aside .logos {
     align-items: center;
     gap: 12px;
     background: #172e72;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid #000000;
 }
 
 aside .logos .logo {
@@ -51,7 +52,7 @@ aside .logos .logo {
     height: 40px;
     flex-shrink: 0;
     background: rgba(255,255,255,0.12);
-    border-radius: 10px;
+    border: 1px solid #000000;
     display: grid;
     place-items: center;
 }
@@ -65,7 +66,7 @@ aside .logos .logo img {
 
 aside .logos h2 {
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 900;
     color: #ffffff;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -81,12 +82,11 @@ aside .logos h2 {
 
 .butt .sml {
     padding: 14px 22px 5px;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    color: rgba(148,163,184,0.6);
+    letter-spacing: 0.14em;
+    color: rgba(148,163,184,0.7);
     text-transform: uppercase;
-    font-family: 'Space Mono', monospace;
 }
 
 .butt button {
@@ -96,8 +96,7 @@ aside .logos h2 {
     border-left: 3px solid transparent;
     text-align: left;
     font-size: 14px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(186,210,255,0.75);
     cursor: pointer;
     transition: all 0.2s;
@@ -111,7 +110,7 @@ aside .logos h2 {
 .butt button:hover {
     background: rgba(255,255,255,0.07);
     color: #ffffff;
-    border-left-color: rgba(255,255,255,0.3);
+    border-left-color: #000000;
 }
 
 .butt button.active-nav {
@@ -127,20 +126,18 @@ aside .logos h2 {
 
 .sidebar-footer {
     padding: 16px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid #000000;
 }
 
 .logout-btn {
     width: 100%;
     padding: 10px 16px !important;
     background: rgba(239,68,68,0.12) !important;
-    border: 1px solid rgba(239,68,68,0.3) !important;
-    border-left: 3px solid rgba(239,68,68,0.5) !important;
-    border-radius: 6px;
+    border: 1px solid #000000 !important;
+    border-left: 3px solid #ef4444 !important;
     color: #fca5a5 !important;
-    font-family: 'Syne', sans-serif;
     font-size: 13px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     cursor: pointer;
     letter-spacing: 0.04em;
     transition: all 0.2s;
@@ -152,13 +149,13 @@ aside .logos h2 {
 .logout-btn:hover {
     background: rgba(239,68,68,0.22) !important;
     color: #ffffff !important;
-    border-color: rgba(239,68,68,0.6) !important;
+    border-color: #000000 !important;
 }
 
 /* ─── MESSAGE MODAL ───────────────────────────────────── */
 
 #message-modal {
-    border: 1px solid #c7d9f5;
+    border: 1px solid #000000;
     background: #ffffff;
     padding: 0;
     position: fixed;
@@ -167,8 +164,7 @@ aside .logos h2 {
     width: 360px;
     transform: translate(-50%, -50%);
     overflow: visible;
-    box-shadow: 0 20px 60px rgba(37,99,235,0.12), 0 4px 16px rgba(0,0,0,0.1);
-    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
 
 #message-modal::backdrop {
@@ -177,14 +173,13 @@ aside .logos h2 {
 }
 
 #message-modal button.messagex {
-    border: 1px solid #e2e8f0;
+    border: 1px solid #000000;
     background: #ffffff;
     padding: 0;
     position: absolute;
     right: -14px;
     top: -14px;
     color: #64748b;
-    border-radius: 50%;
     width: 30px;
     height: 30px;
     display: flex;
@@ -199,22 +194,20 @@ aside .logos h2 {
 #message-modal button.messagex:hover {
     background: #ef4444;
     color: white;
-    border-color: #ef4444;
+    border-color: #000000;
 }
 
 #message-modal div h1 {
     min-height: 52px;
     padding: 16px 20px;
-    border-bottom: 1px solid #ddeaff;
+    border-bottom: 1px solid #000000;
     font-size: 15px;
     font-weight: 700;
     color: #2563eb;
-    font-family: 'Space Mono', monospace;
     letter-spacing: 0.05em;
     background: #f5f9ff;
     display: flex;
     align-items: center;
-    border-radius: 12px 12px 0 0;
 }
 
 #message-modal p {

@@ -19,7 +19,28 @@ class SQL:
     def __init__(self):
         self.parking_file = os.path.join(os.path.dirname(__file__), "parking.json")
         self.sql = self._connect()
+        self.ensure_vehicle_columns()
 
+    def ensure_vehicle_columns(self):
+        """Add the vehicle fields to older databases without removing existing data."""
+        if not self.sql:
+            return
+        try:
+            cur = self._cursor()
+            cur.execute("SHOW COLUMNS FROM qrcode LIKE 'vehicle_type'")
+            if not cur.fetchone():
+                cur.execute(
+                    "ALTER TABLE qrcode ADD COLUMN vehicle_type VARCHAR(20) NOT NULL DEFAULT 'car'"
+                )
+            cur.execute("SHOW COLUMNS FROM qrcode LIKE 'space_units'")
+            if not cur.fetchone():
+                cur.execute(
+                    "ALTER TABLE qrcode ADD COLUMN space_units TINYINT NOT NULL DEFAULT 2"
+                )
+            self._commit()
+            cur.close()
+        except Exception as e:
+            print(f"[DB] vehicle column setup error: {e}")
 
     def _connect(self) -> mysql.MySQLConnection | None:
         for attempt in range(1, 6):
@@ -42,14 +63,14 @@ class SQL:
 
         print("[DB] All connection attempts failed.")
         return None
-    
+
     def request_deletion(self, user_id: int) -> bool:
         """Mark a user's account as pending deletion (sets deletion_requested_at to NOW)."""
         try:
             cur = self._cursor()
             cur.execute(
                 "UPDATE users SET deletion_requested_at = NOW() WHERE id = %s",
-                (user_id,)
+                (user_id,),
             )
             self._commit()
             cur.close()
@@ -57,14 +78,14 @@ class SQL:
         except Exception as e:
             print(f"[DB] request_deletion error: {e}")
             return False
-    
+
     def restore_user(self, user_id: int) -> bool:
         """Cancel a user's deletion request (clears deletion_requested_at)."""
         try:
             cur = self._cursor()
             cur.execute(
                 "UPDATE users SET deletion_requested_at = NULL WHERE id = %s",
-                (user_id,)
+                (user_id,),
             )
             self._commit()
             cur.close()
@@ -72,33 +93,29 @@ class SQL:
         except Exception as e:
             print(f"[DB] restore_user error: {e}")
             return False
-    
+
     def get_pending_deletions(self):
         """Return all users who have requested account deletion."""
         try:
             cur = self._cursor()
-            cur.execute(
-                """SELECT id, username, role, deletion_requested_at
+            cur.execute("""SELECT id, username, role, deletion_requested_at
                 FROM users
                 WHERE deletion_requested_at IS NOT NULL
-                ORDER BY deletion_requested_at ASC"""
-            )
+                ORDER BY deletion_requested_at ASC""")
             result = cur.fetchall()
             cur.close()
             return result
         except Exception as e:
             print(f"[DB] get_pending_deletions error: {e}")
             return []
-    
+
     def purge_expired_deletions(self) -> int:
         """Hard-delete accounts whose 30-day window has elapsed. Returns count deleted."""
         try:
             cur = self._cursor()
-            cur.execute(
-                """DELETE FROM users
+            cur.execute("""DELETE FROM users
                 WHERE deletion_requested_at IS NOT NULL
-                    AND deletion_requested_at <= NOW() - INTERVAL 30 DAY"""
-            )
+                    AND deletion_requested_at <= NOW() - INTERVAL 30 DAY""")
             count = cur.rowcount
             self._commit()
             cur.close()
@@ -106,32 +123,34 @@ class SQL:
         except Exception as e:
             print(f"[DB] purge_expired_deletions error: {e}")
             return 0
-    
-    def update_password(self, user_id: int, current_password: str, new_password: str) -> dict:
+
+    def update_password(
+        self, user_id: int, current_password: str, new_password: str
+    ) -> dict:
         """Verify current password then update to the new hashed password."""
         try:
             cur = self._cursor()
             cur.execute("SELECT password FROM users WHERE id = %s", (user_id,))
             row = cur.fetchone()
             cur.close()
-    
+
             if not row:
                 return {"ok": False, "message": "User not found"}
-    
+
             if not self._check(current_password, row[0]):
                 return {"ok": False, "message": "Current password is incorrect"}
-    
+
             hashed = self._hash(new_password)
             cur = self._cursor()
-            cur.execute("UPDATE users SET password = %s WHERE id = %s", (hashed, user_id))
+            cur.execute(
+                "UPDATE users SET password = %s WHERE id = %s", (hashed, user_id)
+            )
             self._commit()
             cur.close()
             return {"ok": True, "message": "Password updated successfully"}
         except Exception as e:
             print(f"[DB] update_password error: {e}")
             return {"ok": False, "message": "Failed to update password"}
-    
-    
 
     def _ping(self) -> None:
         try:
@@ -140,9 +159,7 @@ class SQL:
             print(f"[DB] Ping failed ({e}), reconnecting…")
             self.sql = self._connect()
 
-    # ──────────────────────────────────────────────────────────────
-    # HELPERS
-    # ──────────────────────────────────────────────────────────────
+    # HELPERS ----------------------------------------------------
 
     def _hash(self, password: str) -> str:
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -163,9 +180,7 @@ class SQL:
     def _commit(self):
         self.sql.commit()
 
-    # ──────────────────────────────────────────────────────────────
-    # USER QUERIES
-    # ──────────────────────────────────────────────────────────────
+    # USER QUERIES -----------------------------------------------------
 
     def getalluser(self, limit=5, offset=0):
         try:
@@ -287,9 +302,7 @@ class SQL:
             return None
         return user if self._check(password, user[3]) else None
 
-    # ──────────────────────────────────────────────────────────────
-    # ADMIN PROFILE QUERIES
-    # ──────────────────────────────────────────────────────────────
+    # ADMIN PROFILE QUERIES ------------------------------------------
 
     def getadminbyid(self, admin_id):
         try:
@@ -328,9 +341,7 @@ class SQL:
         try:
             hashed = self._hash(new_password)
             cur = self._cursor()
-            cur.execute(
-                "UPDATE admin SET password=%s WHERE id=%s", (hashed, admin_id)
-            )
+            cur.execute("UPDATE admin SET password=%s WHERE id=%s", (hashed, admin_id))
             self._commit()
             cur.close()
             return True
@@ -338,9 +349,7 @@ class SQL:
             print(f"[DB] updateadmin_password error: {e}")
             return False
 
-    # ──────────────────────────────────────────────────────────────
-    # QR QUERIES
-    # ──────────────────────────────────────────────────────────────
+    # QR QUERIES --------------------------------------------------------------
 
     def getqrbydata(self, data: str):
         try:
@@ -415,9 +424,7 @@ class SQL:
     def countqrbyuser(self, user_id) -> int:
         try:
             cur = self._cursor()
-            cur.execute(
-                "SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,)
-            )
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE created_by=%s", (user_id,))
             count = cur.fetchone()[0]
             cur.close()
             return count
@@ -444,13 +451,25 @@ class SQL:
         created_by,
         owner_name: str = "",
         owner_email: str = "",
+        vehicle_type: str = "car",
     ) -> bool:
         try:
+            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
+            space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
             cur.execute(
-                """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by)
-                   VALUES (%s, %s, %s, %s, %s, %s)""",
-                (data, plate, owner_name, owner_email, expiry, created_by),
+                """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by, vehicle_type, space_units)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (
+                    data,
+                    plate,
+                    owner_name,
+                    owner_email,
+                    expiry,
+                    created_by,
+                    vehicle_type,
+                    space_units,
+                ),
             )
             self._commit()
             cur.close()
@@ -504,7 +523,9 @@ class SQL:
     # HISTORY QUERIES
     # ──────────────────────────────────────────────────────────────
 
-    def inserthistory(self, data: str, guard, status: str, action: str = "entry") -> bool:
+    def inserthistory(
+        self, data: str, guard, status: str, action: str = "entry"
+    ) -> bool:
         try:
             cur = self._cursor()
             cur.execute(
@@ -596,15 +617,14 @@ class SQL:
     def counthistorybyguard(self, guard_id) -> int:
         try:
             cur = self._cursor()
-            cur.execute(
-                "SELECT COUNT(*) FROM history WHERE guard = %s", (guard_id,)
-            )
+            cur.execute("SELECT COUNT(*) FROM history WHERE guard = %s", (guard_id,))
             count = cur.fetchone()[0]
             cur.close()
             return count
         except Exception as e:
             print(f"[DB] counthistorybyguard error: {e}")
             return 0
+
     # ──────────────────────────────────────────────────────────────
     # PARKING
     # ──────────────────────────────────────────────────────────────
@@ -612,7 +632,15 @@ class SQL:
     def getparking(self) -> dict:
         try:
             with open(self.parking_file, "r") as f:
-                return json.load(f)
+                data = json.load(f)
+            # Calculate live occupancy from vehicles currently inside.
+            res = self.get_total_entry_exit()
+            total_units = data.get("total", 0) * 2
+            occupied_units = min(res.get("occupied_units", 0), total_units)
+            data["occupied_units"] = occupied_units
+            data["occupied"] = occupied_units / 2
+            data["available"] = max(0, data.get("total", 0) - data["occupied"])
+            return data
         except Exception as e:
             print(f"[DB] getparking error: {e}")
             return {"total": 0, "occupied": 0, "available": 0}
@@ -623,8 +651,12 @@ class SQL:
                 data = json.load(f)
 
             res = self.get_total_entry_exit()
-            data["occupied"]  = min(res["entry"], data["total"])
-            data["available"] = data["total"] - data["occupied"]
+            # A parking space has two units: car = 2, motorcycle = 1.
+            total_units = data["total"] * 2
+            occupied_units = min(res.get("occupied_units", 0), total_units)
+            data["occupied"] = occupied_units / 2
+            data["available"] = max(0, data["total"] - data["occupied"])
+            data["occupied_units"] = occupied_units
 
             with open(self.parking_file, "w") as f:
                 json.dump(data, f, indent=4)
@@ -637,12 +669,18 @@ class SQL:
     def get_total_entry_exit(self) -> dict:
         try:
             cur = self._cursor()
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status='IN'")
-            entry = cur.fetchone()[0]
+            cur.execute(
+                "SELECT COUNT(*), COALESCE(SUM(space_units), 0) FROM qrcode WHERE car_status='IN'"
+            )
+            entry, occupied_units = cur.fetchone()
             cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status='OUT'")
             exit_ = cur.fetchone()[0]
             cur.close()
-            return {"entry": entry, "exit": exit_}
+            return {
+                "entry": entry,
+                "exit": exit_,
+                "occupied_units": int(occupied_units),
+            }
         except Exception as e:
             print(f"[DB] get_total_entry_exit error: {e}")
             return {"entry": 0, "exit": 0}
@@ -698,8 +736,8 @@ class SQL:
 
             msg = MIMEMultipart("related")
             msg["Subject"] = "Your GSD Parking QR Code"
-            msg["From"]    = smtp_user
-            msg["To"]      = to_email
+            msg["From"] = smtp_user
+            msg["To"] = to_email
 
             html_body = f"""
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;

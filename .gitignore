@@ -1,1 +1,4 @@
 .env
+
+sqlclear.txt
+sql1.sql

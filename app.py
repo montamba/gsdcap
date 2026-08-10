@@ -19,7 +19,7 @@ class Main:
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
         self.sql = SQL()
-        
+
         print(os.getenv("DATABASE"))
         self.blueprints()
         self.routes()
@@ -42,12 +42,13 @@ class Main:
             email = data.get("email").strip()
             password = data.get("password")
             role = data.get("role")
-            
+
             print("goods collect")
-                        
 
             if not email or not password or not role:
-                return jsonify({"status": "failed", "message": "Missing required fields"})
+                return jsonify(
+                    {"status": "failed", "message": "Missing required fields"}
+                )
 
             cur = self.sql.sql.cursor()
 
@@ -55,24 +56,23 @@ class Main:
             if role == "admin":
                 print("start admincheck")
                 cur.execute(
-                    "SELECT id, email, password FROM admin WHERE email=%s",
-                    (email,)
+                    "SELECT id, email, password FROM admin WHERE email=%s", (email,)
                 )
                 print("end check")
             elif role in ("users", "guard", "staff"):
                 cur.execute(
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
-                    (email,role)
+                    (email, role),
                 )
                 print("hello", email)
-            
+
             user = cur.fetchone()
-            
+
             if not user:
                 return jsonify({"status": "failed", "message": "no user"})
-            
+
             if role == "admin":
-                user = user + ('admin',)
+                user = user + ("admin",)
             cur.close()
 
             user_id, user_email, hashed_pw, user_role = user
@@ -81,11 +81,15 @@ class Main:
             try:
                 password_matches = bcrypt.checkpw(
                     password.encode("utf-8"),
-                    hashed_pw.encode("utf-8") if isinstance(hashed_pw, str) else hashed_pw
+                    (
+                        hashed_pw.encode("utf-8")
+                        if isinstance(hashed_pw, str)
+                        else hashed_pw
+                    ),
                 )
             except Exception:
-                
-                password_matches = (password == hashed_pw)
+
+                password_matches = password == hashed_pw
 
             if not password_matches:
                 return jsonify({"status": "failed", "message": "Invalid credentials"})
@@ -96,7 +100,9 @@ class Main:
             session["role"] = user_role
             session.permanent = False
 
-            return jsonify({"status": "Success", "message": "Login successful", "role": user_role})
+            return jsonify(
+                {"status": "Success", "message": "Login successful", "role": user_role}
+            )
 
         @self.app.route("/auth/logout")
         def logout():
@@ -111,19 +117,19 @@ class Main:
         def me():
             if "user_id" not in session:
                 return jsonify({"status": "unauthenticated"})
-            return jsonify({
-                "status": "ok",
-                "user_id": session["user_id"],
-                "email": session["email"],
-                "role": session["role"]
-            })
+            return jsonify(
+                {
+                    "status": "ok",
+                    "user_id": session["user_id"],
+                    "email": session["email"],
+                    "role": session["role"],
+                }
+            )
 
     def blueprints(self):
         self.app.register_blueprint(Admin(self.sql).admin)
         self.app.register_blueprint(Staff(self.sql).staff)
         self.app.register_blueprint(Guard(self.sql).guard)
-
-    
 
 
 app_instance = Main()

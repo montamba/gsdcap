@@ -276,7 +276,7 @@
 
         /* ── ADD USER ── */
         async function adduser(e) {
-            showLoading() 
+            
             e.preventDefault();
             const user = {
                 username: document.getElementById("username").value,
@@ -291,7 +291,7 @@
                 document.getElementById("useradd").close();
                 getUsers(1);
             }
-            hideLoading();
+            
         }
 
         function showmodal() { document.getElementById("useradd").show(); }
@@ -402,6 +402,7 @@
         }
 
         async function getUsers(page = 1) {
+            console.log("getting users")
             currentPage = page;
             const res = await API.get(`/admin/getusers?page=${page}&limit=${LIMIT}`);
             if (!res || res.status !== "good") {
@@ -411,6 +412,8 @@
                 return;
             }
 
+            console.log("get user complete")
+
             let rows = res.data;
             if (searchQuery) {
                 rows = rows.filter(u =>
@@ -418,6 +421,8 @@
                     u[2].toLowerCase().includes(searchQuery.toLowerCase())
                 );
             }
+
+
 
             renderUsers(rows);
             updatePager(res.total, res.page, res.pages);
