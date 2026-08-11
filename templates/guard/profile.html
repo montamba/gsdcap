@@ -57,25 +57,24 @@
 
     /* Profile Card */
     .profile-card {
-      background: #fff; border: 1px solid #c7d9f5; border-radius: 16px;
+      background: #fff; border: 1px solid #c7d9f5; border-radius: 10px;
       overflow: hidden; box-shadow: 0 4px 24px rgba(37,99,235,0.08);
+      border:1px solid;
     }
     .card-banner {
-      height: 120px;
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #0ea5e9 100%);
+      height: 50px;
+      background: #2563eb;
       position: relative;
+      padding: 20px;
     }
-    .card-banner::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M20 20h20v20H20V20zm0-20h20v20H20V0zm-20 0h20v20H0V0zm0 20h20v20H0V20z'/%3E%3C/g%3E%3C/svg%3E");
-    }
+    
     .role-tag {
-      position: absolute; top: 14px; right: 18px; z-index: 2;
+      position: absolute; top: 50%; right: 50%; z-index: 2;
+      transform:translate(50%, -50%);
       background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,.3); color: #fff;
       font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
-      text-transform: uppercase; padding: 5px 14px; border-radius: 20px;
+      text-transform: uppercase; padding: 5px 14px; border-radius: 0px;
       font-family: 'Space Mono', monospace;
     }
     .avatar-wrap {
@@ -109,8 +108,9 @@
 
     /* Form cards */
     .form-card {
-      background: #fff; border: 1px solid #c7d9f5; border-radius: 14px;
+      background: #fff; border: 1px solid #c7d9f5; border-radius: 10px;
       overflow: hidden; box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+      border: 1px solid;
     }
     .form-head {
       padding: 14px 20px; background: #f5f9ff; border-bottom: 1px solid #ddeaff;
@@ -266,9 +266,7 @@
       <div class="profile-card">
         <div class="card-banner">
           <span class="role-tag">🛡️ Guard</span>
-          <div class="avatar-wrap">
-            <div class="avatar" id="avatarEl">🛡️</div>
-          </div>
+          
         </div>
         <div class="card-body">
           <div class="user-name" id="dUser">—</div>

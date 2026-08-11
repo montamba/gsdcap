@@ -114,8 +114,12 @@ class Admin:
 
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):
-                sqlusers = self.sql.getalluser(limit=limit, offset=offset)
-                self.cache.add(keyname, sqlusers)
+                sqlusers = None
+                
+                sqlusers= self.sql.getalluser(limit=limit, offset=offset)
+                
+                if sqlusers:
+                    self.cache.add(keyname, sqlusers)
 
             users = self.cache.get(keyname)
 
@@ -133,6 +137,7 @@ class Admin:
                 ]
                 for u in users
             ]
+            print("helllo: ",users)
             return jsonify(
                 {
                     "status": "good",

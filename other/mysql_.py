@@ -154,11 +154,16 @@ class SQL:
 
     def _ping(self) -> None:
         try:
-            self.sql.ping(reconnect=True, attempts=3, delay=2)
+            # 1. Check if the object exists and thinks it's connected
+            if self.sql and self.sql.is_connected():
+                # 2. Ping with reconnect=False so it fails fast if socket is bad
+                self.sql.ping(reconnect=False)
+                return
         except Exception as e:
-            print(f"[DB] Ping failed ({e}), reconnecting…")
-            self.sql = self._connect()
-
+            print(f"[DB] Ping failed ({e}), forcing fresh connection...")
+        
+        # 3. If either check failed or threw an exception, recreate the connection
+        self.sql = self._connect()
     # HELPERS ----------------------------------------------------
 
     def _hash(self, password: str) -> str:
@@ -182,8 +187,9 @@ class SQL:
 
     # USER QUERIES -----------------------------------------------------
 
-    def getalluser(self, limit=5, offset=0):
+    def getalluser(self, limit=0, offset=0):
         try:
+            print("getting")
             cur = self._cursor()
             cur.execute(
                 "SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s",

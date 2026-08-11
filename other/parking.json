@@ -1,5 +1,6 @@
 {
-    "total": 20,
-    "occupied": 2,
-    "available": 18
+    "total": 30,
+    "occupied": 1.0,
+    "available": 29.0,
+    "occupied_units": 2
 }

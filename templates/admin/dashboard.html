@@ -11,7 +11,7 @@
     <style>
         .page-header {
             background: #ffffff;
-            border-bottom: 1px solid #c7d9f5;
+            border-bottom: 1px solid #000000;
             padding: 24px 36px;
             display: flex;
             align-items: center;
@@ -20,33 +20,26 @@
         }
         .page-header h1 { font-size:22px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:10px; }
         .page-header h1 i { color:#2563eb; }
-        .page-header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
-        .live-badge {
-            font-size:11px; font-family:'Space Mono',monospace; color:#10b981;
-            background:#d1fae5; border:1px solid #6ee7b7; padding:6px 14px; letter-spacing:.1em;
-            display:flex; align-items:center; gap:6px; border-radius:20px;
-        }
-        .live-badge::before { content:''; width:7px; height:7px; background:#10b981; border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .page-header p { font-size:11px; color:#94a3b8; font-family: 'Roboto', sans-serif !important; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
 
         .inner { padding:28px 36px; max-width:1300px; }
 
         /* ── CARDS ── */
         .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:28px; }
         .card {
-            background:#ffffff; border:1px solid #c7d9f5; padding:22px 22px 18px;
+            background:#ffffff; border:1px solid #000000; padding:22px 22px 18px;
             display:flex; justify-content:space-between; align-items:flex-start;
             transition:all .2s; position:relative; overflow:hidden; cursor:default;
             border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07);
         }
         .card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
-        .card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(37,99,235,0.13); border-color:#93c5fd; }
+        .card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(37,99,235,0.13); border-color:#000000; }
         .card-1::before { background:linear-gradient(90deg,#2563eb,#0ea5e9); }
         .card-2::before { background:linear-gradient(90deg,#10b981,#0ea5e9); }
         .card-3::before { background:linear-gradient(90deg,#ef4444,#f97316); }
         .card-4::before { background:linear-gradient(90deg,#8b5cf6,#2563eb); }
         .card-label { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.15em; font-family:'Space Mono',monospace; margin-bottom:10px; }
-        .card-num { font-size:38px; font-weight:800; font-family:'Space Mono',monospace; line-height:1; }
+        .card-num { font-size:38px; font-weight:800; font-family: 'Roboto', sans-serif !important; line-height:1; }
         .card-1 .card-num { color:#2563eb; }
         .card-2 .card-num { color:#10b981; }
         .card-3 .card-num { color:#ef4444; }
@@ -60,16 +53,16 @@
         /* ── ACTIONS ── */
         .actions { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
         .btn { padding:10px 20px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em; transition:all .2s; display:flex; align-items:center; gap:7px; border-radius:8px; }
-        .btn-primary { background:linear-gradient(135deg,#2563eb,#0ea5e9); border:none; color:#ffffff; font-weight:800; }
+        .btn-primary { background:#2563eb; border:1px solid #000000; color:#ffffff; font-weight:800; }
         .btn-primary:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 4px 16px rgba(37,99,235,0.3); }
-        .btn-ghost { background:#ffffff; border:1px solid #c7d9f5; color:#64748b; }
-        .btn-ghost:hover { border-color:#93c5fd; color:#2563eb; background:#eff6ff; }
+        .btn-ghost { background:#ffffff; border:1px solid #000000; color:#64748b; }
+        .btn-ghost:hover { border-color:#000000; color:#2563eb; background:#eff6ff; }
 
         /* ── SECTION TITLE ── */
         .section-title {
             font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase;
-            letter-spacing:.12em; font-family:'Space Mono',monospace;
-            padding:16px 22px; border-bottom:1px solid #ddeaff;
+            letter-spacing:.12em; font-family: 'Roboto', sans-serif !important;
+            padding:16px 22px; border-bottom:1px solid #000000;
             display:flex; align-items:center; gap:10px;
             background:#f5f9ff;
         }
@@ -77,21 +70,21 @@
         .section-title i { color:#2563eb; }
 
         /* ── CHART BOX ── */
-        .chart-box { background:#ffffff; border:1px solid #c7d9f5; margin-bottom:24px; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
+        .chart-box { background:#ffffff; border:1px solid #000000; margin-bottom:24px; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         .chart-inner { padding:24px; }
 
         /* ── TABLE BOX ── */
-        .table-box { background:#ffffff; border:1px solid #c7d9f5; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
+        .table-box { background:#ffffff; border:1px solid #000000; overflow:hidden; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,0.07); }
         table { width:100%; border-collapse:collapse; }
         th,td { padding:13px 22px; text-align:left; font-size:13px; }
-        th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
-        td { color:#334155; border-bottom:1px solid #f1f5f9; }
+        th { background:#f5f9ff; color:#64748b; font-family: 'Roboto', sans-serif !important; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #000000; }
+        td { color:#334155; border-bottom:1px solid #000000; }
         tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:#f8faff; color:#0f172a; }
         .plate { font-family:'Space Mono',monospace; color:#1e3a8a; font-size:13px; }
-        .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.06em; border-radius:20px; }
-        .badge-in { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
-        .badge-out   { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; font-size:10px; font-weight:700;font-family: 'Roboto', sans-serif !important; letter-spacing:.06em; border-radius:20px; }
+        .badge-in { background:#d1fae5; color:#065f46; border:1px solid #000000; }
+        .badge-out { background:#fee2e2; color:#991b1b; border:1px solid #000000; }
     </style>
 </head>
 <body>
@@ -124,7 +117,6 @@
                 <h1><i class="bi bi-clipboard-data"></i> Dashboard</h1>
                 <p>Parking System — Command Center</p>
             </div>
-            <div class="live-badge">Live</div>
         </div>
 
         <div class="inner">
@@ -148,7 +140,7 @@
             </div>
 
             <div class="actions">
-                <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Parking Slot</button>
+                <button class="btn btn-primary" onclick="window.location.href='/admin/park'"><i class="bi bi-plus-lg"></i> Add Parking Slot</button>
                 <button class="btn btn-ghost" onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> View Reports</button>
             </div>
 
@@ -257,7 +249,7 @@
                 
                 return `
                     <tr>
-                        <td style="font-family:'Space Mono',monospace;font-size:11px;color:#2563eb;">${activity.qr_code || '—'}</td>
+                        <td style="font-family: 'Roboto', sans-serif !important;font-size:11px;color:#2563eb;">${activity.qr_code || '—'}</td>
                         <td style="font-size:11px;color:#94a3b8;">${activity.time || '—'}</td>
                         <td>${actionBadge}</td>
                         <td class="plate">${activity.plate || '—'}</td>

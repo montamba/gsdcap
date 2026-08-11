@@ -158,6 +158,7 @@ class Staff:
             except Exception as e:
                 print(e)
                 return jsonify({"status": "bad", "message": "error"})
+            
 
         @self.staff.route("/all_qr", methods=["GET"])
         def all_qr():
@@ -292,13 +293,15 @@ class Staff:
                 return jsonify({"status": "bad", "message": "Failed to renew QR"})
             return jsonify({"status": "good", "message": "QR renewed and reactivated"})
 
-        @self.staff.route("/revoke_qr/<int:qr_id>", methods=["PUT"])
-        def revoke_qr(qr_id):
+        @self.staff.route("/revoke_qr", methods=["PUT"])
+        def revoke_qr():
+            code = request.args.get("qrcode")
+            plate = request.args.get("plate")
             try:
                 cur = self.sql._cursor()
                 cur.execute(
-                    "UPDATE qrcode SET status='revoked', car_status='OUT' WHERE id=%s",
-                    (qr_id,),
+                    "UPDATE qrcode SET status='revoked', car_status='OUT' WHERE data=%s AND plate=%s",
+                    (code,plate),
                 )
                 self.sql._commit()
                 cur.close()

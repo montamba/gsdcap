@@ -6,7 +6,6 @@ class Cache:
     def __init__(self):
         self.__DATA = {}
         self.__clearcount = 0
-        threading.Thread(target=self.self_clear).start()
 
     def add(self, name, value):
         self.__DATA[name] = value
@@ -43,3 +42,5 @@ class Cache:
 
 
 cache = Cache()
+
+threading.Thread(target=cache.self_clear)
