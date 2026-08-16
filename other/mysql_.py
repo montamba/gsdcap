@@ -40,7 +40,8 @@ class SQL:
             self._commit()
             cur.close()
         except Exception as e:
-            print(f"[DB] vehicle column setup error: {e}")
+            print(f"[DB] vehicle column setup error: {e}") 
+            
 
     def _connect(self) -> mysql.MySQLConnection | None:
         for attempt in range(1, 6):
@@ -63,6 +64,8 @@ class SQL:
 
         print("[DB] All connection attempts failed.")
         return None
+    
+    
 
     def request_deletion(self, user_id: int) -> bool:
         """Mark a user's account as pending deletion (sets deletion_requested_at to NOW)."""

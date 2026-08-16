@@ -7,6 +7,9 @@ from other.mysql_ import SQL
 import bcrypt
 import os
 from dotenv import load_dotenv
+import secrets
+from datetime import datetime, timedelta
+
 
 load_dotenv()
 
@@ -17,6 +20,9 @@ class Main:
         self.app.secret_key = os.environ.get("SECRET_KEY", "gsd-parking-secret-key")
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+        self.app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
+            hours=1
+        )
 
         self.sql = SQL()
 
@@ -54,7 +60,7 @@ class Main:
 
             user = None
             if role == "admin":
-                print("start admincheck")
+                
                 cur.execute(
                     "SELECT id, email, password FROM admin WHERE email=%s", (email,)
                 )
@@ -64,7 +70,7 @@ class Main:
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
                     (email, role),
                 )
-                print("hello", email)
+                
 
             user = cur.fetchone()
 
@@ -73,6 +79,7 @@ class Main:
 
             if role == "admin":
                 user = user + ("admin",)
+                
             cur.close()
 
             user_id, user_email, hashed_pw, user_role = user
@@ -94,10 +101,14 @@ class Main:
             if not password_matches:
                 return jsonify({"status": "failed", "message": "Invalid credentials"})
 
+            token = role + " " + secrets.token_urlsafe(32)
+            expired = datetime.now() + timedelta(hours=1)
+
             session.clear()
             session["user_id"] = user_id
             session["email"] = user_email
             session["role"] = user_role
+            session["token"] = {}
             session.permanent = False
 
             return jsonify(

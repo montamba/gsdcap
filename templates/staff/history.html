@@ -149,11 +149,6 @@
         let allPage  = 1;
         let allPages = 1;
 
-        /**
-         * Returns the effective display status for a QR row.
-         * If the DB status is still 'active' but the expiry date has passed,
-         * we show 'expired' instead so the label is always accurate.
-         */
         function effectiveStatus(dbStatus, expiryStr) {
             if (dbStatus && dbStatus !== 'active') return dbStatus; // revoked, etc.
             if (expiryStr !== 'None' && expiryStr !== '—') {
@@ -190,6 +185,7 @@
         async function getAllQR(page = 1) {
             allPage = page;
             const res = await API.get(`/staff/all_qr?page=${page}&limit=${LIMIT}`);
+            console.log("im",res);
             if (!res || res.status !== "good") {
                 document.getElementById("allBody").innerHTML =
                     `<tr class="empty-row"><td>No records yet</td></tr>`;
@@ -207,7 +203,7 @@
                     <td style="color:#334155;">${d[2] || "—"}</td>
                     <td><span class="badge ${status}">${status}</span></td>
                     <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
-                    <td style="color:#64748b;font-size:11px;">${d[10] || "—"}</td>
+                    <td style="color:#64748b;font-size:11px;">${d[12] || "—"}</td>
                 </tr>`;
             }).join("");
 

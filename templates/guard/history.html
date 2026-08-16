@@ -480,6 +480,8 @@
                 else if (s === 'expired') expired++;
                 else failed++;
             });
+
+            
             // Only override the breakdown if we're on page 1 and no filters (fresh load)
             if (currentPage === 1 && activeFilter === 'all') {
                 document.getElementById('statAccepted').textContent = accepted;
@@ -487,6 +489,8 @@
                 document.getElementById('statFailed').textContent   = failed;
             }
         }
+
+        
 
         function renderTable(data, offset = 0) {
             const tbody = document.getElementById('histBody');
