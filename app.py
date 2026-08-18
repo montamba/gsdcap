@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 import secrets
 from datetime import datetime, timedelta
 
-
 load_dotenv()
 
 
@@ -20,9 +19,7 @@ class Main:
         self.app.secret_key = os.environ.get("SECRET_KEY", "gsd-parking-secret-key")
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-        self.app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
-            hours=1
-        )
+        self.app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=1)
 
         self.sql = SQL()
 
@@ -60,7 +57,7 @@ class Main:
 
             user = None
             if role == "admin":
-                
+
                 cur.execute(
                     "SELECT id, email, password FROM admin WHERE email=%s", (email,)
                 )
@@ -70,7 +67,6 @@ class Main:
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
                     (email, role),
                 )
-                
 
             user = cur.fetchone()
 
@@ -79,7 +75,7 @@ class Main:
 
             if role == "admin":
                 user = user + ("admin",)
-                
+
             cur.close()
 
             user_id, user_email, hashed_pw, user_role = user
@@ -114,6 +110,42 @@ class Main:
             return jsonify(
                 {"status": "Success", "message": "Login successful", "role": user_role}
             )
+
+        @self.app.route("/user/signup", methods=["POST"])
+        def signup():
+            data: dict = request.get_json()
+            username = data.get("username")
+            email: str = data.get("email")
+            password: str = data.get("password")
+            cpassword = data.get("cpassword")
+
+            if not username or not email or not password or not cpassword:
+                return (
+                    jsonify({"status": "failed", "message": "all fields are required"}),
+                    400,
+                )
+
+            if password != cpassword:
+                return jsonify({"status": "failed", "message": "password not match"})
+
+            if len(password.strip()) < 7:
+                return jsonify({"status": "failed", "message": "password is too short"})
+
+            emailexist = self.sql.getuserbyemail(email.strip())
+
+            if emailexist:
+                return jsonify({"status": "fail", "message": "email already exist"})
+
+            added = self.sql.adduser(username, email, password, "users")
+            if added:
+                return jsonify({"status": "good", "message": "signup successfully"})
+            return jsonify(
+                {"status": "failed", "message": "please try again"}
+            )
+
+        @self.app.route("/users/signuppage")
+        def usersignup():
+            return render_template("users/userssigup.html")
 
         @self.app.route("/auth/logout")
         def logout():

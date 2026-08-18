@@ -248,6 +248,17 @@
         let myPage  = 1;
         let myPages = 1;
 
+        // Escape HTML helper function to prevent XSS attacks
+        function escapeHTML(str) {
+            if (!str) return '—';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function makeCode() {
             const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
             const seg = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
@@ -296,8 +307,8 @@
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
 
             const payload = {
-                data:        code,
-                plate:       document.getElementById("plate").value.trim(),
+                data:         code,
+                plate:        document.getElementById("plate").value.trim(),
                 valid_until: document.getElementById("validuntil").value,
                 owner_name:  document.getElementById("owner_name").value.trim(),
                 owner_email: document.getElementById("owner_email").value.trim(),
@@ -351,13 +362,15 @@
             }
 
             myPages = res.pages;
+            
+            // Safely escape dynamic values to prevent XSS
             document.getElementById("qrBody").innerHTML = res.data.map((d, i) => `
                 <tr>
                     <td style="color:#94a3b8;">${(page-1)*LIMIT+i+1}</td>
-                    <td style="color:#2563eb;font-weight:700;font-size:11px;">${d[1]}</td>
-                    <td style="color:#334155;">${d[3] || "—"}</td>
-                    <td style="color:#334155;">${d[2] || "—"}</td>
-                    <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
+                    <td style="color:#2563eb;font-weight:700;font-size:11px;">${escapeHTML(d[1])}</td>
+                    <td style="color:#334155;">${escapeHTML(d[3])}</td>
+                    <td style="color:#334155;">${escapeHTML(d[2])}</td>
+                    <td style="color:#64748b;font-size:11px;">${escapeHTML(d[8])}</td>
                 </tr>`).join("");
 
             const info = `Page ${page} of ${res.pages}  (${res.total} total)`;

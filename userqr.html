@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>qr code</title>
+    <style>
+        .skeletor {
+            font:
+                1.7rem "rapscallion",
+                fantasy;
+            letter-spacing: 3px;
+            text-shadow:
+                1px 1px 0 white,
+                0 0 9px black;
+        }
+
+        .heman {
+  font:
+    1.4rem "molot",
+    sans-serif;
+  text-shadow:
+    1px 1px 1px white,
+    2px 2px 1px black;
+}
+hr {
+  border: none;
+  border-top: 3px double #333333;
+  color: #333333;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+hr::after {
+  background: rgb(145, 122, 122);
+  content: "§";
+  padding: 0 4px;
+  position: relative;
+  top: -13px;
+}
+
+    </style>
+</head>
+
+<body>
+
+
+    <div id="pendingqr">
+        <table>
+            <thead>
+                <th>No. </th>
+                <th class="skeletor">Request S</th>
+                <th></th>
+            </thead>
+            <tbody>
+                <template id="pqr">
+                    <tr>
+                        <td>try</td>
+                    </tr>
+                </template>
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <hr/>
+    <div class="request_qr">
+        <form id="requestqr">
+            <div>
+                <label for="plate">Plate</label>
+                <input id="plate" type="text" placeholder="123 ABC">
+            </div>
+
+            
+
+            <div>
+                <button>Request QR</button>
+            </div>
+        </form>
+
+
+    </div>
+</body>
+
+</html>

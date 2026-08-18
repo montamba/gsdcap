@@ -159,60 +159,135 @@
 
             return dbStatus || 'active';
         }
-        
+
+        function createEmptyRow(message) {
+            const tr = document.createElement("tr");
+            tr.className = "empty-row";
+            const td = document.createElement("td");
+            td.textContent = message;
+            tr.appendChild(td);
+            return tr;
+        }
 
         async function getRecentQR() {
             const res = await API.get("/staff/recentqr");
+            const recentBody = document.getElementById("recentBody");
+            recentBody.textContent = "";
+
             if (!res || res.status !== "good") {
-                document.getElementById("recentBody").innerHTML =
-                    `<tr class="empty-row"><td>No recent records</td></tr>`;
+                recentBody.appendChild(createEmptyRow("No recent records"));
                 return;
             }
-            document.getElementById("recentBody").innerHTML = res.data.map((d, i) => {
+
+            res.data.forEach((d, i) => {
                 const status = effectiveStatus(d[6], d[5]);
 
-                return `
-                <tr>
-                    <td style="color:#94a3b8;">${i + 1}</td>
-                    <td style="color:#2563eb;font-weight:700;font-size:11px;">${d[1]}</td>
-                    <td style="color:#334155;">${d[2] || "—"}</td>
-                    <td><span class="badge ${status}">${status}</span></td>
-                    <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
-                </tr>`;
-            }).join("");
+                const tr = document.createElement("tr");
+
+                const td1 = document.createElement("td");
+                td1.style.color = "#94a3b8";
+                td1.textContent = i + 1;
+
+                const td2 = document.createElement("td");
+                td2.style.color = "#2563eb";
+                td2.style.fontWeight = "700";
+                td2.style.fontSize = "11px";
+                td2.textContent = d[1];
+
+                const td3 = document.createElement("td");
+                td3.style.color = "#334155";
+                td3.textContent = d[2] || "—";
+
+                const td4 = document.createElement("td");
+                const span = document.createElement("span");
+                span.className = `badge ${status}`;
+                span.textContent = status;
+                td4.appendChild(span);
+
+                const td5 = document.createElement("td");
+                td5.style.color = "#64748b";
+                td5.style.fontSize = "11px";
+                td5.textContent = d[8] || "—";
+
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+                tr.appendChild(td5);
+
+                recentBody.appendChild(tr);
+            });
         }
 
         async function getAllQR(page = 1) {
             allPage = page;
             const res = await API.get(`/staff/all_qr?page=${page}&limit=${LIMIT}`);
-            console.log("im",res);
+            console.log("im", res);
+            
+            const allBody = document.getElementById("allBody");
+            allBody.textContent = "";
+
             if (!res || res.status !== "good") {
-                document.getElementById("allBody").innerHTML =
-                    `<tr class="empty-row"><td>No records yet</td></tr>`;
+                allBody.appendChild(createEmptyRow("No records yet"));
                 return;
             }
 
             allPages = res.pages;
 
-            document.getElementById("allBody").innerHTML = res.data.map((d, i) => {
+            res.data.forEach((d, i) => {
                 const status = effectiveStatus(d[6], d[5]);
-                return `
-                <tr>
-                    <td style="color:#94a3b8;">${(page - 1) * LIMIT + i + 1}</td>
-                    <td style="color:#2563eb;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d[1]}</td>
-                    <td style="color:#334155;">${d[2] || "—"}</td>
-                    <td><span class="badge ${status}">${status}</span></td>
-                    <td style="color:#64748b;font-size:11px;">${d[8] || "—"}</td>
-                    <td style="color:#64748b;font-size:11px;">${d[12] || "—"}</td>
-                </tr>`;
-            }).join("");
+
+                const tr = document.createElement("tr");
+
+                const td1 = document.createElement("td");
+                td1.style.color = "#94a3b8";
+                td1.textContent = (page - 1) * LIMIT + i + 1;
+
+                const td2 = document.createElement("td");
+                td2.style.color = "#2563eb";
+                td2.style.fontWeight = "700";
+                td2.style.fontSize = "11px";
+                td2.style.overflow = "hidden";
+                td2.style.textOverflow = "ellipsis";
+                td2.style.whiteSpace = "nowrap";
+                td2.textContent = d[1];
+
+                const td3 = document.createElement("td");
+                td3.style.color = "#334155";
+                td3.textContent = d[2] || "—";
+
+                const td4 = document.createElement("td");
+                const span = document.createElement("span");
+                span.className = `badge ${status}`;
+                span.textContent = status;
+                td4.appendChild(span);
+
+                const td5 = document.createElement("td");
+                td5.style.color = "#64748b";
+                td5.style.fontSize = "11px";
+                td5.textContent = d[8] || "—";
+
+                const td6 = document.createElement("td");
+                td6.style.color = "#64748b";
+                td6.style.fontSize = "11px";
+                td6.textContent = d[12] || "—";
+
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+                tr.appendChild(td5);
+                tr.appendChild(td6);
+
+                allBody.appendChild(tr);
+            });
 
             updatePager(res.total, page, res.pages);
         }
 
         async function updateStats() {
             d = await API.get("/staff/stats");
-            console.log(d)
+            console.log(d);
             const now = new Date();
             document.getElementById("statTotal").textContent = total;
 
@@ -237,7 +312,7 @@
             document.getElementById("btnNext").disabled = page >= pages;
 
             const nums = document.getElementById("pgNumbers");
-            nums.innerHTML = "";
+            nums.textContent = "";
             let start = Math.max(1, page - 2);
             let end   = Math.min(pages, start + 4);
             if (end - start < 4) start = Math.max(1, end - 4);

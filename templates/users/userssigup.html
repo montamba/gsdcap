@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="/../../static/css/staff.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
+    <script src="/../../static/scripts/scrit.js"></script>
+    <title>usersignup</title>
+</head>
+
+<body>
+    <form id="signup">
+        <div>
+            <label for="un">Username</label>
+            <input type="text" id="un" placeholder="username">
+        </div>
+        <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="email">
+        </div>
+        <div>
+            <label for="pwd">Password</label>
+            <input type="password" id="pwd" placeholder="password">
+        </div>
+        <div>
+            <label for="cpwd">Confirm Password</label>
+            <input type="password" id="cpwd" placeholder="password">
+        </div>
+
+        <div>
+            <label for="shwpass">show</label>
+            <input id="shwpass" type="checkbox">
+        </div>
+
+        <div>
+            <button>Submit</button>
+        </div>
+    </form>
+
+
+    <script>
+        document.getElementById("signup").addEventListener("submit", onSignup);
+
+        document.getElementById("shwpass").addEventListener("click", (e)=>{
+            let password = document.getElementById("pwd");
+            let cpassword = document.getElementById("cpwd");
+
+            let show = (e.target.checked)?"text":"password"
+            password.type = show
+            cpassword.type = show
+            
+        })
+
+        async function onSignup(e) {
+            e.preventDefault();
+
+            let username = document.getElementById("un").value;
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("pwd").value;
+            let cpassword = document.getElementById("cpwd").value;
+
+            let comp = {
+                "username":username,
+                "email":email,
+                "password":password,
+                "cpassword":cpassword
+
+            }
+
+            let res = await API.signup(comp);
+            console.log(res)
+
+        }
+    </script>
+</body>
+
+</html>

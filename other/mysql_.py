@@ -40,8 +40,7 @@ class SQL:
             self._commit()
             cur.close()
         except Exception as e:
-            print(f"[DB] vehicle column setup error: {e}") 
-            
+            print(f"[DB] vehicle column setup error: {e}")
 
     def _connect(self) -> mysql.MySQLConnection | None:
         for attempt in range(1, 6):
@@ -64,8 +63,6 @@ class SQL:
 
         print("[DB] All connection attempts failed.")
         return None
-    
-    
 
     def request_deletion(self, user_id: int) -> bool:
         """Mark a user's account as pending deletion (sets deletion_requested_at to NOW)."""
@@ -164,9 +161,10 @@ class SQL:
                 return
         except Exception as e:
             print(f"[DB] Ping failed ({e}), forcing fresh connection...")
-        
+
         # 3. If either check failed or threw an exception, recreate the connection
         self.sql = self._connect()
+
     # HELPERS ----------------------------------------------------
 
     def _hash(self, password: str) -> str:
@@ -528,6 +526,83 @@ class SQL:
             print(f"[DB] deleteqr error: {e}")
             return False
 
+    # ========================================================================================================= users
+    def fetchselfrequest(self, id):
+        try:
+            cur = self._cursor()
+            
+            cur.execute("""
+                        SELECT * FROM qrpending WHERE id=%s
+                        """, (id,))
+            
+            data = cur.fetchall()
+            
+            cur.close()
+            return data
+        except:
+            return None
+        
+        
+    
+    def addqrrequest(self, plate, owner_name, owner_email, created_by, vehicle_type, space_units):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """INSERT INTO 
+                    qrcode (plate, owner_name, owner_email, created_by, vehicle_type, space_units) 
+                    VALUES (%s,%s,%s,%s,%s,%s);
+                """,
+                (plate, owner_name, owner_email, created_by, vehicle_type, space_units),
+            )
+            self._commit()
+            
+            #-------------
+
+            cur.execute("SELECT id FROM qrcode WHERE plate=%s", (plate,))
+            uid = cur.fetchone()[0]
+            
+            # ------
+
+            cur.execute(
+                """INSERT INTO 
+                    qrpending (qrid, request_type, request_by) 
+                    VALUES (%s,%s,%s);
+                """,
+                (uid, "request_qr", created_by,),
+            )
+            self._commit()
+            
+
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] deleteqr error: {e}")
+            return False
+        
+    
+    def requestrenewal(self, id, data):
+        try:
+            cur = self._cursor()
+            
+            
+            cur.execute("SELECT id FROM qrcode WHERE data=%s", (id,))
+            qrid = cur.fetchone()[0]
+            
+            if not qrid:
+                return False
+            
+            cur.execute("""INSERT INTO 
+                        qrpending(qrid, request_type, request_by) 
+                        VALUES (%s,%s,%s)
+                        """, (qrid, "qr_renewal", id),)
+            self.sql.commit()
+            
+        except:
+            return False
+        
+        return True
+     
+
     # ──────────────────────────────────────────────────────────────
     # HISTORY QUERIES
     # ──────────────────────────────────────────────────────────────
@@ -732,7 +807,7 @@ class SQL:
         valid_until: str = "",
     ) -> bool:
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", 587))
+        smtp_port = int(os.getenv("SMTP_PORT", 465))
         smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
         smtp_pass = os.getenv("SMTP_PASSWORD", "")
 
