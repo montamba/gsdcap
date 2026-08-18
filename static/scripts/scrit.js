@@ -101,7 +101,7 @@ function showMessageModal(text, texttitle = "Notice") {
  * Loading Spinner Utilities
  */
 function loadImage() {
-    const loadingGif = "../load.gif";
+    const loadingGif = "/load.gif";
     const image = new Image();
     image.src = loadingGif;
     image.alt = "Loading...";
