@@ -101,7 +101,7 @@ function showMessageModal(text, texttitle = "Notice") {
  * Loading Spinner Utilities
  */
 function loadImage() {
-    const loadingGif = "https://cssbud.com/wp-content/uploads/2022/05/working.gif";
+    const loadingGif = "../load.gif";
     const image = new Image();
     image.src = loadingGif;
     image.alt = "Loading...";
