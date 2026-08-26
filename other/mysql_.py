@@ -235,6 +235,17 @@ class SQL:
         except Exception as e:
             print(f"[DB] getuserbyemail error: {e}")
             return None
+        
+    def getuserbyemailandrole(self, email: str, role:str):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT * FROM users WHERE email=%s AND role=%s", (email, role,))
+            result = cur.fetchone()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getuserbyemailandrole error: {e}")
+            return None
 
     def getuserbyusername(self, username: str):
         try:
@@ -527,20 +538,36 @@ class SQL:
             return False
 
     # ========================================================================================================= users
-    def fetchselfrequest(self, id):
+    def fetchselfrequest(self, email, limit, offset):
         try:
             cur = self._cursor()
             
             cur.execute("""
-                        SELECT * FROM qrpending WHERE id=%s
-                        """, (id,))
+                        SELECT qrpending.*, qrcode.created_at FROM qrpending LEFT JOIN  qrcode ON qrpending.qrid = qrcode.id WHERE qrcode.owner_email=%s LIMIT=%s OFFSET=%s
+                        """, (email,limit,offset))
             
             data = cur.fetchall()
             
             cur.close()
             return data
-        except:
+        except Exception as e:
+            print(f"[DB] fetchselfrequest error: {e}")
             return None
+        
+    def countallselfrequest(self, id):
+        try:
+            cur = self._cursor()
+                    
+            cur.execute("""SELECT COUNT(*) FROM qrpending WHERE request_by=%s""", (id,))
+                    
+            data = cur.fetchone()[0]
+                    
+            cur.close()
+            return data
+        except Exception as e:
+            print(f"[DB] fetchselfrequest error: {e}")
+            return None
+        
         
         
     
@@ -576,7 +603,7 @@ class SQL:
             cur.close()
             return True
         except Exception as e:
-            print(f"[DB] deleteqr error: {e}")
+            print(f"[DB] addqrrequest error: {e}")
             return False
         
     

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/../../static/scripts/scrit.js"></script>
+    <title>qr code</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+
+    <div id="pendingqr">
+        <table>
+            <thead>
+                <tr>
+                    <th>No. </th>
+                    <th>Request Status</th>
+                    <th>Request date</th>
+                </tr>
+            </thead>
+            <tbody id="qrs">
+
+
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="request_qr">
+        <form id="requestqr">
+            <div>
+                <label for="plate">Plate</label>
+                <input id="plate" type="text" placeholder="123 ABC">
+            </div>
+            <div>
+                <label for="email">Email</label>
+                <input type="email" value="Sample@email.com" readonly>
+            </div>
+            <div>
+                <button>Request QR</button>
+            </div>
+        </form>
+
+
+    </div>
+    <script>
+        let LIMIT = 5;
+        let PAGE = 1;
+
+        async function fetchData() {
+            try {
+                let data = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
+                if (data) {
+                    // Expecting data shape: { requests: [...], pages: X }
+                    // Adjust data.requests if your backend key differs
+                    renderRequestQr(data.requests || data.data || []);
+                    renderPagination(data.pages || 1);
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        function renderRequestQr(qrdata = []) {
+            let qrs = document.getElementById("qrs");
+            qrs.textContent = "";
+
+            // Display empty state row if no data exists
+            if (!qrdata || qrdata.length === 0) {
+                qrs.innerHTML = `
+                <tr>
+                    <td colspan="3" style="text-align: center;">No data available</td>
+                </tr>`;
+                return;
+            }
+
+            // Build HTML string to update DOM once
+            let rowsHtml = "";
+            qrdata.forEach((val) => {
+                rowsHtml += `<tr>
+                <td>${escapeHTML(val[ 0 ])}</td>
+                <td>${escapeHTML(val[ 1 ])}</td>
+                <td>${escapeHTML(val[ 2 ])}</td>
+            </tr>`;
+            });
+            qrs.innerHTML = rowsHtml;
+        }
+
+        function renderPagination(totalPages) {
+            let container = document.getElementById("pagination");
+
+            // Dynamic container creation inside #pendingqr if missing
+            if (!container) {
+                container = document.createElement("div");
+                container.id = "pagination";
+                document.getElementById("pendingqr").appendChild(container);
+            }
+
+            container.innerHTML = `
+            <button id="prevBtn" ${PAGE <= 1 ? 'disabled' : ''}>Previous</button>
+            <span>Page ${PAGE} of ${totalPages}</span>
+            <button id="nextBtn" ${PAGE >= totalPages ? 'disabled' : ''}>Next</button>
+        `;
+
+            document.getElementById("prevBtn").onclick = () => {
+                if (PAGE > 1) {
+                    PAGE--;
+                    fetchData();
+                }
+            };
+
+            document.getElementById("nextBtn").onclick = () => {
+                if (PAGE < totalPages) {
+                    PAGE++;
+                    fetchData();
+                }
+            };
+        }
+
+        // Call initial fetch on load
+        fetchData();
+    </script>
+</body>
+
+</html>

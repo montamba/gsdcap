@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, jsonify, session, redirect, u
 from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
+from other.users import Users
 from functools import wraps
 from other.mysql_ import SQL
 import bcrypt
@@ -9,6 +10,7 @@ import os
 from dotenv import load_dotenv
 import secrets
 from datetime import datetime, timedelta
+
 
 load_dotenv()
 
@@ -46,7 +48,6 @@ class Main:
             password = data.get("password")
             role = data.get("role")
 
-            print("goods collect")
 
             if not email or not password or not role:
                 return jsonify(
@@ -62,7 +63,7 @@ class Main:
                     "SELECT id, email, password FROM admin WHERE email=%s", (email,)
                 )
                 print("end check")
-            elif role in ("users", "guard", "staff"):
+            elif role in ("user", "guard", "staff"):
                 cur.execute(
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
                     (email, role),
@@ -71,7 +72,7 @@ class Main:
             user = cur.fetchone()
 
             if not user:
-                return jsonify({"status": "failed", "message": "no user"})
+                return jsonify({"status": "failed", "message": "Invalid email or password "})
 
             if role == "admin":
                 user = user + ("admin",)
@@ -95,7 +96,7 @@ class Main:
                 password_matches = password == hashed_pw
 
             if not password_matches:
-                return jsonify({"status": "failed", "message": "Invalid credentials"})
+                return jsonify({"status": "failed", "message": "Invalid email or password"})
 
             token = role + " " + secrets.token_urlsafe(32)
             expired = datetime.now() + timedelta(hours=1)
@@ -110,6 +111,8 @@ class Main:
             return jsonify(
                 {"status": "Success", "message": "Login successful", "role": user_role}
             )
+            
+       
 
         @self.app.route("/user/signup", methods=["POST"])
         def signup():
@@ -131,21 +134,27 @@ class Main:
             if len(password.strip()) < 7:
                 return jsonify({"status": "failed", "message": "password is too short"})
 
-            emailexist = self.sql.getuserbyemail(email.strip())
+            emailexist = self.sql.getuserbyemailandrole(email.strip(),"user")
 
             if emailexist:
                 return jsonify({"status": "fail", "message": "email already exist"})
 
-            added = self.sql.adduser(username, email, password, "users")
+            added = self.sql.adduser(username, email, password, "user")
             if added:
                 return jsonify({"status": "good", "message": "signup successfully"})
             return jsonify(
-                {"status": "failed", "message": "please try again"}
+                {"status": "failed", "message": "please try again "}
             )
 
-        @self.app.route("/users/signuppage")
+        @self.app.route("/user/signuppage")
         def usersignup():
             return render_template("users/userssigup.html")
+        
+        
+        @self.app.route("/user/signin")
+        def usersignin():
+            return render_template("users/usersignin.html")
+            
 
         @self.app.route("/auth/logout")
         def logout():
@@ -173,6 +182,7 @@ class Main:
         self.app.register_blueprint(Admin(self.sql).admin)
         self.app.register_blueprint(Staff(self.sql).staff)
         self.app.register_blueprint(Guard(self.sql).guard)
+        self.app.register_blueprint(Users(self.sql).users)
 
 
 app_instance = Main()

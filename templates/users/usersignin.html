@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="/../static/css/message.css">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <title>GSD Parking — Register</title>
+    <title>GSD Parking — Login</title>
     <style>
         * { padding: 0; margin: 0; box-sizing: border-box; }
 
@@ -66,6 +65,7 @@
             width: 420px;
             background: #ffffff;
             border: 2px solid;
+
             box-shadow: 0 20px 60px rgba(37,99,235,0.12), 0 4px 16px rgba(0,0,0,0.06);
             overflow: hidden;
             border-radius: 10px;
@@ -81,31 +81,88 @@
             background: linear-gradient(90deg, #2563eb, #0ea5e9, #2563eb);
         }
 
-        .header-title {
-            padding: 32px 40px 12px;
-            text-align: center;
+        .logos {
+            padding: 32px 40px 24px;
+            background: #f5f9ff;
+            border-bottom: 1px solid #ddeaff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
 
-        .header-title h3 {
-            font-size: 22px;
+        .logo-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(37,99,235,0.3);
+            margin-bottom: 4px;
+        }
+
+        .logos h3 {
+            font-size: 18px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: 0.02em;
         }
 
-        .header-title p {
+        .logos p {
             font-size: 11px;
             color: #94a3b8;
             font-family: 'Space Mono', monospace;
             letter-spacing: 0.1em;
-            margin-top: 4px;
         }
 
         .forform {
-            padding: 12px 40px 30px;
+            padding: 28px 40px 36px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 16px;
+        }
+
+        /* Role selector */
+        .role {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .role button {
+            padding: 10px 6px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #64748b;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            letter-spacing: 0.02em;
+            border-radius: 7px;
+        }
+
+        .role button:hover {
+            color: #334155;
+            background: rgba(255,255,255,0.7);
+        }
+
+        .role button.active {
+            background: #ffffff;
+            border: 1px solid #c7d9f5;
+            color: #2563eb;
+            box-shadow: 0 1px 6px rgba(37,99,235,0.1);
         }
 
         /* Form fields */
@@ -125,7 +182,7 @@
         }
 
         .con input {
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: #f8faff;
             border: 1.5px solid #c7d9f5;
             color: #0f172a;
@@ -162,27 +219,6 @@
             width: 14px; height: 14px;
             accent-color: #2563eb;
             cursor: pointer;
-        }
-
-        /* Login Redirect Link */
-        .login-redirect {
-            text-align: right;
-            font-size: 12px;
-            font-family: 'Space Mono', monospace;
-            color: #64748b;
-            margin-top: -2px;
-        }
-
-        .login-redirect a {
-            color: #2563eb;
-            font-weight: 700;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .login-redirect a:hover {
-            color: #0ea5e9;
-            text-decoration: underline;
         }
 
         /* Submit button */
@@ -229,6 +265,26 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Sign up link section */
+        .signup-prompt {
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .signup-prompt a {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .signup-prompt a:hover {
+            color: #0ea5e9;
+            text-decoration: underline;
+        }
+
         /* Bottom tag */
         .tag {
             text-align: center;
@@ -243,117 +299,94 @@
 
         @media(max-width:500px){
             .maincontainer{
-                scale: 0.85;
+                scale:0.75;
             }
         }
     </style>
 </head>
-
 <body>
     <div class="blob1"></div>
     <div class="blob2"></div>
 
     <div class="maincontainer">
-        <div class="header-title">
-            <h3>USER Account</h3>
-            <p>GSD PARKING SYSTEM</p>
+        <div class="logos">
+            <div class="logo-icon">
+                <i class="bi bi-car-front-fill"></i>
+            </div>
+            <h3>GSD Users</h3>
+            <p>VEHICLE MONITORING SYSTEM</p>
         </div>
 
-        <form id="signup" class="forform" onsubmit="onSignup(event)">
-            <div class="con">
-                <label for="un">Username</label>
-                <input id="un" type="text" placeholder="Enter username" required>
-            </div>
-
+        <div class="forform">
             <div class="con">
                 <label for="email">Email Address</label>
                 <input id="email" type="email" placeholder="Enter your email" required>
             </div>
 
             <div class="con">
-                <label for="pwd">Password</label>
-                <input id="pwd" type="password" placeholder="Create password" required>
-            </div>
-
-            <div class="con">
-                <label for="cpwd">Confirm Password</label>
-                <input id="cpwd" type="password" placeholder="Confirm password" required>
+                <label for="password">Password</label>
+                <input id="password" type="password" placeholder="Enter your password" required>
             </div>
 
             <div class="showpass">
-                <input id="shwpass" type="checkbox">
-                <label for="shwpass">Show password</label>
-            </div>
-
-            <div class="login-redirect">
-                Already have an account? <a href="/user/signin">Sign In</a>
+                <input id="passhow" onclick="showPassword()" type="checkbox">
+                <label for="passhow">Show password</label>
             </div>
 
             <div class="submit">
-                <button type="submit" id="submitBtn">
+                <button onclick="login(this)">
                     <div class="in">
-                        <i class="bi bi-person-check-fill"></i>&nbsp;Register Account
+                        <i class="bi bi-box-arrow-in-right"></i>&nbsp;Sign In
                     </div>
                 </button>
             </div>
-        </form>
+
+            <div class="signup-prompt">
+                Don't have an account? <a href="/user/signuppage">Sign up</a>
+            </div>
+        </div>
 
         <div class="tag">GSD PARKING MONITORING v1.0 — SECURE ACCESS</div>
     </div>
 
     <script src="/../../static/scripts/scrit.js"></script>
     <script>
-        document.getElementById("shwpass").addEventListener("change", (e) => {
-            let password = document.getElementById("pwd");
-            let cpassword = document.getElementById("cpwd");
-            let type = e.target.checked ? "text" : "password";
-            password.type = type;
-            cpassword.type = type;
-        });
+        function showPassword(){
+            let checkbox = document.getElementById("passhow");
+            document.getElementById("password").type = (checkbox.checked) ? "text" : "password";
+        }
 
-        async function onSignup(e) {
-            e.preventDefault();
+        async function login(element){
+            let email = document.getElementById("email").value.trim()
+            let password = document.getElementById("password").value
 
-            let username = document.getElementById("un").value.trim();
-            let email = document.getElementById("email").value.trim();
-            let password = document.getElementById("pwd").value;
-            let cpassword = document.getElementById("cpwd").value;
+            if(!email){ alert("Enter email"); return }
+            if(password.length < 3){ alert("Password too short"); return }
 
-            if (password !== cpassword) {
-                alert("Passwords do not match");
-                return;
+            let data = {
+                'email': email,
+                'password': password,
+                'role': "user"
             }
 
-            let comp = {
-                "username": username,
-                "email": email,
-                "password": password,
-                "cpassword": cpassword
-            };
+            let inner = element.querySelector(".in")
+            inner.innerHTML = `<i class="bi bi-arrow-clockwise"></i>`
+            inner.classList.add("rotate")
+            element.disabled = true
 
-            let submitBtn = document.getElementById("submitBtn");
-            let inner = submitBtn.querySelector(".in");
-            inner.innerHTML = `<i class="bi bi-arrow-clockwise"></i>`;
-            inner.classList.add("rotate");
-            submitBtn.disabled = true;
+            let res = await API.login(data);
 
-            try {
-                let res = await API.signup(comp);
-                showMessageModal(res.message,res.status);
-                if( res.status === "good"){
-                    document.getElementById("signup").reset();
-                }
+            inner.innerHTML = `<i class="bi bi-box-arrow-in-right"></i>&nbsp;Sign In`
+            inner.classList.remove("rotate")
+            element.disabled = false
 
-                console.log(res);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                inner.innerHTML = `<i class="bi bi-person-check-fill"></i>&nbsp;Register Account`;
-                inner.classList.remove("rotate");
-                submitBtn.disabled = false;
+            if(res.status === "Success"){
+                window.location.href = "/users/home";
+                
+            } else {
+                showMessageModal(res.message, res.status)
             }
         }
     </script>
 </body>
-
 </html>

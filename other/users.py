@@ -1,10 +1,12 @@
-from flask import Blueprint, session, request, redirect,jsonify
+from flask import Blueprint, session, request, redirect,jsonify, render_template
 from other.mysql_ import SQL
 
 class Users:
     def __init__(self, sql):
         self.users = Blueprint("users",__name__, url_prefix="/users")
         self.sql:SQL = sql
+        
+        self.routes()
         
         
     def _protect(self):
@@ -23,17 +25,31 @@ class Users:
     
     def routes(self):
         #self.staff.before_request(self._protect)
+        
+        @self.users.route("/home")
+        def home():
+            return render_template("users/userqr.html")
     
     
     
         
             
     
-        @self.users.route("/get_request")
+        @self.users.route("/get_request", methods=["GET"])
         def get_request():
-            res = self.sql.fetchselfrequest(session["users_id"])
+            limit = int(request.args.get("limit",5))
+            page = int(request.args.get("page",1))
+            page = (page-1) * limit
+            res = self.sql.fetchselfrequest(session["email"], limit, page)
+            total = self.sql.countallselfrequest(session["id"])
             
-            return res
+            
+            
+            return jsonify({
+                "status":"success",
+                "data":res,
+                "pages":total
+            })
     
         @self.users.route("/add_request")
         def add_request():
