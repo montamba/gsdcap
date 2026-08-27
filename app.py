@@ -50,8 +50,8 @@ class Main:
         def login():
             data = request.get_json()
             email = data.get("email").strip()
-            password = data.get("password")
-            role = data.get("role")
+            password = data.get("password").strip()
+            role = data.get("role").strip()
 
 
             if not email or not password or not role:
@@ -122,10 +122,10 @@ class Main:
         @self.app.route("/user/signup", methods=["POST"])
         def signup():
             data: dict = request.get_json()
-            username = data.get("username")
-            email: str = data.get("email")
-            password: str = data.get("password")
-            cpassword = data.get("cpassword")
+            username = data.get("username").strip()
+            email: str = data.get("email").strip()
+            password: str = data.get("password").strip()
+            cpassword = data.get("cpassword").strip()
 
             if not username or not email or not password or not cpassword:
                 return (

@@ -45,8 +45,8 @@ class MainAdmin:
         @self.mainadmin.route("/generate_token", methods=["POST"])
         def generate():
             data: dict = request.get_json()
-            email = data.get("email", "")
-            password = data.get("password", "")
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
 
             check = self.sql.check_magic(email, password)
             if not check:
@@ -64,9 +64,9 @@ class MainAdmin:
             if not valid:
                 return jsonify({"status": "mad", "message": "Fail"})
 
-            email = data.get("email")
-            password = data.get("password")
-            username = data.get('username')
+            email = data.get("email").strip()
+            password = data.get("password").strip()
+            username = data.get('username').strip()
             
 
             emailexist = self.sql.getadminbyemail(email)
