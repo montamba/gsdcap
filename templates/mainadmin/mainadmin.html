@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Admin Dashboard</title>
+    <!-- Bootstrap Icons for Modal Close Icon & Eye Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .card p.subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper input {
+            padding-right: 40px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-btn:hover {
+            color: var(--text-main);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        /* Modal Base Styling */
+        dialog#message-modal {
+            margin: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        dialog#message-modal::backdrop {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .messagex {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Loading Overlay Base Styles */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            display: grid;
+            place-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Step 1: Authorization Panel (Hidden after authentication) -->
+        <div class="card" id="authCard">
+            <h2>1. Authorize Session</h2>
+            <p class="subtitle">Authenticate with magic credentials to issue a temporary 1-hour token.</p>
+            <form id="genTokenForm">
+                <div class="form-group">
+                    <label for="magicEmail">Magic Email</label>
+                    <input type="email" id="magicEmail" required placeholder="admin@magic.com">
+                </div>
+                <div class="form-group">
+                    <label for="magicPassword">Magic Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="magicPassword" required placeholder="••••••••">
+                        <button type="button" class="toggle-btn" data-target="magicPassword" aria-label="Toggle password visibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Generate Token & Proceed</button>
+            </form>
+        </div>
+
+        <!-- Step 2: Add New Admin (Main Workspace) -->
+        <div class="card" id="adminCard">
+            <h2>2. Add Admin Account</h2>
+            <p class="subtitle">Use an active authorization token to register a new admin user.</p>
+            <form id="addAdminForm">
+                <div class="form-group">
+                    <label for="authToken">Auth Token</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="authToken" required placeholder="Generate session token first">
+                        <button type="button" class="toggle-btn" data-target="authToken" aria-label="Toggle token visibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newAdminUsername">New Admin Username</label>
+                    <input type="text" id="newAdminUsername" required placeholder="admin_username">
+                </div>
+                <div class="form-group">
+                    <label for="newAdminEmail">New Admin Email</label>
+                    <input type="email" id="newAdminEmail" required placeholder="new.admin@domain.com">
+                </div>
+                <div class="form-group">
+                    <label for="newAdminPassword">New Admin Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="newAdminPassword" required placeholder="••••••••">
+                        <button type="button" class="toggle-btn" data-target="newAdminPassword" aria-label="Toggle password visibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Add Admin</button>
+                <button type="button" id="btnReauth" class="btn btn-secondary">Re-authorize Session</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- API & Utility wrapper script -->
+    <script src="/../../static/scripts/scrit.js"></script>
+
+    <!-- UI Handler Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const authCard = document.getElementById("authCard");
+            const adminCard = document.getElementById("adminCard");
+            const genTokenForm = document.getElementById("genTokenForm");
+            const addAdminForm = document.getElementById("addAdminForm");
+            const authTokenInput = document.getElementById("authToken");
+            const btnReauth = document.getElementById("btnReauth");
+
+            // Utility to show/hide authentication panel
+            function setSessionAuthorized(isAuthorized, token = "") {
+                if (isAuthorized) {
+                    authCard.classList.add("hidden");
+                    adminCard.classList.remove("hidden");
+                    authTokenInput.value = token;
+                } else {
+                    authCard.classList.remove("hidden");
+                    authTokenInput.value = "";
+                    document.getElementById("magicPassword").value = "";
+                }
+            }
+
+            // Universal Password / Token Visibility Toggle Listener
+            document.querySelectorAll(".toggle-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetId = btn.getAttribute("data-target");
+                    const inputField = document.getElementById(targetId);
+                    const icon = btn.querySelector("i");
+
+                    if (inputField.type === "password") {
+                        inputField.type = "text";
+                        icon.classList.replace("bi-eye", "bi-eye-slash");
+                    } else {
+                        inputField.type = "password";
+                        icon.classList.replace("bi-eye-slash", "bi-eye");
+                    }
+                });
+            });
+
+            // Handle Token Generation
+            genTokenForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById("magicEmail").value.trim();
+                const password = document.getElementById("magicPassword").value.trim();
+
+                const response = await API.post("/mainadmin/generate_token", { email, password });
+
+                if (response.status === "good") {
+                    setSessionAuthorized(true, response.message);
+                    showMessageModal("Authorization token generated successfully!", "Success");
+                } else {
+                    showMessageModal(response.message || "Failed to generate token.", "Error");
+                }
+            });
+
+            // Handle Adding New Admin
+            addAdminForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const token = authTokenInput.value.trim();
+                const username = document.getElementById("newAdminUsername").value.trim();
+                const email = document.getElementById("newAdminEmail").value.trim();
+                const password = document.getElementById("newAdminPassword").value.trim();
+
+                const response = await API.post("/mainadmin/add_admin", { token, username, email, password });
+
+                if (response.status === "good") {
+                    showMessageModal(response.message, "Success");
+                    document.getElementById("newAdminUsername").value = "";
+                    document.getElementById("newAdminEmail").value = "";
+                    document.getElementById("newAdminPassword").value = "";
+                } else if (response.status === "mad") {
+                    // Token expired or invalid: reset session and show login panel again
+                    setSessionAuthorized(false);
+                    showMessageModal(response.message || "Session expired or invalid token. Please authenticate again.", "Authentication Required");
+                } else {
+                    // Handles bad requests like "email already exist" without logging out
+                    showMessageModal(response.message || "Could not add admin.", "Error");
+                }
+            });
+
+            // Manual re-authorization trigger
+            btnReauth.addEventListener("click", () => {
+                setSessionAuthorized(false);
+            });
+        });
+    </script>
+</body>
+</html>

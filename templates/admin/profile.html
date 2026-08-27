@@ -159,6 +159,15 @@
             font-size: 11px; color: #94a3b8;
             letter-spacing: .04em;
         }
+
+        .hiddenpassback{
+            position: absolute;
+            top: 0;left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(128, 128, 128, 0.6);
+            
+        }
     </style>
 </head>
 <body>
@@ -221,6 +230,39 @@
 
             <div class="form-card">
                 <div class="section-title">
+                    <i class="bi bi-person-fill"></i> Change Username
+                </div>
+                <div class="form-body">
+                    <div class="form-group">
+                        <label>New Username Address</label>
+                        <input type="email" id="newUsername" placeholder="Enter new username address">
+                    </div>
+                    <button class="btn-save" id="btnEmail" onclick="saveEmail()">
+                        <i class="bi bi bi-person-fill"></i> Update Username
+                    </button>
+                </div>
+            </div>
+
+            <div class="hiddenpassback">
+                <div class="hiddenPass">
+                    <div class="form-body">
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="email" id="hcpass" placeholder="Enter new username address">
+                        </div>
+                        <button class="btn-save" id="btnEmail" onclick="saveEmail()">
+                            <i class="bi bi bi-person-fill"></i> confirm
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            
+
+            <div class="form-card">
+                <div class="section-title">
                     <i class="bi bi-envelope-fill"></i> Change Email
                 </div>
                 <div class="form-body">
@@ -275,6 +317,14 @@
                 document.getElementById("dispEmail").textContent     = res.email    || "—";
                 document.getElementById("newEmail").placeholder      = res.email    || "Enter new email address";
             }
+        }
+
+        function changeUsername(){
+            let username = document.getElementById("newPassword").value;
+            let fillPassword = document.getElementById("hcpass").value;
+
+
+            //let res = API.post("/")
         }
 
         

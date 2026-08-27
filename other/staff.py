@@ -249,6 +249,7 @@ class Staff:
             valid_until = data.get("valid_until")
             owner_name = (data.get("owner_name") or "").strip()
             owner_email = (data.get("owner_email") or "").strip()
+            owner_number = (data.get("owner_number") or "").strip()
             vehicle_type = (data.get("vehicle_type") or "car").strip().lower()
 
             if not qr_data:
@@ -269,6 +270,7 @@ class Staff:
                     session["user_id"],
                     owner_name,
                     owner_email,
+                    owner_number,
                     vehicle_type,
                 )
                 self.cache.deletethathas("qrcode")

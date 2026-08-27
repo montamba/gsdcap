@@ -1,15 +1,17 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 import json, os
 from other.cache import cache
+from other.mysql_ import SQL
 
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
 
 
+
 class Admin:
     def __init__(self, sql):
         self.admin = Blueprint("admin", __name__, url_prefix="/admin")
-        self.sql = sql
+        self.sql:SQL = sql
         self.cache = cache
 
         self.routes()
@@ -137,7 +139,6 @@ class Admin:
                 ]
                 for u in users
             ]
-            print("helllo: ",users)
             return jsonify(
                 {
                     "status": "good",
@@ -375,6 +376,27 @@ class Admin:
             if not row:
                 return jsonify({"status": "bad", "message": "Admin not found"})
             return jsonify({"status": "good", "username": row[0], "email": row[1]})
+        
+        @self.admin.route("/update_username")
+        def update_username():
+            data:dict = request.get_json()
+            username = data.get("newusername")
+            password = data.get("password")
+            
+            if len(username) < 3:
+                return jsonify({"status": "bad", "message": "Invalid email"})
+            
+            valid_password = self.sql.verifyuser(session["email"], password)
+            if not valid_password:
+                return jsonify({"status": "bad", "message": "Invalid email"})
+            
+            chg = self.sql.change_admin_username(username, session["email"])
+            
+            if chg:
+                return jsonify({"status": "good", "message": "Username updated successfully"})
+                
+            return jsonify({"status": "bad", "message": "Something went wrong please try again"})
+            
 
         @self.admin.route("/update_email", methods=["PUT"])
         def update_email():

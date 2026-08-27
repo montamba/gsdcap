@@ -93,6 +93,8 @@ class SQL:
         except Exception as e:
             print(f"[DB] restore_user error: {e}")
             return False
+        
+    
 
     def get_pending_deletions(self):
         """Return all users who have requested account deletion."""
@@ -469,6 +471,7 @@ class SQL:
         created_by,
         owner_name: str = "",
         owner_email: str = "",
+        owner_number:str = "",
         vehicle_type: str = "car",
     ) -> bool:
         try:
@@ -477,12 +480,13 @@ class SQL:
             cur = self._cursor()
             cur.execute(
                 """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by, vehicle_type, space_units)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     data,
                     plate,
                     owner_name,
                     owner_email,
+                    owner_number,
                     expiry,
                     created_by,
                     vehicle_type,
@@ -571,22 +575,24 @@ class SQL:
         
         
     
-    def addqrrequest(self, plate, owner_name, owner_email, created_by, vehicle_type, space_units):
+    def addqrrequest(self, plate, owner_name, owner_email, owner_phone, created_by, vehicle_type):
         try:
+            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
+            space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
             cur.execute(
                 """INSERT INTO 
-                    qrcode (plate, owner_name, owner_email, created_by, vehicle_type, space_units) 
-                    VALUES (%s,%s,%s,%s,%s,%s);
+                    qrcode (plate, owner_name, owner_email, owner_phone, created_by, vehicle_type, space_units) 
+                    VALUES (%s,%s,%s,%s,%s,%s,%s);
                 """,
-                (plate, owner_name, owner_email, created_by, vehicle_type, space_units),
+                (plate, owner_name, owner_email, owner_phone, created_by, vehicle_type, space_units),
             )
             self._commit()
             
             #-------------
 
             cur.execute("SELECT id FROM qrcode WHERE plate=%s", (plate,))
-            uid = cur.fetchone()[0]
+            qid = cur.fetchone()[0]
             
             # ------
 
@@ -595,7 +601,7 @@ class SQL:
                     qrpending (qrid, request_type, request_by) 
                     VALUES (%s,%s,%s);
                 """,
-                (uid, "request_qr", created_by,),
+                (qid, "request_qr", created_by,),
             )
             self._commit()
             
@@ -776,6 +782,19 @@ class SQL:
         except Exception as e:
             print(f"[DB] updateparking error: {e}")
             return False
+        
+    def change_admin_username(self, new_username, email):
+        try:
+            cur = self._cursor()
+            
+            cur.execute("UPDATE admin SET username=%s WHERE email=%s",(new_username,email,))
+            
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] get_total_scan error: {e}")
+            return False
 
     def get_total_entry_exit(self) -> dict:
         try:
@@ -806,6 +825,67 @@ class SQL:
         except Exception as e:
             print(f"[DB] get_total_scan error: {e}")
             return 0
+        
+    #===================================main admin
+    def getadminbyemail(self, email):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT * FROM admin WHERE email=%s", (email,))
+            admin  = cur.fetchone()[0]
+            if admin:
+                return True
+                    
+            return False
+        except Exception as e:
+            print(f"[DB] check_magic error: {e}")
+            return False
+        
+    def check_magic(self, email, password):
+        
+        try:
+            cur = self._cursor()
+            print("num1")
+            cur.execute("SELECT * FROM admin WHERE email=%s", (email,))
+            print("num2")
+            admin  = cur.fetchone()
+            print(admin)
+            print("num3")
+            if not admin:
+                return False
+            
+            print("num4")
+            check = self._check(password, admin[3])
+            print("num5")
+            passmathc = password == admin[3]
+            
+            cur.close()
+            if check or passmathc:
+                return True
+            
+            return False
+        except Exception as e:
+            print(f"[DB] check_magic error: {e}")
+            return False
+        
+        
+    def add_admin(self, username, email, password):
+        try:
+            cur = self._cursor()
+            
+            passhash = self._hash(password)
+            
+            cur.execute(
+                "INSERT INTO admin(username, email, password) VALUES (%s,%s,%s)",
+                (username, email, passhash,),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] add_admin error: {e}")
+            return False
+        
+        
 
     # ──────────────────────────────────────────────────────────────
     # EMAIL
@@ -834,7 +914,7 @@ class SQL:
         valid_until: str = "",
     ) -> bool:
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", 465))
+        smtp_port = int(os.getenv("SMTP_PORT", 587))
         smtp_user = os.getenv("SMTP_EMAIL", "gsdparking@gmail.com")
         smtp_pass = os.getenv("SMTP_PASSWORD", "")
 

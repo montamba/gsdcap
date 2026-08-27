@@ -51,28 +51,41 @@ class Users:
                 "pages":total
             })
     
-        @self.users.route("/add_request")
+        @self.users.route("/add_request", methods=["POST"])
         def add_request():
-            
             data:dict = request.get_json()
-            plate = data.get("plate")
-            owner = data.get("user_name")
-            email = data.get("email")
-            vtype = data.get("vtype")
-            vspace = data.get("vspace")
+            plate = (data.get("plate")).strip()
+            owner = (data.get("user_name")).strip()
+            email = (data.get("email")).strip()
+            phone = (data.get("phone")).strip()
+            vtype = (data.get("vtype")).strip()
             
-            res = self.sql.addqrrequest(plate, owner, email,session["user_id"],vtype,vspace)
+            required_fields = [plate, owner, email, phone, vtype]
+
+            if not all(required_fields):
+                return jsonify({"error": "All fields are required"}), 400
+            
+            if email != session["email"]:
+                return jsonify({
+                    "status":"failed",
+                    "message":"Did you just change the email?"
+                })
+                
+            
+            
+            res = self.sql.addqrrequest(plate, owner, session["email"], phone, session["user_id"],vtype)
+            
             
             if res:
-                return {
+                return jsonify({
                     "status":"good",
                     "message":"successfully added the request"
-                }
+                })
                 
-            return {
+            return jsonify({
                     "status":"failed",
                     "message":"please try again "
-                }
+                })
             
             
             

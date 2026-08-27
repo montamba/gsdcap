@@ -14,40 +14,62 @@
 <body>
 
 
-    <div id="pendingqr">
-        <table>
-            <thead>
-                <tr>
-                    <th>No. </th>
-                    <th>Request Status</th>
-                    <th>Request date</th>
-                </tr>
-            </thead>
-            <tbody id="qrs">
+
+    <div class="right">
+        <div id="pendingqr">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. </th>
+                        <th>Request Status</th>
+                        <th>Request date</th>
+                    </tr>
+                </thead>
+                <tbody id="qrs">
 
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
 
+        </div>
+
+        <div class="request_qr">
+            <form id="requestqr" onsubmit="requestqr(event)">
+                <div>
+                    <label for="plate">Plate</label>
+                    <input id="plate" type="text" placeholder="123 ABC">
+                </div>
+                <div>
+                    <label for="username">username</label>
+                    <input id="username" type="text" placeholder="123 ABC">
+                </div>
+
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" type="email" value="Sample@email.com" readonly>
+                </div>
+                <div>
+                    <label for="phone_num">Phone</label>
+                    <input type="text" id="number">
+                </div>
+
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    <select id="vehicle_type">
+                        <option value="car">Car — uses 1 parking space</option>
+                        <option value="motorcycle">Motorcycle — uses half a parking space</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit">Request QR</button>
+                </div>
+            </form>
+
+
+        </div>
     </div>
 
-    <div class="request_qr">
-        <form id="requestqr">
-            <div>
-                <label for="plate">Plate</label>
-                <input id="plate" type="text" placeholder="123 ABC">
-            </div>
-            <div>
-                <label for="email">Email</label>
-                <input type="email" value="Sample@email.com" readonly>
-            </div>
-            <div>
-                <button>Request QR</button>
-            </div>
-        </form>
-
-
-    </div>
     <script>
         let LIMIT = 5;
         let PAGE = 1;
@@ -56,8 +78,6 @@
             try {
                 let data = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
                 if (data) {
-                    // Expecting data shape: { requests: [...], pages: X }
-                    // Adjust data.requests if your backend key differs
                     renderRequestQr(data.requests || data.data || []);
                     renderPagination(data.pages || 1);
                 }
@@ -70,7 +90,6 @@
             let qrs = document.getElementById("qrs");
             qrs.textContent = "";
 
-            // Display empty state row if no data exists
             if (!qrdata || qrdata.length === 0) {
                 qrs.innerHTML = `
                 <tr>
@@ -79,7 +98,6 @@
                 return;
             }
 
-            // Build HTML string to update DOM once
             let rowsHtml = "";
             qrdata.forEach((val) => {
                 rowsHtml += `<tr>
@@ -94,7 +112,6 @@
         function renderPagination(totalPages) {
             let container = document.getElementById("pagination");
 
-            // Dynamic container creation inside #pendingqr if missing
             if (!container) {
                 container = document.createElement("div");
                 container.id = "pagination";
@@ -122,8 +139,22 @@
             };
         }
 
-        // Call initial fetch on load
-        fetchData();
+
+        async function requestqr(event){
+            event.preventDefault();
+            let plate = document.getElementById("plate").value
+            let username = document.getElementById("username").value
+            let email = document.getElementById("email").value
+            let number = document.getElementById("number").value
+            let vehicle_type = document.getElementById("vehicle_type").value
+            console.log(plate,username,email,number,vehicle_type)
+
+
+
+        }
+
+
+        //fetchData();
     </script>
 </body>
 
