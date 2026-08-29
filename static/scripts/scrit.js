@@ -4,8 +4,6 @@
 const API = {
     async sendData(url, data = {}, method = "GET") {
         try {
-            showLoading();
-
             const options = { method };
 
             if (method !== "GET" && method !== "DELETE") {

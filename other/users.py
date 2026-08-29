@@ -32,6 +32,12 @@ class Users:
     
     
     
+    
+        @self.users.route("/myemail", methods=["GET"])
+        def myemail():
+            return jsonify({
+                "data":{"email":session["email"]}
+            })
         
             
     
@@ -41,13 +47,20 @@ class Users:
             page = int(request.args.get("page",1))
             page = (page-1) * limit
             res = self.sql.fetchselfrequest(session["email"], limit, page)
-            total = self.sql.countallselfrequest(session["id"])
+            total = self.sql.countallselfrequest(session["user_id"])
+            
+            
+            print(res)
+            if res:
+                newdata = []    
+                for ndata in res:
+                    newdata.append([ndata[4], ndata[6]])
             
             
             
             return jsonify({
                 "status":"success",
-                "data":res,
+                "data":newdata,
                 "pages":total
             })
     

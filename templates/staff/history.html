@@ -174,13 +174,16 @@
             const recentBody = document.getElementById("recentBody");
             recentBody.textContent = "";
 
+            console.log(res)
+            console.log("kkkkkkkkkkkk")
+
             if (!res || res.status !== "good") {
                 recentBody.appendChild(createEmptyRow("No recent records"));
                 return;
             }
 
             res.data.forEach((d, i) => {
-                const status = effectiveStatus(d[6], d[5]);
+                const status = effectiveStatus(d[8], d[7]);
 
                 const tr = document.createElement("tr");
 
@@ -207,7 +210,7 @@
                 const td5 = document.createElement("td");
                 td5.style.color = "#64748b";
                 td5.style.fontSize = "11px";
-                td5.textContent = d[8] || "—";
+                td5.textContent = d[10] || "—";
 
                 tr.appendChild(td1);
                 tr.appendChild(td2);
@@ -235,7 +238,7 @@
             allPages = res.pages;
 
             res.data.forEach((d, i) => {
-                const status = effectiveStatus(d[6], d[5]);
+                const status = effectiveStatus(d[8], d[7]);
 
                 const tr = document.createElement("tr");
 
@@ -265,12 +268,12 @@
                 const td5 = document.createElement("td");
                 td5.style.color = "#64748b";
                 td5.style.fontSize = "11px";
-                td5.textContent = d[8] || "—";
+                td5.textContent = d[10] || "—";
 
                 const td6 = document.createElement("td");
                 td6.style.color = "#64748b";
                 td6.style.fontSize = "11px";
-                td6.textContent = d[12] || "—";
+                td6.textContent = d[14] || "—";
 
                 tr.appendChild(td1);
                 tr.appendChild(td2);
@@ -287,21 +290,14 @@
 
         async function updateStats() {
             d = await API.get("/staff/stats");
-            console.log(d);
+            total = d.data
             const now = new Date();
-            document.getElementById("statTotal").textContent = total;
+            document.getElementById("statTotal").textContent = total[3];
 
-            // Count using effectiveStatus so expired-but-not-updated rows are counted correctly
-            let active = 0, expired = 0, revoked = 0;
-            rows.forEach(d => {
-                const s = effectiveStatus(d[0], d[1]);
-                if (s === 'active')   active++;
-                else if (s === 'expired') expired++;
-                else if (s === 'revoked') revoked++;
-            });
-            document.getElementById("statActive").textContent  = active;
-            document.getElementById("statExpired").textContent = expired;
-            document.getElementById("statRevoked").textContent = revoked;
+            
+            document.getElementById("statActive").textContent  = total[0];
+            document.getElementById("statExpired").textContent = total[1];
+            document.getElementById("statRevoked").textContent = total[2];
         }
 
         function updatePager(total, page, pages) {

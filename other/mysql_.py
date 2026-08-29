@@ -455,8 +455,16 @@ class SQL:
     def getqrstats(self):
         try:
             cur = self._cursor()
-            cur.execute("SELECT status, expiry FROM qrcode")
-            result = cur.fetchall()
+            cur.execute("""
+                SELECT 
+                    SUM(status = 'active'),
+                    SUM(status = 'revoke'),
+                    SUM(expiry < NOW()),
+                    COUNT(*)
+                FROM qrcode
+            """)
+
+            result = cur.fetchone()
             cur.close()
             return result
         except Exception as e:
@@ -473,14 +481,15 @@ class SQL:
         owner_email: str = "",
         owner_number:str = "",
         vehicle_type: str = "car",
+        department:"str" = "visitor"
     ) -> bool:
         try:
             vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
             space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
             cur.execute(
-                """INSERT INTO qrcode(data, plate, owner_name, owner_email, expiry, created_by, vehicle_type, space_units)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                """INSERT INTO qrcode(data, plate, owner_name, owner_email, owner_phone, expiry, created_by, vehicle_type, space_units, department)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)""",
                 (
                     data,
                     plate,
@@ -491,6 +500,7 @@ class SQL:
                     created_by,
                     vehicle_type,
                     space_units,
+                    department,
                 ),
             )
             self._commit()
@@ -547,7 +557,7 @@ class SQL:
             cur = self._cursor()
             
             cur.execute("""
-                        SELECT qrpending.*, qrcode.created_at FROM qrpending LEFT JOIN  qrcode ON qrpending.qrid = qrcode.id WHERE qrcode.owner_email=%s LIMIT=%s OFFSET=%s
+                        SELECT qrpending.*, qrcode.created_at FROM qrpending LEFT JOIN  qrcode ON qrpending.qrid = qrcode.id WHERE qrcode.owner_email=%s LIMIT %s OFFSET %s
                         """, (email,limit,offset))
             
             data = cur.fetchall()
@@ -569,7 +579,7 @@ class SQL:
             cur.close()
             return data
         except Exception as e:
-            print(f"[DB] fetchselfrequest error: {e}")
+            print(f"[DB] countallselfrequest error: {e}")
             return None
         
         
@@ -716,7 +726,8 @@ class SQL:
                           h.created_at                   AS created_at,
                           COALESCE(q.plate,      '')     AS plate,
                           COALESCE(q.owner_name, '')     AS owner_name,
-                          COALESCE(h.action,     'entry') AS action
+                          COALESCE(h.action,     'entry') AS action,
+                          q.department
                    FROM history h
                    LEFT JOIN qrcode q ON h.data = q.data
                    WHERE h.guard = %s

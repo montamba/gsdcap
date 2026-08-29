@@ -16,7 +16,7 @@
         .page-header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:4px; letter-spacing:.08em; text-transform:uppercase; }
         .inner { padding:28px 36px; }
 
-        .stat-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+        .stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
         .stat { background:#fff; border:1px solid #000000; padding:22px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; border-radius:12px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
         .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
         .stat:nth-child(1)::before { background:#f59e0b; }
@@ -74,6 +74,7 @@
         .role-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-size:10px; font-weight:700; font-family:'Space Mono',monospace; letter-spacing:.08em; border-radius:20px; }
         .role-guard { background:#fef3c7; color:#92400e; border:1px solid #000000; }
         .role-staff { background:#d1fae5; color:#065f46; border:1px solid #000000; }
+        .role-user { background:lightblue; color:#065f46; border:1px solid #000000; }
 
         .btn-sm { padding:5px 10px; border:1px solid #000000; background:transparent; color:#64748b; cursor:pointer; font-size:13px; transition:all .2s; margin-right:3px; border-radius:6px; }
         .btn-sm:hover { border-color:#000000; color:#2563eb; background:#eff6ff; }
@@ -167,6 +168,10 @@
                 <div class="stat">
                     <div><div class="stat-label">Staff</div><div class="stat-num" id="cnt-staff">—</div></div>
                     <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                </div>
+                <div class="stat">
+                    <div><div class="stat-label">User</div><div class="stat-num" id="cnt-user">—</div></div>
+                    <div class="stat-icon"><i class="bi bi-person-fill"></i></div>
                 </div>
                 <div class="stat">
                     <div><div class="stat-label">Total Users</div><div class="stat-num" id="cnt-total">—</div></div>
@@ -306,18 +311,24 @@
                 return;
             }
             document.getElementById("users").innerHTML = users.map(u => {
-                const roleLabel = u[2] === "user" ? "staff" : u[2];
-                const badge = roleLabel === "guard"
-                    ? `<span class="role-badge role-guard">🔒 Guard</span>`
-                    : `<span class="role-badge role-staff">👥 Staff</span>`;
+                
+
+                let roleLabel = escapeHTML(u[2]) === "user" ? "staff" : u[2];
+                let badge = {
+                    "user":`<span class="role-badge role-user">👥 User </span>`,
+                    "staff":`<span class="role-badge role-staff">👤 Staff</span>`,
+                    "guard":`<span class="role-badge role-guard">🔒 Guard</span>` 
+                }
+                     
+                     ;
                 return `
                 <tr>
-                    <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${u[0]}</td>
-                    <td style="color:#0f172a;font-weight:600;">${u[1]}</td>
-                    <td>${badge}</td>
-                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${u[3]}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${escapeHTML(u[0])}</td>
+                    <td style="color:#0f172a;font-weight:600;">${escapeHTML(u[1])}</td>
+                    <td>${badge[escapeHTML(u[2])]}</td>
+                    <td style="font-family:'Space Mono',monospace;font-size:11px;color:#64748b;">${escapeHTML(u[3])}</td>
                     <td>
-                        <button class="btn-sm danger" onclick="deleteUsers(${u[0]})" title="Delete user"><i class="bi bi-trash"></i></button>
+                        <button class="btn-sm danger" onclick="deleteUsers(${escapeHTML(u[0])})" title="Delete user"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>`;
             }).join("");
@@ -349,25 +360,26 @@
                 else if (daysLeft <= 14) chipClass = "chip-warning";
 
                 const roleLabel = u[2] === "user" ? "staff" : u[2];
-                const badge = roleLabel === "guard"
-                    ? `<span class="role-badge role-guard">🔒 Guard</span>`
-                    : `<span class="role-badge role-staff">👥 Staff</span>`;
-
+                let badge = {
+                    "user":`<span class="role-badge role-staff">👥 User </span>`,
+                    "guard":`<span class="role-badge role-staff">👤 Staff</span>`,
+                    "staff":`<span class="role-badge role-guard">🔒 Guard</span>` 
+                }
                 return `
                 <tr class="pending-table" style="background:#fffafa;">
-                    <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${u[0]}</td>
-                    <td style="color:#0f172a;font-weight:600;">${u[1]}</td>
-                    <td>${badge}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${escapeHTML(u[0])}</td>
+                    <td style="color:#0f172a;font-weight:600;">${escapeHTML(u[1])}</td>
+                    <td>${badge[escapeHTML(u[2])]}</td>
                     <td>
                         <span class="countdown-chip ${chipClass}">
                             ⏳ ${daysLeft} day${daysLeft !== 1 ? "s" : ""} left
                         </span>
                     </td>
                     <td>
-                        <button class="btn-sm success" onclick="restoreUser(${u[0]})" title="Restore account">
+                        <button class="btn-sm success" onclick="restoreUser(${escapeHTML(u[0])})" title="Restore account">
                             <i class="bi bi-arrow-counterclockwise"></i> Restore
                         </button>
-                        <button class="btn-sm danger" onclick="confirmDeleteNow(${u[0]}, '${u[1]}')" title="Delete now">
+                        <button class="btn-sm danger" onclick="confirmDeleteNow(${escapeHTML(u[0])}, '${escapeHTML(u[1])}')" title="Delete now">
                             <i class="bi bi-trash3-fill"></i>
                         </button>
                     </td>
@@ -405,7 +417,7 @@
             const res = await API.get(`/admin/getusers?page=${page}&limit=${LIMIT}`);
             if (!res || res.status !== "good") {
                 renderUsers([]);
-                ["cnt-guard","cnt-staff","cnt-total"].forEach(id => document.getElementById(id).textContent = "0");
+                ["cnt-guard","cnt-staff","cnt-user","cnt-total"].forEach(id => document.getElementById(id).textContent = "0");
                 updatePager(0, 1, 1);
                 return;
             }
@@ -426,9 +438,11 @@
 
             document.getElementById("cnt-total").textContent = res.total;
             const guards = res.data.filter(u => u[2] === "guard").length;
-            const staff  = res.data.filter(u => u[2] === "user" || u[2] === "staff").length;
+            const staff  = res.data.filter(u => u[2] === "staff").length;
+            const user = res.data.filter(u => u[2] === "user").length;
             document.getElementById("cnt-guard").textContent = guards;
             document.getElementById("cnt-staff").textContent = staff;
+            document.getElementById("cnt-user").textContent = user;
         }
 
         function updatePager(total, page, pages) {

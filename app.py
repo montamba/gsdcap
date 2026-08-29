@@ -51,7 +51,7 @@ class Main:
             data = request.get_json()
             email = data.get("email").strip()
             password = data.get("password").strip()
-            role = data.get("role").strip()
+            role = data.get("role")
 
 
             if not email or not password or not role:

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <title>qr code</title>
     <style>
 
@@ -74,9 +76,16 @@
         let LIMIT = 5;
         let PAGE = 1;
 
+        async function MyEmail() {
+            let res = await API.get("/users/myemail");
+            document.getElementById("email").value = escapeHTML(res.data.email);
+        }
+
+
         async function fetchData() {
             try {
                 let data = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
+                console.log(data)
                 if (data) {
                     renderRequestQr(data.requests || data.data || []);
                     renderPagination(data.pages || 1);
@@ -99,11 +108,12 @@
             }
 
             let rowsHtml = "";
-            qrdata.forEach((val) => {
+            qrdata.forEach((val,i) => {
+                
                 rowsHtml += `<tr>
+                <td>${escapeHTML(i)}</td>
                 <td>${escapeHTML(val[ 0 ])}</td>
                 <td>${escapeHTML(val[ 1 ])}</td>
-                <td>${escapeHTML(val[ 2 ])}</td>
             </tr>`;
             });
             qrs.innerHTML = rowsHtml;
@@ -140,21 +150,37 @@
         }
 
 
-        async function requestqr(event){
+        async function requestqr(event) {
             event.preventDefault();
             let plate = document.getElementById("plate").value
             let username = document.getElementById("username").value
             let email = document.getElementById("email").value
             let number = document.getElementById("number").value
             let vehicle_type = document.getElementById("vehicle_type").value
-            console.log(plate,username,email,number,vehicle_type)
 
+            let payload = {
+                "plate": plate,
+                "user_name": username,
+                "email": email,
+                "phone": number,
+                "vtype": vehicle_type
+            }
 
-
+            let res = await API.post("/users/add_request", payload);
+            showMessageModal(res.message, res.status)
         }
 
 
-        //fetchData();
+
+
+        async function init() {
+
+            await fetchData();
+            await MyEmail();
+        }
+
+        init()
+
     </script>
 </body>
 

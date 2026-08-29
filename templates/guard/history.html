@@ -390,6 +390,7 @@
                         <th>#</th>
                         <th>QR Code</th>
                         <th>Owner</th>
+                        <th>Department</th>
                         <th>Plate</th>
                         <th>Result</th>
                         <th>Act.</th>
@@ -433,8 +434,11 @@
             // Build URL — server paginates, client filters within page for instant feel
             const url = `/guard/my_history?page=${page}&limit=${LIMIT}`;
 
+            
+
             try {
                 const res = await API.get(url);
+                console.log(res)
                 if (!res || res.status !== "good") {
                     renderTable([]);
                     updatePager(0, 1, 1);
@@ -510,6 +514,7 @@
                 const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
                 const plate       = d[4] || '—';
                 const ownerName   = d[5] || '—';
+                const department = d[7]
 
                 return `
                 <tr class="hist-table">
@@ -518,6 +523,8 @@
                                font-weight:700;white-space:nowrap;overflow:hidden;
                                text-overflow:ellipsis;">${d[1] || '—'}</td>
                     <td style="color:#334155;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ownerName}</td>
+                    <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${department}</td>
+
                     <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${plate}</td>
                     <td><span class="badge ${statusClass}">${d[2] || '—'}</span></td>
                     <td><span class="${actionClass}">${actionLabel === 'exit' ? 'OUT' : 'IN'}</span></td>

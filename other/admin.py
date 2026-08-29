@@ -377,18 +377,20 @@ class Admin:
                 return jsonify({"status": "bad", "message": "Admin not found"})
             return jsonify({"status": "good", "username": row[0], "email": row[1]})
         
-        @self.admin.route("/update_username")
+        @self.admin.route("/update_username", methods=["POST"])
         def update_username():
             data:dict = request.get_json()
-            username = data.get("newusername")
-            password = data.get("password")
+            username = (data.get("newusername") or "").strip()
+            password = (data.get("password") or "").strip()
+            
+            
             
             if len(username) < 3:
-                return jsonify({"status": "bad", "message": "Invalid email"})
+                return jsonify({"status": "bad", "message": "Invalid username"})
             
             valid_password = self.sql.verifyuser(session["email"], password)
             if not valid_password:
-                return jsonify({"status": "bad", "message": "Invalid email"})
+                return jsonify({"status": "bad", "message": "Wrong Credentials"})
             
             chg = self.sql.change_admin_username(username, session["email"])
             

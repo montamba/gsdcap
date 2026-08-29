@@ -179,6 +179,8 @@ class Guard:
             data = request.get_json()
             qrdata = (data.get("data") or "").strip()
             action = (data.get("action") or "entry").strip()  # "entry" or "exit"
+            
+            print(data, "data recieve")
 
             new_action = "IN" if action == "entry" else "OUT"
 
@@ -186,12 +188,23 @@ class Guard:
                 return jsonify({"status": "bad", "message": "No QR data provided"})
 
             qr = self.sql.getqrbydata(qrdata)
+            
+            print("running here")
             parking = self.sql.getparking()
             available_units = max(
                 0, parking.get("total", 0) * 2 - parking.get("occupied_units", 0)
             )
+            
+            
+            print(qr)
+            print("running here1")
+            
 
-            self.cache.deletethathas("history")  # removing stored cache history
+            try:
+                self.cache.deletethathas("history")  # removing stored cache history
+            except Exception as e:
+                print(e)
+            print("running here2")
 
             # ── QR NOT FOUND ──────────────────────────────
             if not qr:
@@ -207,14 +220,15 @@ class Guard:
             # qrcode columns:
             # 0:id  1:data  2:plate  3:owner_name  4:owner_email
             # 5:expiry  6:status  7:created_by  8:created_at  9:car_status
-            # 10:vehicle_type  11:space_units
+            # 12:vehicle_type  11:space_units
             plate = qr[2] or "—"
             owner_name = qr[3] or "—"
             owner_email = qr[4] or "—"
-            expiry = qr[5]
-            qr_status = (qr[6] or "active").lower()
-            car_status = qr[9]
-            vehicle_type = qr[10] if len(qr) > 10 and qr[10] else "car"
+            expiry = qr[7]
+            qr_status = (qr[8] or "active").lower()
+            car_status = qr[11]
+            department = qr[6]
+            vehicle_type = qr[12] if len(qr) > 12 and qr[12] else "car"
             required_units = 1 if vehicle_type == "motorcycle" else 2
 
             if available_units < required_units and new_action == "IN":
@@ -227,6 +241,7 @@ class Guard:
                         "owner_name": owner_name,
                         "plate": plate,
                         "vehicle_type": vehicle_type,
+                        "department": department,
                     }
                 )
 
@@ -239,6 +254,8 @@ class Guard:
                         "scan_result": "failed",
                         "owner_name": owner_name,
                         "plate": plate,
+                        "vehicle_type": vehicle_type,
+                        "department": department,
                     }
                 )
 
@@ -253,6 +270,8 @@ class Guard:
                         "owner_name": owner_name,
                         "plate": plate,
                         "valid_until": str(expiry),
+                        "vehicle_type": vehicle_type,
+                        "department": department,
                     }
                 )
 
@@ -267,6 +286,8 @@ class Guard:
                         "owner_name": owner_name,
                         "plate": plate,
                         "valid_until": str(expiry) if expiry else "—",
+                        "vehicle_type": vehicle_type,
+                        "department": department,
                     }
                 )
 

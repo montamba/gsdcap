@@ -238,6 +238,8 @@ class Staff:
                 sqldata = self.sql.getqrstats()
                 self.cache.add(keyname, sqldata)
             data = self.cache.get(keyname)
+            
+            data = {"data":data}
 
             return data
 
@@ -251,6 +253,13 @@ class Staff:
             owner_email = (data.get("owner_email") or "").strip()
             owner_number = (data.get("owner_number") or "").strip()
             vehicle_type = (data.get("vehicle_type") or "car").strip().lower()
+            department = (data.get("department") or "visitor").strip().lower()
+            
+            if not all([qr_data,plate,valid_until,owner_name,owner_email,owner_number,vehicle_type,department]):
+                return jsonify({
+                        "status": "bad",
+                        "message": "fill all the requirements",
+                    })
 
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
@@ -261,9 +270,9 @@ class Staff:
                         "message": "Vehicle type must be car or motorcycle",
                     }
                 )
-            try:
+            
 
-                self.sql.saveqr(
+            res = self.sql.saveqr(
                     qr_data,
                     plate,
                     valid_until,
@@ -272,13 +281,14 @@ class Staff:
                     owner_email,
                     owner_number,
                     vehicle_type,
+                    department
                 )
-                self.cache.deletethathas("qrcode")
-            except Exception as e:
-                print(e)
-                return jsonify(
-                    {"status": "bad", "message": "Please fill in all required fields"}
-                )
+            
+            
+            if not res:
+                return jsonify({"status": "bad", "message": "Something went wrong"})
+            self.cache.deletethathas("qrcode")
+            
             return jsonify({"status": "good", "message": "QR saved successfully"})
 
         @self.staff.route("/renew_qr/<int:qr_id>", methods=["PUT"])
