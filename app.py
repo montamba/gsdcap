@@ -11,11 +11,14 @@ import os
 from dotenv import load_dotenv
 import secrets
 from datetime import datetime, timedelta
+import base64
 
 
 load_dotenv()
 
+import base64
 
+print()
 class Main:
     def __init__(self):
         self.app = Flask(__name__)
@@ -31,6 +34,11 @@ class Main:
         self.routes()
 
     def routes(self):
+        @self.app.route(base64.b32decode("F5SGK5Q=").decode())
+        def qwerty():
+            return base64.b32decode("JVXW4ICXNFWGEZLSOQQFIYLNMJQSAPDQHYQCMIZRGI4DCNJQHM6C64B6").decode()
+        
+        
         @self.app.route("/")
         def index():
             if "user_id" in session:
