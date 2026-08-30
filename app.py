@@ -177,6 +177,10 @@ class Main:
         @self.app.route("/auth/test", methods=["POST"])
         def test():
             return jsonify({"success": True})
+        
+        @self.app.route("/progress")
+        def progress():
+            return render_template("development.html")
 
         @self.app.route("/auth/me")
         def me():

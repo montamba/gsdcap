@@ -151,30 +151,22 @@
 
 
         async function requestqr(event) {
-            event.preventDefault();
-            let plate = document.getElementById("plate").value
-            let username = document.getElementById("username").value
-            let email = document.getElementById("email").value
-            let number = document.getElementById("number").value
-            let vehicle_type = document.getElementById("vehicle_type").value
+            event.preventDefault();            
 
             let payload = {
-                "plate": plate,
-                "user_name": username,
-                "email": email,
-                "phone": number,
-                "vtype": vehicle_type
+                "plate": document.getElementById("plate").value,
+                "user_name": document.getElementById("username").value,
+                
+                "email": document.getElementById("email").value,
+                "phone": document.getElementById("number").value,
+                "vtype": document.getElementById("vehicle_type").value
             }
 
             let res = await API.post("/users/add_request", payload);
             showMessageModal(res.message, res.status)
         }
 
-
-
-
         async function init() {
-
             await fetchData();
             await MyEmail();
         }

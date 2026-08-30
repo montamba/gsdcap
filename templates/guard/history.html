@@ -514,7 +514,7 @@
                 const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
                 const plate       = d[4] || '—';
                 const ownerName   = d[5] || '—';
-                const department = d[7]
+                const department = d[7] ?? ""
 
                 return `
                 <tr class="hist-table">

@@ -43,6 +43,10 @@ class Staff:
         @self.staff.route("/profile")
         def profile():
             return render_template("staff/profile.html")
+        
+        @self.staff.route("/request")
+        def request():
+            return render_template("staff/request.html")
 
         @self.staff.route("/getuserdata", methods=["GET"])
         def getuserdata():

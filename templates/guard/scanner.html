@@ -661,9 +661,11 @@
         async function checkData(qrData) {
             try {
                 const res = await API.post("/guard/check_qr", {
-                    data:   qrData,
+                    data: qrData,
                     action: currentAction
                 });
+
+                
 
                 const result = res.scan_result || (res.status === "good" ? "accepted" : "failed");
 
