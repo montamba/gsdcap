@@ -16,7 +16,7 @@ class Users:
                         jsonify({"status": "unauthenticated", "message": "Please log in"}),
                         401,
                     )
-                return redirect("/")
+                return redirect("/progress")
             if session.get("role") not in ("user", "guard", "staff"):
                 return (
                     jsonify({"status": "forbidden", "message": "Staff access required"}),
