@@ -10,7 +10,8 @@ class Users:
         
         
     def _protect(self):
-            if "user_id" not in session or session["role"] != "user":
+            #if "user_id" not in session or session["role"] != "user":
+            if True:
                 if request.is_json:
                     return (
                         jsonify({"status": "unauthenticated", "message": "Please log in"}),
@@ -24,9 +25,7 @@ class Users:
                 )
     
     def routes(self):
-        
-        
-        self.staff.before_request(self._protect)
+        self.users.before_request(self._protect)
         
         @self.users.route("/home")
         def home():
