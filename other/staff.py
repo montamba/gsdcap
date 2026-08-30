@@ -350,18 +350,17 @@ class Staff:
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
 
-            def send_in_background():
-                print(f"sending on {owner_email}")
-                try:
-                    self.sql.send_qr_email(
+           
+            print(f"sending on {owner_email}")
+            try:
+                self.sql.send_qr_email(
                         owner_email, owner_name, qr_data, plate, valid_until
                     )
-                    print("print send succesfull")
-                except Exception as e:
-                    print("Background email error:", e)
+                print("print send succesfull")
+            except Exception as e:
+                print("Background email error:", e)
 
-            thread = threading.Thread(target=send_in_background, daemon=True)
-            thread.start()
+            
 
             return jsonify(
                 {

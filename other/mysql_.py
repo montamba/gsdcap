@@ -993,6 +993,7 @@ class SQL:
             </div>
             """
 
+
             alt_part = MIMEMultipart("alternative")
             alt_part.attach(MIMEText(html_body, "html"))
             msg.attach(alt_part)
@@ -1001,15 +1002,28 @@ class SQL:
             img_part.add_header("Content-ID", "<qrimage>")
             img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
             msg.attach(img_part)
+            
+            print("[EMAIL] SMTP host:", smtp_host)
+            print("[EMAIL] SMTP port:", smtp_port)
+            print("[EMAIL] SMTP user:", smtp_user)
+            print("[EMAIL] SMTP password exists:", bool(smtp_pass))
 
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                print("[EMAIL] SMTP connected")
+                
                 server.starttls()
+                print("[EMAIL] TLS started")
                 server.login(smtp_user, smtp_pass)
+                print("[EMAIL] Login successful")
+                
                 server.sendmail(smtp_user, to_email, msg.as_string())
+                print("[EMAIL] Message sent")
 
             print(f"[EMAIL] Sent to {to_email}")
             return True
 
         except Exception as e:
-            print(f"[EMAIL] send_qr_email error: {e}")
+            import traceback
+            print(f"[EMAIL] send_qr_email error: {repr(e)}")
+            traceback.print_exc()
             return False
