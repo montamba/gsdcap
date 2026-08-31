@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import secrets
 from datetime import datetime, timedelta
 import base64
+from jinja2 import TemplateNotFound
 
 
 load_dotenv()
@@ -49,7 +50,10 @@ class Main:
         
         @self.app.route("/mainadmin")
         def mainadmin():
-            return render_template("mainadmin/mainadmin.html")
+            try:
+                return render_template('mainadmin/mainadmin.html')
+            except TemplateNotFound:
+                return "Sorry!"
 
         # LOGIN --------------------------------------------------------
         @self.app.route("/auth/login", methods=["POST"])
