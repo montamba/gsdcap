@@ -438,7 +438,6 @@
 
             try {
                 const res = await API.get(url);
-                console.log(res)
                 if (!res || res.status !== "good") {
                     renderTable([]);
                     updatePager(0, 1, 1);

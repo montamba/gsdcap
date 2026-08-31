@@ -155,6 +155,7 @@ class SQL:
             return {"ok": False, "message": "Failed to update password"}
 
     def _ping(self) -> None:
+        print("start to ping")
         try:
             # 1. Check if the object exists and thinks it's connected
             if self.sql and self.sql.is_connected():
@@ -192,7 +193,6 @@ class SQL:
 
     def getalluser(self, limit=0, offset=0):
         try:
-            print("getting")
             cur = self._cursor()
             cur.execute(
                 "SELECT id, username, role, created_at FROM users LIMIT %s OFFSET %s",

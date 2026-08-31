@@ -116,14 +116,14 @@ class Admin:
 
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):
-                sqlusers = None
+                print("fetcjing users")
                 
                 sqlusers= self.sql.getalluser(limit=limit, offset=offset)
-                
-                if sqlusers:
-                    self.cache.add(keyname, sqlusers)
+                print(sqlusers)
+                self.cache.add(keyname, sqlusers)
 
-            users = self.cache.get(keyname)
+            if self.cache.check_key(keyname):
+                users = self.cache.get(keyname)
 
             keyname2 = name + "count"
             if not self.cache.check_key(keyname2):

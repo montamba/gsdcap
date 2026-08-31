@@ -174,8 +174,6 @@
             const recentBody = document.getElementById("recentBody");
             recentBody.textContent = "";
 
-            console.log(res)
-            console.log("kkkkkkkkkkkk")
 
             if (!res || res.status !== "good") {
                 recentBody.appendChild(createEmptyRow("No recent records"));
@@ -225,7 +223,7 @@
         async function getAllQR(page = 1) {
             allPage = page;
             const res = await API.get(`/staff/all_qr?page=${page}&limit=${LIMIT}`);
-            console.log("im", res);
+            
             
             const allBody = document.getElementById("allBody");
             allBody.textContent = "";

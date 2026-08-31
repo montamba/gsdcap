@@ -742,6 +742,10 @@
                         id="dOwner">—</span></div>
                 <div class="detail-row"><span class="detail-lbl">Email</span><span class="detail-val"
                         id="dEmail">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Phone</span><span class="detail-val"
+                        id="dPhone">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Department</span><span class="detail-val"
+                        id="dDepartment">—</span></div>
                 <div class="detail-row"><span class="detail-lbl">Status</span><span class="detail-val"
                         id="dStatus">—</span></div>
                 <div class="detail-row"><span class="detail-lbl">Car Status</span><span class="detail-val"
@@ -784,16 +788,6 @@
         let activeQrId = null;
         let filterTimer = null;
 
-        // Secure Text Escaping helper
-        function escapeHTML(str) {
-            if (str === null || str === undefined) return "—";
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
 
         function effectiveStatus(dbStatus, expiryStr) {
             if (dbStatus && dbStatus !== 'active') return dbStatus;
@@ -827,7 +821,7 @@
                 );
             }
             if (status) {
-                rows = rows.filter(d => effectiveStatus(d[ 6 ], d[ 5 ]) === status);
+                rows = rows.filter(d => effectiveStatus(d[ 8 ], d[ 7 ]) === status);
             }
 
             totalRecords = res.total;
@@ -848,7 +842,7 @@
             }
 
             data.forEach((d, i) => {
-                const status = effectiveStatus(d[ 6 ], d[ 5 ]);
+                const status = effectiveStatus(d[ 8 ], d[ 7 ]);
                 const badgeCls = status === "active" ? "badge-active" : status === "expired" ? "badge-expired" : "badge-revoked";
                 const expiry = d[ 5 ] || "—";
                 const createdAt = d[ 8 ] || "—";
@@ -923,18 +917,20 @@
         function openDetail(d) {
             activeQrId = d[ 0 ];
 
-            const status = effectiveStatus(d[ 6 ], d[ 5 ]);
+            const status = effectiveStatus(d[ 8 ], d[ 7 ]);
 
             // Secure assignment using textContent preventing script execution
             document.getElementById("dData").textContent = d[ 1 ] || "—";
             document.getElementById("dPlate").textContent = d[ 2 ] || "—";
             document.getElementById("dOwner").textContent = d[ 3 ] || "—";
             document.getElementById("dEmail").textContent = d[ 4 ] || "—";
+            document.getElementById("dPhone").textContent = d[ 5 ] || "—";
+            document.getElementById("dDepartment").textContent = d[ 6 ] || "—";
             document.getElementById("dStatus").textContent = status.toUpperCase();
-            document.getElementById("dCarStatus").textContent = d[ 9 ] || "NOT SCANNED";
-            document.getElementById("dExpiry").textContent = d[ 5 ] || "No expiry set";
-            document.getElementById("dCreatedAt").textContent = d[ 8 ] || "—";
-            document.getElementById("dCreatedBy").textContent = d[ 10 ] || "—";
+            document.getElementById("dCarStatus").textContent = d[ 11 ] || "NOT SCANNED";
+            document.getElementById("dExpiry").textContent = d[ 7 ] || "No expiry set";
+            document.getElementById("dCreatedAt").textContent = d[ 10 ] || "—";
+            document.getElementById("dCreatedBy").textContent = d[ 12 ] || "—";
 
             if (d[ 5 ] && d[ 5 ] !== "None") {
                 document.getElementById("renewDate").value = d[ 5 ].split(" ")[ 0 ];

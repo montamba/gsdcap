@@ -412,7 +412,6 @@
         }
 
         async function getUsers(page = 1) {
-            console.log("getting users");
             currentPage = page;
             const res = await API.get(`/admin/getusers?page=${page}&limit=${LIMIT}`);
             if (!res || res.status !== "good") {
@@ -422,10 +421,8 @@
                 return;
             }
 
-            console.log("get user complete");
 
             let rows = res.data;
-            console.log(rows);
             if (searchQuery) {
                 rows = rows.filter(u =>
                     u[1].toLowerCase().includes(searchQuery.toLowerCase()) ||
