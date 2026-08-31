@@ -42,9 +42,7 @@ class MainAdmin:
         self.routes()
 
     def routes(self):
-        @self.mainadmin.route("/dev")
-        def dev():
-            return "Mon Wilbert Tamba"
+        
         @self.mainadmin.route("/generate_token", methods=["POST"])
         def generate():
             data: dict = request.get_json()

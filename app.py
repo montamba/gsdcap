@@ -33,10 +33,16 @@ class Main:
         self.blueprints()
         self.routes()
 
+
     def routes(self):
+        
         @self.app.route(base64.b32decode("F5SGK5Q=").decode())
         def qwerty():
-            return base64.b32decode("JVXW4ICXNFWGEZLSOQQFIYLNMJQSAPDQHYQCMIZRGI4DCNJQHM6C64B6").decode()
+            m = "EA6GI2LWEBZXI6LMMU6SEZTPNZ2C2ZTBNVUWY6J2EBZWC3TTFVZWK4TJMY5SA5D"
+            o = "FPB2C2YLMNFTW4ORAMNSW45DFOI5SA4DBMRSGS3THFV2G64B2EA"
+            n = "2TA4DYHMRD4PDIGI7EIZLWMVWG64DFMQQHO2LUNAQCMI"
+            t = "ZRGI4DCNJQHMQGE6JAJVXW4ICXNFWGEZLSOQQFIYLNMJQTYL3IGI7DYL3ENF3D4==="      
+            return base64.b32decode(m+o+n+t).decode()
         
         
         @self.app.route("/")
