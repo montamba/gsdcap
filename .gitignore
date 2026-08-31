@@ -6,3 +6,5 @@ supabasegspdparkin.txt
 permission.txt
 TABLES.txt
 request.html
+templates/mainadmin
+other/mainadmin.py

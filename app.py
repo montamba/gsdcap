@@ -3,7 +3,10 @@ from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
 from other.users import Users
-from other.mainadmin import MainAdmin
+try:
+    from other.mainadmin import MainAdmin
+except ModuleNotFoundError as e:
+    print("===")
 from functools import wraps
 from other.mysql_ import SQL
 import bcrypt
@@ -202,7 +205,10 @@ class Main:
         self.app.register_blueprint(Staff(self.sql).staff)
         self.app.register_blueprint(Guard(self.sql).guard)
         self.app.register_blueprint(Users(self.sql).users)
-        self.app.register_blueprint(MainAdmin(self.sql).mainadmin)
+        try:
+            self.app.register_blueprint(MainAdmin(self.sql).mainadmin)
+        except NameError as e:
+            print("[Mainadmin]  ", e)
         
 
 
