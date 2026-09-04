@@ -38,9 +38,9 @@ class Cache:
         return name in self.__DATA
     
     def is_empty(self, name):
-        if not self.__DATA[name]: return True
+       
         
-        return False
+        return self.__DATA[name]
 
     def prin(self):
         print(self.__DATA)
