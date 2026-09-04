@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify, render_template, session, redirect
 from datetime import datetime
 from other.cache import cache
+from other.mysql_ import SQL
 
 
 class Guard:
     def __init__(self, sql):
         self.guard = Blueprint("guard", __name__, url_prefix="/guard")
-        self.sql = sql
+        self.sql:SQL = sql
         self.cache = cache
 
         self.routes()
@@ -180,7 +181,6 @@ class Guard:
             qrdata = (data.get("data") or "").strip()
             action = (data.get("action") or "entry").strip()  # "entry" or "exit"
             
-            print(data, "data recieve")
 
             new_action = "IN" if action == "entry" else "OUT"
 
@@ -189,15 +189,15 @@ class Guard:
 
             qr = self.sql.getqrbydata(qrdata)
             
+            print(qr, "===============")
+            
             print("running here")
             parking = self.sql.getparking()
             available_units = max(
-                0, parking.get("total", 0) * 2 - parking.get("occupied_units", 0)
+                0, parking.get("total", 0) * 2 - parking.get("occupied", 0)
             )
             
             
-            print(qr)
-            print("running here1")
             
 
             try:
@@ -306,7 +306,7 @@ class Guard:
                     )
                 self.sql.sql.commit()
                 cur.close()
-                self.sql.updateparking()
+                self.sql.updateparking(qr[13],action)
             except Exception as e:
                 print("Parking update error:", e)
 
@@ -326,13 +326,4 @@ class Guard:
 
     def _log(self, qrdata, status, action="entry"):
         """Insert a scan record into history. action is 'entry' or 'exit'."""
-        try:
-            cur = self.sql.sql.cursor()
-            cur.execute(
-                "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
-                (qrdata, session["user_id"], status, action),
-            )
-            self.sql.sql.commit()
-            cur.close()
-        except Exception as e:
-            print("History log error:", e)
+        self.sql.guard_log(qrdata,session["user_id"],status,action)

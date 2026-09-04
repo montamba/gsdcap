@@ -6,6 +6,7 @@ import json
 import smtplib
 import qrcode
 import bcrypt
+import math
 
 from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
@@ -759,37 +760,69 @@ class SQL:
 
     def getparking(self) -> dict:
         try:
-            with open(self.parking_file, "r") as f:
-                data = json.load(f)
-            # Calculate live occupancy from vehicles currently inside.
-            res = self.get_total_entry_exit()
-            total_units = data.get("total", 0) * 2
-            occupied_units = min(res.get("occupied_units", 0), total_units)
-            data["occupied_units"] = occupied_units
-            data["occupied"] = occupied_units / 2
-            data["available"] = max(0, data.get("total", 0) - data["occupied"])
+            cur = self._cursor()
+            
+            cur.execute("SELECT * FROM parking WHERE id=1")
+            parking = cur.fetchone()
+           
+            data = {}
+            data["total"] = parking[3]
+            data["occupied"] = parking[2]
+            data["available"] = parking[1]
+            data["total_occupied"] = parking[0]
+            
             return data
         except Exception as e:
             print(f"[DB] getparking error: {e}")
-            return {"total": 0, "occupied": 0, "available": 0}
+            return {"total": 0, "occupied": 0, "available": 0,"total_occupied":0}
 
-    def updateparking(self) -> bool:
+    def setparkingslot(self, total):
         try:
-            with open(self.parking_file, "r") as f:
-                data = json.load(f)
-
-            res = self.get_total_entry_exit()
-            # A parking space has two units: car = 2, motorcycle = 1.
-            total_units = data["total"] * 2
-            occupied_units = min(res.get("occupied_units", 0), total_units)
-            data["occupied"] = occupied_units / 2
-            data["available"] = max(0, data["total"] - data["occupied"])
-            data["occupied_units"] = occupied_units
-
-            with open(self.parking_file, "w") as f:
-                json.dump(data, f, indent=4)
-
+            data  = self.getparking()
+            
+            available = total - data.get("occupied")
+            
+            
+            cur = self._cursor()
+            cur.execute("UPDATE parking SET available=%s, total=%s WHERE id=1",(available,total,))
+            
+            cur.close()
             return True
+        except Exception as e:
+            print(f"[DB] counthistorybyguard error: {e}")
+            return False
+        
+
+    def updateparking(self, added, operation) -> bool:
+        try:
+            print("updating")
+            parking = self.getparking()
+            
+            occupied = parking.get("occupied")
+            available = parking.get("available")
+            total_occupied = parking.get("total_occupied")
+            
+            if operation == "entry":
+                total_occupied += added / 2
+                
+            else:
+                total_occupied -= added /2
+            
+            new_total_occupied = max(0, total_occupied)
+            
+            
+            new_occupied = math.ceil(new_total_occupied)
+            new_available = parking.get("total") - new_occupied
+            cur = self._cursor()
+            
+            print(available, "========================")
+            cur.execute("UPDATE parking SET available = %s, occupied = %s, total_occupied = %s WHERE id = 1",( new_available, new_occupied, new_total_occupied))
+            
+            self._commit()
+            cur.close()
+            print("update")
+            return True
+
         except Exception as e:
             print(f"[DB] updateparking error: {e}")
             return False
@@ -810,17 +843,17 @@ class SQL:
     def get_total_entry_exit(self) -> dict:
         try:
             cur = self._cursor()
-            cur.execute(
-                "SELECT COUNT(*), COALESCE(SUM(space_units), 0) FROM qrcode WHERE car_status='IN'"
-            )
-            entry, occupied_units = cur.fetchone()
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE car_status='OUT'")
-            exit_ = cur.fetchone()[0]
-            cur.close()
+            cur.execute("""
+                SELECT
+                    COUNT(CASE WHEN action = 'entry' THEN 1 END) AS entry,
+                    COUNT(CASE WHEN action = 'exit' THEN 1 END) AS exit
+                FROM history
+            """)
+
+            entry, exit_ = cur.fetchone()
             return {
                 "entry": entry,
                 "exit": exit_,
-                "occupied_units": int(occupied_units),
             }
         except Exception as e:
             print(f"[DB] get_total_entry_exit error: {e}")
@@ -877,7 +910,18 @@ class SQL:
         except Exception as e:
             print(f"[DB] check_magic error: {e}")
             return False
-        
+    
+    def guard_log(self, qrdata,user,status,action):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
+                (qrdata, user, status, action),
+            )
+            self._commit()
+            cur.close()
+        except Exception as e:
+            print("[db] History log error:", e)
         
     def add_admin(self, username, email, password):
         try:

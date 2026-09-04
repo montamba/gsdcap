@@ -252,14 +252,14 @@ class Staff:
             data = request.get_json()
             qr_data = (data.get("data") or "").strip()
             plate = (data.get("plate") or "").strip()
-            valid_until = data.get("valid_until")
-            owner_name = (data.get("owner_name") or "").strip()
+            valid_until = data.get("valid_until" or None)
+            owner_name = (data.get("owner_name")).strip()
             owner_email = (data.get("owner_email") or "").strip()
-            owner_number = (data.get("owner_number") or "").strip()
+            owner_number = (data.get("owner_number")).strip() or None
             vehicle_type = (data.get("vehicle_type") or "car").strip().lower()
             department = (data.get("department") or "visitor").strip().lower()
             
-            if not all([qr_data,plate,valid_until,owner_name,owner_email,owner_number,vehicle_type,department]):
+            if not all([qr_data,plate,valid_until,owner_name,owner_email,vehicle_type,department]):
                 return jsonify({
                         "status": "bad",
                         "message": "fill all the requirements",

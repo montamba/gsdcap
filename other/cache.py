@@ -36,6 +36,11 @@ class Cache:
 
     def check_key(self, name):
         return name in self.__DATA
+    
+    def is_empty(self, name):
+        if not self.__DATA[name]: return True
+        
+        return False
 
     def prin(self):
         print(self.__DATA)

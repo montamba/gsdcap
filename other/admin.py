@@ -60,8 +60,7 @@ class Admin:
         @self.admin.route("/parking", methods=["GET"])
         def parking():
             message = {"status": "failed", "message": "Something went wrong"}
-            with open(file_path, "r") as file:
-                data = json.load(file)
+            data = self.sql.getparking()
             if data:
                 message.update({"status": "good", "message": "Success", "data": data})
             return jsonify(message)
@@ -70,12 +69,14 @@ class Admin:
         def setParking():
             redata = request.get_json()
             total = int(redata.get("total", 0))
-            with open(file_path, "r") as file:
-                jdata = json.load(file)
-            jdata["total"] = total
-            jdata["available"] = total - jdata["occupied"]
-            with open(file_path, "w") as file:
-                json.dump(jdata, file, indent=4)
+            
+            isinsert =self.sql.setparkingslot(total)
+            
+            if not isinsert:
+                return jsonify(
+                         {"status": "bad", "message": "Update Failed", "total": total}
+                        )
+            
             return jsonify(
                 {"status": "ok", "message": "Updated successfully", "total": total}
             )
@@ -114,6 +115,7 @@ class Admin:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
+            print("fetching users")
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):
                 print("fetcjing users")
@@ -329,6 +331,15 @@ class Admin:
                 self.cache.add(keyname, sqlactive_qr)
 
             active_qr = self.cache.get(keyname)
+            
+            print("hi ============")
+            print({
+                                "status": "good",
+                                "parking_slots": parking.get("total", 0),
+                                "occupied": parking.get("occupied", 0),
+                                "entered_today": entries["entry"],
+                                "active_qr": active_qr,
+                            })
 
             return jsonify(
                 {

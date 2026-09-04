@@ -414,6 +414,7 @@
         async function getUsers(page = 1) {
             currentPage = page;
             const res = await API.get(`/admin/getusers?page=${page}&limit=${LIMIT}`);
+            console.log(res)
             if (!res || res.status !== "good") {
                 renderUsers([]);
                 ["cnt-guard","cnt-staff","cnt-user","cnt-total"].forEach(id => document.getElementById(id).textContent = "0");

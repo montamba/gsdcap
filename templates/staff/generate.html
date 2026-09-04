@@ -196,7 +196,7 @@
 
                     <div class="form-group">
                         <label>Owner Phone</label>
-                        <input type="text" id="owner_number" placeholder="PhoneNumber" required>
+                        <input type="text" id="owner_number" placeholder="Phone number(optiona)" required>
                     </div>
 
                     <div class="form-group">
@@ -336,8 +336,8 @@
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
 
             const payload = {
-                data:         code,
-                plate:        document.getElementById("plate").value.trim(),
+                data: code,
+                plate: document.getElementById("plate").value.trim(),
                 valid_until: document.getElementById("validuntil").value,
                 owner_name:  document.getElementById("owner_name").value.trim(),
                 owner_number: document.getElementById("owner_number").value.trim(),
