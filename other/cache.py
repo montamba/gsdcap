@@ -8,6 +8,7 @@ class Cache:
         self.__clearcount = 0
 
     def add(self, name, value):
+        print("add name: ", name, " Value: ", value)
         self.__DATA[name] = value
 
     def delete(self, name):
@@ -25,7 +26,8 @@ class Cache:
             self.clear()
 
     def get(self, name):
-        return self.__DATA[name]
+        
+        return self.__DATA.get(name)
 
     def deletethathas(self, name):
         newdata = {}

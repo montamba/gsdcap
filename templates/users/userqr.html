@@ -9,11 +9,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <title>qr code</title>
     <style>
+        #pendingqr{
+            border:2px solid;
+        }
 
     </style>
 </head>
 
 <body>
+    <aside>
+        <div class="logos">
+            <div class="circle">P</div>
+            <span>USER PORTAL</span>
+        </div>
+        <div class="buttons">
+            <a href="/users/status" class="active"><i class="bi bi-qr-code"></i> QR Status</a>
+            <a href="/users/profile"><i class="bi bi-search"></i> Profile</a>
+        </div>
+        <div class="logout">
+            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        </div>
+    </aside>
 
 
 
@@ -23,6 +39,7 @@
                 <thead>
                     <tr>
                         <th>No. </th>
+                        <th>Request Type</th>
                         <th>Request Status</th>
                         <th>Request date</th>
                     </tr>
@@ -87,7 +104,7 @@
                 let data = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
                 console.log(data)
                 if (data) {
-                    renderRequestQr(data.requests || data.data || []);
+                    renderRequest(data.requests || data.data || []);
                     renderPagination(data.pages || 1);
                 }
             } catch (err) {
@@ -95,7 +112,7 @@
             }
         }
 
-        function renderRequestQr(qrdata = []) {
+        function renderRequest(qrdata = []) {
             let qrs = document.getElementById("qrs");
             qrs.textContent = "";
 
@@ -109,11 +126,17 @@
 
             let rowsHtml = "";
             qrdata.forEach((val,i) => {
+
+                let alt = {
+                    "request_qr": "Request QR",
+                    "request_renewal": "QR Renewal"
+                }
                 
                 rowsHtml += `<tr>
-                <td>${escapeHTML(i)}</td>
-                <td>${escapeHTML(val[ 0 ])}</td>
-                <td>${escapeHTML(val[ 1 ])}</td>
+                <td>${escapeHTML(i+1)}</td>
+                <td>${escapeHTML(alt[val[ 2 ]])}</td>
+                <td>${escapeHTML(val[ 4 ])}</td>
+                <td>${escapeHTML(val[ 6 ])}</td>
             </tr>`;
             });
             qrs.innerHTML = rowsHtml;
@@ -161,6 +184,9 @@
                 "phone": document.getElementById("number").value,
                 "vtype": document.getElementById("vehicle_type").value
             }
+
+            console.log("================================")
+            console.log(payload)
 
             let res = await API.post("/users/add_request", payload);
             showMessageModal(res.message, res.status)

@@ -559,7 +559,7 @@ class SQL:
             
             cur.execute("""
                         SELECT qrpending.*, qrcode.created_at FROM qrpending LEFT JOIN  qrcode ON qrpending.qrid = qrcode.id WHERE qrcode.owner_email=%s LIMIT %s OFFSET %s
-                        """, (email,limit,offset))
+                        """, (email,limit,offset,))
             
             data = cur.fetchall()
             
@@ -598,12 +598,15 @@ class SQL:
                 """,
                 (plate, owner_name, owner_email, owner_phone, created_by, vehicle_type, space_units),
             )
+            
+            last = cur.lastrowid
+            
             self._commit()
             
             #-------------
 
-            cur.execute("SELECT id FROM qrcode WHERE plate=%s", (plate,))
-            qid = cur.fetchone()[0]
+            
+            
             
             # ------
 
@@ -612,7 +615,7 @@ class SQL:
                     qrpending (qrid, request_type, request_by) 
                     VALUES (%s,%s,%s);
                 """,
-                (qid, "request_qr", created_by,),
+                (last, "request_qr", created_by,),
             )
             self._commit()
             

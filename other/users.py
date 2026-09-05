@@ -10,8 +10,8 @@ class Users:
         
         
     def _protect(self):
-            #if "user_id" not in session or session["role"] != "user":
-            if True:
+            if "user_id" not in session or session["role"] != "user":
+            #if True:
                 if request.is_json:
                     return (
                         jsonify({"status": "unauthenticated", "message": "Please log in"}),
@@ -27,9 +27,29 @@ class Users:
     def routes(self):
         self.users.before_request(self._protect)
         
-        @self.users.route("/home")
-        def home():
+        @self.users.route("/status")
+        def staus():
             return render_template("users/userqr.html")
+        
+        @self.users.route("/profile")
+        def profile():
+            return render_template("users/userprofile.html")
+        
+        
+        @self.users.route("get_profile",methods=["GET"])
+        def get_profile():
+            data = self.sql.getuserbyemailandrole(session["email"],session["role"])
+            print(data)
+            
+            if data:
+                response = {
+                    "status":"good",
+                    "username":data[1],
+                    "email":data[2]
+                }
+                return response
+            
+            return {"status":"bad", "message":"Try again"}
     
     
     
@@ -50,18 +70,15 @@ class Users:
             res = self.sql.fetchselfrequest(session["email"], limit, page)
             total = self.sql.countallselfrequest(session["user_id"])
             
-            
+            print("respose=====123  ")
             print(res)
-            if res:
-                newdata = []    
-                for ndata in res:
-                    newdata.append([ndata[4], ndata[6]])
+            
             
             
             
             return jsonify({
                 "status":"success",
-                "data":newdata,
+                "data":res,
                 "pages":total
             })
     
@@ -74,7 +91,7 @@ class Users:
             phone = (data.get("phone")).strip()
             vtype = (data.get("vtype")).strip()
             
-            required_fields = [plate, owner, email, phone, vtype]
+            required_fields = [plate, owner, email, vtype]
 
             if not all(required_fields):
                 return jsonify({"error": "All fields are required"}), 400

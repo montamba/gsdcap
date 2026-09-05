@@ -115,15 +115,14 @@ class Admin:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            print("fetching users ===============================")
             keyname = name + str(offset)
             if not self.cache.check_key(keyname) or not self.cache.is_empty(keyname):
                 print("not in users cache")
                 
                 sqlusers= self.sql.getalluser(limit=limit, offset=offset)
-                print("resultttttttttttttttttttttttt")
-                print(sqlusers)
+                
                 self.cache.add(keyname, sqlusers)
+            
 
             if self.cache.check_key(keyname):
                 users = self.cache.get(keyname)

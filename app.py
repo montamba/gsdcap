@@ -22,7 +22,6 @@ load_dotenv()
 
 import base64
 
-print()
 class Main:
     def __init__(self):
         self.app = Flask(__name__)
@@ -33,7 +32,6 @@ class Main:
 
         self.sql = SQL()
 
-        print(os.getenv("DATABASE"))
         self.blueprints()
         self.routes()
 
@@ -80,7 +78,6 @@ class Main:
                 cur.execute(
                     "SELECT id, email, password FROM admin WHERE email=%s", (email,)
                 )
-                print("end check")
             elif role in ("user", "guard", "staff"):
                 cur.execute(
                     "SELECT id, email, password, role FROM users WHERE email=%s AND role=%s",
