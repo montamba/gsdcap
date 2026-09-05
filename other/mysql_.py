@@ -206,6 +206,19 @@ class SQL:
             print(f"[DB] getalluser error: {e}")
             return []
 
+
+    def countqrbyemailandhasdata(self, email):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT COUNT(*) FROM qrcode WHERE owner_email=%s AND data IS NOT NULL", (email,))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] countqrbyemailandhasdata error: {e}")
+            return 0
+        
+
     def countallusers(self) -> int:
         try:
             cur = self._cursor()
@@ -381,6 +394,21 @@ class SQL:
             return result
         except Exception as e:
             print(f"[DB] getqrbydata error: {e}")
+            return None
+        
+        
+    def getqrbyemailandhasdata(self, email, limit, offset):
+        try:
+            cur = self._cursor()
+            print("fetching from mysql ", email)
+            cur.execute("SELECT * FROM qrcode WHERE data IS NOT NULL AND owner_email=%s  LIMIT %s OFFSET %s", (email, limit, offset))
+            result = cur.fetchall()
+            print("fetching done ", email)
+            
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getqrbyemailandhasdata error: {e}")
             return None
 
     def getqrbyid(self, qr_id):
@@ -630,24 +658,22 @@ class SQL:
     def requestrenewal(self, id, data):
         try:
             cur = self._cursor()
-            
-            
             cur.execute("SELECT id FROM qrcode WHERE data=%s", (id,))
-            qrid = cur.fetchone()[0]
-            
-            if not qrid:
+            row = cur.fetchone()
+            if not row:
                 return False
-            
-            cur.execute("""INSERT INTO 
-                        qrpending(qrid, request_type, request_by) 
+            qrid = row[0]
+
+            cur.execute("""INSERT INTO
+                        qrpending(qrid, request_type, request_by)
                         VALUES (%s,%s,%s)
-                        """, (qrid, "qr_renewal", id),)
-            self.sql.commit()
-            
-        except:
+                        """, (qrid, "qr_renewal", data))
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] requestrenewal error: {e}")
             return False
-        
-        return True
      
 
     # ──────────────────────────────────────────────────────────────

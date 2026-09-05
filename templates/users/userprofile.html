@@ -59,7 +59,6 @@
             border-bottom: 1px solid #000000;
         }
 
-        /* ─── INNER CONTAINER CARDS WITH BORDER RADIUS ─── */
         .profile-card {
             background: #ffffff;
             border: 1px solid #000000;
@@ -282,8 +281,7 @@
             height: 100vh;
             background: rgba(128, 128, 128, 0.6);
             z-index: 9999;
-            visibility:hidden;
-
+            visibility: hidden;
         }
 
         .hiddenPass {
@@ -293,7 +291,51 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background:white;
+            background: white;
+        }
+
+        /* ─── MOBILE ─── */
+        .mobile-nav { display: none; }
+
+        @media (max-width: 768px) {
+            aside { display: none; }
+
+            .mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: #1e3a8a;
+                z-index: 200;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .mobile-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px 4px;
+                text-decoration: none;
+                color: rgba(186, 210, 255, 0.7);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                transition: all .2s;
+            }
+            .mobile-nav a i { font-size: 18px; }
+            .mobile-nav a.active,
+            .mobile-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+            .page-header { padding: 16px 18px; }
+            .page-header h1 { font-size: 17px; }
+
+            .inner { padding: 16px 16px 90px; max-width: 100%; }
+            .info-grid { grid-template-columns: 1fr; }
+            .form-body { padding: 18px; }
+            .btn-save { width: 100%; justify-content: center; align-self: stretch; }
         }
     </style>
 </head>
@@ -301,17 +343,29 @@
 <body>
     <aside>
         <div class="logos">
-            <div class="circle">P</div>
-            <span>USER PORTAL</span>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png"
+                    alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
-        <div class="buttons">
-            <a href="/users/status" class="active"><i class="bi bi-qr-code"></i> QR Status</a>
-            <a href="/users/profile"><i class="bi bi-search"></i> Profile</a>
+        <div class="butt">
+            <p class="sml">Overview</p>
+            <button onclick="window.location.href='/users/status'"><i class="bi bi-qr-code"></i> QR Status</button>
+            <p class="sml">Account</p>
+            <button class="active-nav" onclick="window.location.href='/users/profile'"><i class="bi bi-person-circle"></i> Profile</button>
         </div>
-        <div class="logout">
-            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
+
+    <!-- Mobile bottom nav -->
+    <nav class="mobile-nav">
+        <a href="/users/status"><i class="bi bi-qr-code"></i> QR Status</a>
+        <a href="/users/profile" class="active"><i class="bi bi-person-circle"></i> Profile</a>
+        <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </nav>
 
     <div class="right">
         <div class="page-header">
@@ -327,7 +381,7 @@
                 <div class="profile-banner"></div>
                 <div class="profile-body">
                     <div class="profile-name" id="dispUsername">—</div>
-                    <div class="profile-role">System Administrator</div>
+                    <div class="profile-role">User</div>
                     <div class="info-grid">
                         <div class="info-item">
                             <div class="info-icon"><i class="bi bi-person-fill"></i></div>
@@ -353,18 +407,14 @@
                 </div>
                 <div class="form-body">
                     <div class="form-group">
-                        <label>New Username Address</label>
-                        <input type="text" id="newUsername" placeholder="Enter new username address">
+                        <label>New Username</label>
+                        <input type="text" id="newUsername" placeholder="Enter new username">
                     </div>
-                    <button class="btn-save" id="btnEmail" onclick="shwhidden()">
-                        <i class="bi bi bi-person-fill"></i> Update Username
+                    <button class="btn-save" onclick="shwhidden()">
+                        <i class="bi bi-person-fill"></i> Update Username
                     </button>
                 </div>
             </div>
-
-
-
-
 
             <div class="form-card">
                 <div class="section-title">
@@ -421,15 +471,13 @@
             <div class="form-body">
                 <div class="form-group">
                     <label>Enter Password</label>
-                    <input type="text" id="hcpass" placeholder="Enter your password">
+                    <input type="password" id="hcpass" placeholder="Enter your password">
                 </div>
                 <button class="btn-save" onclick="changeUsername()">
                     <i class="bi bi-send"></i> confirm
                 </button>
             </div>
-
         </div>
-
     </div>
 
     <script>
@@ -445,31 +493,33 @@
         }
 
         function shwhidden() {
-            let hp = document.getElementById("hiddenpassback");
-            hp.style.visibility = "visible";
+            document.getElementById("hiddenpassback").style.visibility = "visible";
         }
 
         function hidehidden() {
-            let hp = document.getElementById("hiddenpassback");
-            hp.style.visibility = "hidden";
+            document.getElementById("hiddenpassback").style.visibility = "hidden";
         }
 
         async function changeUsername() {
-            let payload = {
-                newusername :document.getElementById("newUsername").value,
-                password : document.getElementById("hcpass").value
+            const payload = {
+                newusername: document.getElementById("newUsername").value,
+                password: document.getElementById("hcpass").value
+            };
+
+            const res = await API.post("/users/update_username", payload);
+            showMessageModal(res.message ?? "", res.status ?? "bad");
+
+            if (res.status === "good") {
+                hidehidden();
+                document.getElementById("newUsername").value = "";
+                document.getElementById("hcpass").value = "";
+                loadProfile();
             }
-
-            let res = await API.post("/users/update_username",payload);
-            showMessageModal(res.message ?? "", res.status??" ");
-
         }
-
-
 
         function togglePwVisibility() {
             const show = document.getElementById("showPw").checked;
-            [ "currentPw", "newPw", "confirmPw" ].forEach(id => {
+            ["currentPw", "newPw", "confirmPw"].forEach(id => {
                 document.getElementById(id).type = show ? "text" : "password";
             });
         }
@@ -485,7 +535,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
 
-            const res = await API.put("/admin/update_email", { email });
+            const res = await API.put("/users/update_email", { email });
             showMessageModal(res.message, res.status);
 
             if (res.status === "good") {
@@ -520,7 +570,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
 
-            const res = await API.put("/admin/update_password", {
+            const res = await API.put("/users/update_password", {
                 current_password,
                 new_password,
                 confirm_password
@@ -528,7 +578,7 @@
             showMessageModal(res.message, res.status);
 
             if (res.status === "good") {
-                [ "currentPw", "newPw", "confirmPw" ].forEach(id => {
+                ["currentPw", "newPw", "confirmPw"].forEach(id => {
                     document.getElementById(id).value = "";
                 });
                 document.getElementById("showPw").checked = false;

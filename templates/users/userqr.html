@@ -4,201 +4,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/../../static/scripts/scrit.js"></script>
+    <title>QR Status — GSD Parking</title>
+    <link rel="stylesheet" href="/../../static/css/style.css">
+    <link rel="stylesheet" href="/../../static/css/message.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <title>qr code</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/../../static/scripts/scrit.js"></script>
     <style>
-        #pendingqr{
-            border:2px solid;
-        }
+        * { font-family: 'Roboto', sans-serif; box-sizing: border-box; }
 
+        .page-header {
+            background: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 24px 36px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, .06);
+        }
+        .page-header h1 { font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 i { color: #2563eb; }
+        .page-header p { font-size: 11px; color: #94a3b8; margin-top: 4px; letter-spacing: .08em; text-transform: uppercase; }
+
+        .inner { padding: 28px 36px; max-width: 960px; }
+
+        /* ── REQUEST FORM ── */
+        .form-card {
+            background: #fff;
+            border: 1px solid #000000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .07);
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 12px; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: .12em;
+            padding: 14px 22px; border-bottom: 1px solid #000000;
+            display: flex; align-items: center; gap: 10px; background: #f5f9ff;
+        }
+        .section-title::before { content: ''; width: 4px; height: 14px; background: #2563eb; flex-shrink: 0; border-radius: 2px; }
+        .section-title i { color: #2563eb; }
+
+        .form-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: .14em; text-transform: uppercase; }
+        .form-group input, .form-group select {
+            padding: 11px 14px; background: #f8faff; border: 1.5px solid #000000;
+            border-radius: 8px; color: #0f172a; font-size: 14px; outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #000000; box-shadow: 0 0 0 3px rgba(0, 0, 0, .1); background: #fff;
+        }
+        .form-group input[readonly] { color: #94a3b8; background: #f1f5f9; }
+        .form-group input::placeholder { color: #cbd5e1; }
+
+        .btn-save {
+            grid-column: span 2;
+            align-self: flex-start;
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            border: 1px solid #000000;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 13px; font-weight: 800; cursor: pointer;
+            letter-spacing: .06em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 8px;
+            transition: all .2s;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .15);
+        }
+        .btn-save:hover { opacity: .9; transform: translateY(-1px); }
+        .btn-save:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+        /* ── TABLE ── */
+        .table-box { background: #fff; border: 1px solid #000000; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0, 0, 0, .07); margin-bottom: 24px; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        table.req-table tr { display: grid; grid-template-columns: 50px 1fr 130px 150px; }
+        table.mqr-table tr { display: grid; grid-template-columns: 40px 1fr 110px 120px 130px 110px; cursor: pointer; }
+        th, td { padding: 13px 16px; text-align: left; font-size: 13px; }
+        th { background: #f5f9ff; color: #64748b; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; border-bottom: 1px solid #000000; }
+        td { color: #334155; border-bottom: 1px solid #000000; word-break: break-word; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #f8faff; }
+
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; border-radius: 20px; white-space: nowrap; }
+        .badge-pending  { background: #fef3c7; color: #92400e; border: 1px solid #000000; }
+        .badge-approved { background: #d1fae5; color: #065f46; border: 1px solid #000000; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #000000; }
+        .badge-default  { background: #e2e8f0; color: #334155; border: 1px solid #000000; }
+        .badge-expired  { background: #f3f4f6; color: #6b7280; border: 1px solid #000000; }
+
+        .empty-note { padding: 32px; text-align: center; color: #94a3b8; font-size: 11px; letter-spacing: .08em; grid-column: 1 / -1; }
+
+        .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f5f9ff; border-top: 1px solid #000000; flex-wrap: wrap; gap: 8px; }
+        .pg-info { font-size: 11px; color: #94a3b8; }
+        .pg-btns { display: flex; gap: 5px; }
+        .pg-btn { padding: 5px 11px; border: 1.5px solid #000000; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all .2s; }
+        .pg-btn:hover:not(:disabled) { border-color: #000000; color: #2563eb; background: #eff6ff; }
+        .pg-btn.active { background: #2563eb; border-color: #000000; color: #fff; }
+        .pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+        .date-subtext { font-size: 9px; color: #64748b; display: block; margin-top: 2px; }
+
+        /* ── MODAL STYLES ── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 16px; backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: #fff; border: 1.5px solid #000; border-radius: 16px;
+            width: 100%; max-width: 480px; overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header {
+            padding: 16px 20px; background: #f5f9ff; border-bottom: 1px solid #000;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-header h3 { font-size: 15px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .modal-close { background: none; border: none; font-size: 20px; color: #64748b; cursor: pointer; transition: color .2s; }
+        .modal-close:hover { color: #0f172a; }
+        .modal-body { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .qr-wrapper {
+            padding: 16px; background: #fff; border: 1.5px solid #000;
+            border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .details-grid {
+            width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            background: #f8faff; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+        }
+        .detail-item { display: flex; flex-direction: column; gap: 2px; }
+        .detail-item.full { grid-column: span 2; }
+        .detail-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+        .detail-val { font-size: 13px; font-weight: 600; color: #1e293b; word-break: break-all; }
+
+        .modal-footer {
+            padding: 14px 20px; background: #f5f9ff; border-top: 1px solid #000;
+            display: flex; justify-content: flex-end; width: 100%;
+        }
+        .btn-renewal {
+            padding: 10px 18px;
+            background: #0284c7;
+            border: 1px solid #000000;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 12px; font-weight: 800; cursor: pointer;
+            letter-spacing: .06em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 6px;
+            transition: all .2s;
+        }
+        .btn-renewal:hover { background: #0369a1; }
+
+        /* ── MOBILE ── */
+        .mobile-nav { display: none; }
+
+        @media (max-width: 768px) {
+            aside { display: none; }
+
+            .mobile-nav {
+                display: flex !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: #1e3a8a;
+                z-index: 200;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .mobile-nav a {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px 4px;
+                text-decoration: none;
+                color: rgba(186, 210, 255, 0.7);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                transition: all .2s;
+            }
+            .mobile-nav a i { font-size: 18px; }
+            .mobile-nav a.active,
+            .mobile-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+            .page-header { padding: 16px 18px; }
+            .page-header h1 { font-size: 17px; }
+
+            .inner { padding: 16px 16px 90px; max-width: 100%; }
+
+            .form-body { grid-template-columns: 1fr; padding: 18px; }
+            .form-group.full { grid-column: span 1; }
+            .btn-save { grid-column: span 1; width: 100%; justify-content: center; }
+
+            /* Table layouts on mobile */
+            table { min-width: 100%; }
+            table.req-table tr { grid-template-columns: 32px 1fr 85px; }
+            table.req-table th:nth-child(4),
+            table.req-table td:nth-child(4) { display: none; }
+
+            table.mqr-table tr { grid-template-columns: 28px 1fr 80px 95px 75px; }
+            table.mqr-table th:nth-child(4),
+            table.mqr-table td:nth-child(4) { display: none; }
+        }
     </style>
 </head>
 
 <body>
     <aside>
         <div class="logos">
-            <div class="circle">P</div>
-            <span>USER PORTAL</span>
+            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png" alt="logo"></div>
+            <h2>GSD Parking</h2>
         </div>
-        <div class="buttons">
-            <a href="/users/status" class="active"><i class="bi bi-qr-code"></i> QR Status</a>
-            <a href="/users/profile"><i class="bi bi-search"></i> Profile</a>
+        <div class="butt">
+            <p class="sml">Overview</p>
+            <button class="active-nav" onclick="window.location.href='/users/status'"><i class="bi bi-qr-code"></i> QR Status</button>
+            <p class="sml">Account</p>
+            <button onclick="window.location.href='/users/profile'"><i class="bi bi-person-circle"></i> Profile</button>
         </div>
-        <div class="logout">
-            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </button>
         </div>
     </aside>
 
-
+    <!-- Mobile bottom nav -->
+    <nav class="mobile-nav">
+        <a href="/users/status" class="active"><i class="bi bi-qr-code"></i> QR Status</a>
+        <a href="/users/profile"><i class="bi bi-person-circle"></i> Profile</a>
+        <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </nav>
 
     <div class="right">
-        <div id="pendingqr">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No. </th>
-                        <th>Request Type</th>
-                        <th>Request Status</th>
-                        <th>Request date</th>
-                    </tr>
-                </thead>
-                <tbody id="qrs">
-
-
-                </tbody>
-            </table>
-
+        <div class="page-header">
+            <div>
+                <h1><i class="bi bi-qr-code"></i> QR Status</h1>
+                <p>Request a Vehicle QR Pass</p>
+            </div>
         </div>
 
-        <div class="request_qr">
-            <form id="requestqr" onsubmit="requestqr(event)">
-                <div>
-                    <label for="plate">Plate</label>
-                    <input id="plate" type="text" placeholder="123 ABC">
-                </div>
-                <div>
-                    <label for="username">username</label>
-                    <input id="username" type="text" placeholder="123 ABC">
-                </div>
+        <div class="inner">
+            <div class="form-card">
+                <div class="section-title"><i class="bi bi-plus-circle"></i> Request a New QR</div>
+                <form id="requestqr" class="form-body" onsubmit="requestqr(event)">
+                    <div class="form-group">
+                        <label>Plate Number</label>
+                        <input id="plate" type="text" placeholder="e.g. 123 ABC" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Owner Name</label>
+                        <input id="username" type="text" placeholder="Full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input id="email" type="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input id="number" type="text" placeholder="Optional">
+                    </div>
+                    <div class="form-group full">
+                        <label>Vehicle Type</label>
+                        <select id="vehicle_type">
+                            <option value="car">Car — uses 1 parking space</option>
+                            <option value="motorcycle">Motorcycle — uses half a parking space</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-save" id="btnRequest">
+                        <i class="bi bi-send"></i> Submit Request
+                    </button>
+                </form>
+            </div>
 
-                <div>
-                    <label for="email">Email</label>
-                    <input id="email" type="email" value="Sample@email.com" readonly>
+            <!-- MY QR CODES TABLE -->
+            <div class="table-box">
+                <div class="section-title"><i class="bi bi-qr-code-scan"></i> My QRCodes</div>
+                <div class="table-responsive">
+                    <table class="mqr-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Code</th>
+                                <th>Plate</th>
+                                <th>Department</th>
+                                <th>QR Status</th>
+                                <th>Car Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myqr">
+                            <tr><td colspan="6" class="empty-note">Loading…</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div>
-                    <label for="phone_num">Phone</label>
-                    <input type="text" id="number">
+                <div class="pagination">
+                    <span class="pg-info" id="myqrpgInfo">—</span>
+                    <div class="pg-btns" id="myqrpagination"></div>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Vehicle Type</label>
-                    <select id="vehicle_type">
-                        <option value="car">Car — uses 1 parking space</option>
-                        <option value="motorcycle">Motorcycle — uses half a parking space</option>
-                    </select>
+            <!-- REQUESTS HISTORY TABLE -->
+            <div class="table-box">
+                <div class="section-title"><i class="bi bi-clock-history"></i> My Requests</div>
+                <div class="table-responsive">
+                    <table class="req-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Request Type</th>
+                                <th>Status</th>
+                                <th>Requested On</th>
+                            </tr>
+                        </thead>
+                        <tbody id="qrs">
+                            <tr><td colspan="4" class="empty-note">Loading…</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div>
-                    <button type="submit">Request QR</button>
+                <div class="pagination">
+                    <span class="pg-info" id="pgInfo">—</span>
+                    <div class="pg-btns" id="pagination"></div>
                 </div>
-            </form>
+            </div>
+        </div>
+    </div>
 
-
+    <!-- QR DETAILS MODAL -->
+    <div class="modal-overlay" id="qrModal" onclick="closeQrModal(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="bi bi-qr-code"></i> Vehicle QR Details</h3>
+                <button class="modal-close" onclick="closeQrModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-wrapper">
+                    <div id="modalQrCode"></div>
+                </div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Plate Number</span>
+                        <span class="detail-val" id="mdPlate">—</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Vehicle Type</span>
+                        <span class="detail-val" id="mdVType">—</span>
+                    </div>
+                    <div class="detail-item full">
+                        <span class="detail-label">Owner Name</span>
+                        <span class="detail-val" id="mdName">—</span>
+                    </div>
+                    <div class="detail-item full">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-val" id="mdEmail">—</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-val" id="mdPhone">—</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Department</span>
+                        <span class="detail-val" id="mdDept">—</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-val" id="mdStatus">—</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Expiry Date</span>
+                        <span class="detail-val" id="mdExp">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-renewal" id="btnModalRenewal" onclick="handleRequestRenewal(this.getAttribute('data-id'))">
+                    <i class="bi bi-arrow-repeat"></i> Request Renewal
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        let LIMIT = 5;
-        let PAGE = 1;
+        const LIMIT = 5;
 
-        async function MyEmail() {
-            let res = await API.get("/users/myemail");
-            document.getElementById("email").value = escapeHTML(res.data.email);
+        // Paging states for Requests
+        let PAGE = 1;
+        let TOTAL_PAGES = 1;
+
+        // Dedicated Paging states for My QR
+        let MYQR_PAGE = 1;
+        let MYQR_TOTAL_PAGES = 1;
+
+        const REQUEST_TYPE_LABELS = {
+            "request_qr": "Request QR",
+            "request_renewal": "QR Renewal"
+        };
+
+        function statusBadgeClass(status) {
+            const s = (status || "").toLowerCase();
+            if (s === "pending") return "badge-pending";
+            if (s === "approved" || s === "accepted" || s === "active") return "badge-approved";
+            if (s === "rejected" || s === "denied" || s === "expired") return "badge-rejected";
+            return "badge-default";
         }
 
-
-        async function fetchData() {
+        async function MyEmail() {
             try {
-                let data = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
-                console.log(data)
-                if (data) {
-                    renderRequest(data.requests || data.data || []);
-                    renderPagination(data.pages || 1);
-                }
+                const res = await API.get("/users/myemail");
+                document.getElementById("email").value = res?.data?.email || "";
             } catch (err) {
-                console.error("Fetch error:", err);
+                console.error("Email fetch error:", err);
             }
         }
 
-        function renderRequest(qrdata = []) {
-            let qrs = document.getElementById("qrs");
-            qrs.textContent = "";
+        /* ── FETCH & RENDER REQUESTS ── */
+        async function fetchData() {
+            const tbody = document.getElementById("qrs");
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-note">Loading…</td></tr>`;
 
-            if (!qrdata || qrdata.length === 0) {
-                qrs.innerHTML = `
-                <tr>
-                    <td colspan="3" style="text-align: center;">No data available</td>
-                </tr>`;
+            try {
+                const res = await API.get(`/users/get_request?page=${PAGE}&limit=${LIMIT}`);
+                if (!res || res.status !== "good") {
+                    renderRequest([]);
+                    updatePager(0, 1, 1);
+                    return;
+                }
+                renderRequest(res.data || []);
+                updatePager(res.total || 0, res.page || PAGE, res.pages || 1);
+            } catch (err) {
+                console.error("Fetch error:", err);
+                renderRequest([]);
+                updatePager(0, 1, 1);
+            }
+        }
+
+        function renderRequest(rows = []) {
+            const tbody = document.getElementById("qrs");
+
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-note">📭 No requests yet</td></tr>`;
                 return;
             }
 
-            let rowsHtml = "";
-            qrdata.forEach((val,i) => {
-
-                let alt = {
-                    "request_qr": "Request QR",
-                    "request_renewal": "QR Renewal"
-                }
-                
-                rowsHtml += `<tr>
-                <td>${escapeHTML(i+1)}</td>
-                <td>${escapeHTML(alt[val[ 2 ]])}</td>
-                <td>${escapeHTML(val[ 4 ])}</td>
-                <td>${escapeHTML(val[ 6 ])}</td>
-            </tr>`;
-            });
-            qrs.innerHTML = rowsHtml;
+            tbody.innerHTML = rows.map((val, i) => {
+                const type = REQUEST_TYPE_LABELS[val[2]] || val[2] || "—";
+                const status = val[4] || "pending";
+                const date = val[6] || "—";
+                return `
+                <tr>
+                    <td style="color:#94a3b8;">${(PAGE - 1) * LIMIT + i + 1}</td>
+                    <td>${escapeHTML(type)}</td>
+                    <td><span class="badge ${statusBadgeClass(status)}">${escapeHTML(status)}</span></td>
+                    <td style="font-size:11px;color:#64748b;">${escapeHTML(date)}</td>
+                </tr>`;
+            }).join("");
         }
 
-        function renderPagination(totalPages) {
-            let container = document.getElementById("pagination");
+        function updatePager(total, page, pages) {
+            PAGE = page;
+            TOTAL_PAGES = pages;
+            document.getElementById("pgInfo").textContent = `Page ${page} of ${pages} (${total} total)`;
 
-            if (!container) {
-                container = document.createElement("div");
-                container.id = "pagination";
-                document.getElementById("pendingqr").appendChild(container);
-            }
-
+            const container = document.getElementById("pagination");
             container.innerHTML = `
-            <button id="prevBtn" ${PAGE <= 1 ? 'disabled' : ''}>Previous</button>
-            <span>Page ${PAGE} of ${totalPages}</span>
-            <button id="nextBtn" ${PAGE >= totalPages ? 'disabled' : ''}>Next</button>
-        `;
+                <button class="pg-btn" id="prevBtn" ${page <= 1 ? "disabled" : ""}>‹ Prev</button>
+                <button class="pg-btn" id="nextBtn" ${page >= pages ? "disabled" : ""}>Next ›</button>
+            `;
 
             document.getElementById("prevBtn").onclick = () => {
-                if (PAGE > 1) {
-                    PAGE--;
-                    fetchData();
-                }
+                if (PAGE > 1) { PAGE--; fetchData(); }
             };
-
             document.getElementById("nextBtn").onclick = () => {
-                if (PAGE < totalPages) {
-                    PAGE++;
-                    fetchData();
-                }
+                if (PAGE < TOTAL_PAGES) { PAGE++; fetchData(); }
             };
         }
 
+        /* ── FETCH & RENDER MY QR CODES ── */
+        async function fetchMyQR() {
+            const tbody = document.getElementById("myqr");
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-note">Loading…</td></tr>`;
 
-        async function requestqr(event) {
-            event.preventDefault();            
+            try {
+                const res = await API.get(`/users/myqr?page=${MYQR_PAGE}&limit=${LIMIT}`);
+                if (!res || res.status !== "good") {
+                    renderMyQr([]);
+                    updateMyQrPager(0, 1, 1);
+                    return;
+                }
+                renderMyQr(res.data || []);
+                updateMyQrPager(res.total || 0, res.page || MYQR_PAGE, res.pages || 1);
+            } catch (err) {
+                console.error("Fetch MyQR error:", err);
+                renderMyQr([]);
+                updateMyQrPager(0, 1, 1);
+            }
+        }
 
-            let payload = {
-                "plate": document.getElementById("plate").value,
-                "user_name": document.getElementById("username").value,
-                
-                "email": document.getElementById("email").value,
-                "phone": document.getElementById("number").value,
-                "vtype": document.getElementById("vehicle_type").value
+        function renderMyQr(rows = []) {
+            const tbody = document.getElementById("myqr");
+
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-note">📭 You don't have QR codes</td></tr>`;
+                return;
             }
 
-            console.log("================================")
-            console.log(payload)
+            const today = new Date();
 
-            let res = await API.post("/users/add_request", payload);
-            showMessageModal(res.message, res.status)
+            tbody.innerHTML = rows.map((val, i) => {
+                const code = val[1] || "pending";
+                const plate = val[2] || "—";
+                const department = val[6] || "—";
+                const rawExpireDate = val[7] || null;
+                const dbStatus = val[8] || "Active";
+                const carStatus = val[11] || "—";
+
+                let isExpired = false;
+                let formattedExpDate = "No Expiry";
+
+                // Compare Expiration Date from val[7]
+                if (rawExpireDate) {
+                    const expDate = new Date(rawExpireDate);
+                    if (!isNaN(expDate.getTime())) {
+                        formattedExpDate = expDate.toLocaleDateString();
+                        if (expDate < today) {
+                            isExpired = true;
+                        }
+                    } else {
+                        formattedExpDate = rawExpireDate;
+                    }
+                }
+
+                // Determine final QR status tag
+                let displayStatus = dbStatus;
+                let badgeClass = statusBadgeClass(dbStatus);
+
+                if (isExpired) {
+                    displayStatus = "Expired";
+                    badgeClass = "badge-rejected";
+                }
+
+                // Prepare row data payload safely
+                const encodedData = encodeURIComponent(JSON.stringify(val));
+
+                return `
+                <tr onclick="onMyQrRowClick('${encodedData}')" title="Click to view details and QR code">
+                    <td style="color:#94a3b8;">${(MYQR_PAGE - 1) * LIMIT + i + 1}</td>
+                    <td style="font-weight:700; color:#2563eb;">${escapeHTML(code)}</td>
+                    <td>${escapeHTML(plate)}</td>
+                    <td>${escapeHTML(department)}</td>
+                    <td>
+                        <span class="badge ${badgeClass}">${escapeHTML(displayStatus)}</span>
+                        ${rawExpireDate ? `<span class="date-subtext">Exp: ${escapeHTML(formattedExpDate)}</span>` : ''}
+                    </td>
+                    <td><span class="badge badge-default">${escapeHTML(carStatus)}</span></td>
+                </tr>`;
+            }).join("");
         }
 
+        function updateMyQrPager(total, page, pages) {
+            MYQR_PAGE = page;
+            MYQR_TOTAL_PAGES = pages;
+            document.getElementById("myqrpgInfo").textContent = `Page ${page} of ${pages} (${total} total)`;
+
+            const container = document.getElementById("myqrpagination");
+            container.innerHTML = `
+                <button class="pg-btn" id="myqrPrevBtn" ${page <= 1 ? "disabled" : ""}>‹ Prev</button>
+                <button class="pg-btn" id="myqrNextBtn" ${page >= pages ? "disabled" : ""}>Next ›</button>
+            `;
+
+            document.getElementById("myqrPrevBtn").onclick = () => {
+                if (MYQR_PAGE > 1) { MYQR_PAGE--; fetchMyQR(); }
+            };
+            document.getElementById("myqrNextBtn").onclick = () => {
+                if (MYQR_PAGE < MYQR_TOTAL_PAGES) { MYQR_PAGE++; fetchMyQR(); }
+            };
+        }
+
+        /* ── MODAL LOGIC FOR ROW CLICK ── */
+        function onMyQrRowClick(encodedData) {
+            try {
+                const val = JSON.parse(decodeURIComponent(encodedData));
+                
+                // Mappings requested:
+                // data[0] = id
+                // data[1] = code (Only data encoded into QR)
+                // data[2] = plate
+                // data[3] = name
+                // data[4] = email
+                // data[5] = phone
+                // data[6] = department
+                // data[12] = vehicle_type
+                const qrId = val[0] || "";
+                const qrCodeValue = val[1] || "";
+                const plate = val[2] || "—";
+                const name = val[3] || "—";
+                const email = val[4] || "—";
+                const phone = val[5] || "—";
+                const department = val[6] || "—";
+                const vehicleType = val[12] || "—";
+                const status = val[8] || "Active";
+                const expDate = val[7] ? new Date(val[7]).toLocaleDateString() : "No Expiry";
+
+                // Set data[0] to renewal button
+                document.getElementById("btnModalRenewal").setAttribute("data-id", qrId);
+
+                document.getElementById("mdPlate").textContent = plate;
+                document.getElementById("mdName").textContent = name;
+                document.getElementById("mdEmail").textContent = email;
+                document.getElementById("mdPhone").textContent = phone;
+                document.getElementById("mdDept").textContent = department;
+                document.getElementById("mdVType").textContent = vehicleType;
+                document.getElementById("mdStatus").textContent = status;
+                document.getElementById("mdExp").textContent = expDate;
+
+                // Render QR code containing ONLY data[1]
+                const qrContainer = document.getElementById("modalQrCode");
+                qrContainer.innerHTML = "";
+                
+                if (qrCodeValue && qrCodeValue !== "pending") {
+                    new QRCode(qrContainer, {
+                        text: String(qrCodeValue),
+                        width: 180,
+                        height: 180,
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } else {
+                    qrContainer.innerHTML = `<span style="color:#94a3b8; font-size:12px;">No QR Code Available</span>`;
+                }
+
+                document.getElementById("qrModal").classList.add("active");
+            } catch (err) {
+                console.error("Failed to display QR details:", err);
+            }
+        }
+
+        function closeQrModal(e) {
+            if (!e || e.target.id === "qrModal" || e.target.classList.contains("modal-close")) {
+                document.getElementById("qrModal").classList.remove("active");
+            }
+        }
+
+        /* ── RENEWAL REQUEST HANDLER ── */
+        function handleRequestRenewal(id) {
+            console.log("Selected QR ID (data[0]):", id);
+            
+            // YOUR CUSTOM LOGIC HERE:
+            // e.g. API.post('/users/request_renewal', { id: id })
+        }
+
+        /* ── SUBMIT REQUEST ── */
+        async function requestqr(event) {
+            event.preventDefault();
+
+            const payload = {
+                plate: document.getElementById("plate").value.trim(),
+                user_name: document.getElementById("username").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                phone: document.getElementById("number").value.trim(),
+                vtype: document.getElementById("vehicle_type").value
+            };
+
+            if (!payload.plate || !payload.user_name || !payload.email) {
+                if (typeof showMessageModal === "function") {
+                    showMessageModal("Please fill in plate, owner name, and email.", "Missing Fields");
+                } else {
+                    alert("Please fill in plate, owner name, and email.");
+                }
+                return;
+            }
+
+            const btn = document.getElementById("btnRequest");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+
+            try {
+                const res = await API.post("/users/add_request", payload);
+                if (typeof showMessageModal === "function") {
+                    showMessageModal(res.message, res.status);
+                } else {
+                    alert(res.message);
+                }
+
+                if (res.status === "good") {
+                    document.getElementById("requestqr").reset();
+                    await MyEmail();
+                    PAGE = 1;
+                    await fetchData();
+                }
+            } catch (err) {
+                console.error("Submission error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i> Submit Request';
+            }
+        }
+
+        /* ── INIT ── */
         async function init() {
-            await fetchData();
             await MyEmail();
+            await fetchMyQR();
+            await fetchData();
         }
 
-        init()
-
+        init();
     </script>
 </body>
 
