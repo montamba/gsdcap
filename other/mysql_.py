@@ -593,6 +593,56 @@ class SQL:
         except Exception as e:
             print(f"[DB] deleteqr error: {e}")
             return False
+        
+    #------------------------Request
+    
+    def getqrrequestwithusersandqrcode(self, limit= 10, offset = 0):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """
+                SELECT 
+                    qrpending.*, 
+                    qrcode.*, 
+                    users.username 
+                FROM qrpending 
+                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id 
+                LEFT JOIN users ON qrpending.request_by = users.id 
+                WHERE qrpending.request_type = 'request_qr' 
+                LIMIT %s OFFSET %s;
+                """
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] getqrrequestwithusersandqrcode error: {e}")
+            return False
+        
+        
+    def getqrrenewalwithusersandqrcode(self, limit= 10, offset = 0):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """
+                SELECT 
+                    qrpending.*, 
+                    qrcode.*, 
+                    users.username 
+                FROM qrpending 
+                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id 
+                LEFT JOIN users ON qrpending.request_by = users.id 
+                WHERE qrpending.request_type = 'renew_qr' 
+                LIMIT %s OFFSET %s;
+                """
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] getqrrenewalwithusersandqrcode error: {e}")
+            return False
+            
 
     # ========================================================================================================= users
     def fetchselfrequest(self, email, limit, offset):

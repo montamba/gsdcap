@@ -48,6 +48,17 @@ class Staff:
         def request_page():
             return render_template("staff/request.html")
         
+        
+        @self.staff.route("/getuserqrrequest")
+        def getuserqrrequest():
+            limit = request.args.get("limit")
+            offset = request.args.get("offset") 
+            
+            
+            data = self.sql.getqrrequestwithusersandqrcode(limit, offset)
+            
+            
+        
         @self.staff.route("/generate_code")
         def generate_code():
             indata = True
