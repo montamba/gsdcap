@@ -7,99 +7,39 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="/../../static/scripts/scrit.js"></script>
-    <title>Generator — GSD Parking</title>
+    <title>User Requests — GSD Parking</title>
 
     <style>
-        *, *::before, *::after {
-            font-family: 'Roboto', sans-serif !important;
-        }
+        *, *::before, *::after { font-family: 'Roboto', sans-serif !important; }
 
-        .right{
-            position:relative;
-        }
+        .right { position: relative; }
 
         .header { background:#fff; border-bottom:1px solid #000000; padding:22px 32px; box-shadow:0 1px 8px rgba(0,0,0,.06); }
         .header h1 { font-size:20px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
-        .header p  { font-size:11px; color:#94a3b8; font-family:'Roboto',sans-serif !important; margin-top:3px; letter-spacing:.08em; }
+        .header p  { font-size:11px; color:#94a3b8; margin-top:3px; letter-spacing:.08em; }
         .header .bi { color:#2563eb; }
 
-        .gen-wrap { display:flex; gap:20px; padding:28px 32px; align-items:flex-start; }
-
-        .gen-form { background:#fff; border:1px solid #000000; width:380px; flex-shrink:0; border-radius:5px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.07); }
-
-        .card-header { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #000000; display:flex; align-items:center; gap:8px; }
-        .card-header::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:5px; }
-        .card-header h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; }
-        .card-header .bi { color:#2563eb; }
-
-        .form-body { padding:22px; display:flex; flex-direction:column; gap:14px; }
-
-        .form-divider { display:flex; align-items:center; gap:10px; margin:2px 0; }
-        .form-divider::before, .form-divider::after { content:''; flex:1; height:1px; background:#000000; }
-        .form-divider span { font-size:9px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
-
-        .form-group { display:flex; flex-direction:column; gap:6px; }
-        .form-group label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; }
-
-        .code-row { display:flex; gap:6px; align-items:stretch; }
-        .code-row input { flex:1; padding:11px 14px; background:#f0f6ff; border:1.5px solid #000000; color:#2563eb; font-size:13px; font-weight:700; outline:none; border-radius:5px; letter-spacing:.06em; }
-        .btn-regen { padding:0 12px; background:#eff6ff; border:1.5px solid #000000; color:#2563eb; border-radius:5px; cursor:pointer; font-size:16px; transition:all .2s; flex-shrink:0; }
-        .btn-regen:hover { background:#dbeafe; border-color:#000000; }
-        .btn-regen:active { transform:rotate(180deg); }
-
-        .form-group input[type=text],
-        .form-group input[type=email],
-        .form-group input[type=date],
-        .form-group select { padding:11px 14px; background:#f8faff; border:1.5px solid #000000; color:#0f172a; font-size:13px; outline:none; transition:border-color .2s; border-radius:5px; }
-        .form-group input:focus, .form-group select:focus { border-color:#000000; box-shadow:0 0 0 3px rgba(0,0,0,.1); background:#fff; }
-        .form-group input::placeholder { color:#cbd5e1; }
-
-        .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
-        .btn-gen { padding:11px; background:linear-gradient(135deg,#2563eb,#0ea5e9); border:1px solid #000000; color:#fff; font-size:13px; font-weight:800; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:5px; box-shadow:0 3px 10px rgba(0,0,0,.15); }
-        .btn-gen:hover { opacity:.9; box-shadow:0 5px 16px rgba(0,0,0,.25); }
-        
-        .btn-save { padding:11px; background:#fff; border:1.5px solid #000000; color:#64748b; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:5px; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .btn-save:hover:not(:disabled) { border-color:#000000; color:#2563eb; background:#eff6ff; }
-        .btn-save:disabled { opacity:.6; cursor:not-allowed; }
-
-        .btn-email { padding:11px; background:#fff; border:1.5px solid #000000; color:#059669; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.04em; transition:all .2s; border-radius:5px; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .btn-email:hover:not(:disabled) { background:#ecfdf5; border-color:#000000; }
-        .btn-email:disabled { opacity:.45; cursor:not-allowed; }
-
-        .qr-preview { background:#fff; border:1px solid #000000; flex:1; border-radius:5px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.07); }
-        .qr-inner { padding:32px; display:flex; flex-direction:column; align-items:center; gap:16px; }
-        .qr-box { width:220px; height:220px; border:2px solid #000000; background:#f5f9ff; display:grid; place-items:center; border-radius:5px; }
-        .qr-box .placeholder-text { font-size:11px; color:#94a3b8; letter-spacing:.1em; text-align:center; }
-        #qrcode { display:flex; align-items:center; justify-content:center; }
-        #qrcode img, #qrcode canvas { max-width:200px; max-height:200px; }
-        .qr-code-label { font-size:13px; font-weight:700; color:#2563eb; letter-spacing:.08em; text-align:center; }
-
-        .owner-card { width:100%; background:#f5f9ff; border:1px solid #000000; border-radius:5px; padding:14px 18px; display:none; flex-direction:column; gap:7px; }
-        .owner-card.show { display:flex; }
-        .owner-row { display:flex; align-items:center; gap:10px; font-size:12px; }
-        .owner-row .lbl { font-size:9px; font-weight:700; color:#94a3b8; letter-spacing:.12em; text-transform:uppercase; min-width:60px; }
-        .owner-row .val { color:#0f172a; font-weight:600; }
-
-        .btn-print { padding:8px 18px; border:1.5px solid #000000; background:#fff; color:#64748b; border-radius:5px; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; }
-        .btn-print:hover { border-color:#000000; color:#2563eb; background:#eff6ff; }
-
-        /* ─── TABLE + PAGINATION ─── */
-        .table-section { padding:0 32px 32px; }
-        .section-header { display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid #000000; padding:20px 0 16px; flex-wrap:wrap; }
+        .table-section { padding:28px 32px; }
+        .section-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 0 16px; flex-wrap:wrap; }
         .section-header-left { display:flex; align-items:center; gap:8px; }
         .section-header-left::before { content:''; width:3px; height:14px; background:#2563eb; border-radius:5px; }
-        .section-header h3 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; }
+        .section-header h3 { font-size:13px; font-weight:700; color:#0f172a; text-transform:uppercase; letter-spacing:.1em; }
 
-        .table-wrap { background:#fff; border:1px solid #000000; border-radius:5px; overflow:hidden; }
+        .table-wrap { background:#fff; border:1px solid #000000; border-radius:5px; overflow:hidden; margin-bottom:32px; }
         table { width:100%; border-collapse:collapse; }
         th,td { padding:12px 16px; text-align:left; font-size:12px; }
         th { background:#f5f9ff; color:#64748b; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #000000; }
         td { color:#334155; border-bottom:1px solid #000000; }
         tbody tr:last-child td { border-bottom:none; }
-        tbody tr:hover td { background:#f8faff; }
-        table.qr-row-table tr { display:grid; grid-template-columns:40px 1fr 1fr 130px 130px; }
+        tbody tr.clickable:hover td { background:#f0f6ff; cursor:pointer; }
+
+        table.qr-row-table tr { display:grid; grid-template-columns:40px 1.2fr 1fr 1fr 1fr 130px; width:100%; }
+
+        .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; font-size:10px; font-weight:700; letter-spacing:.06em; border-radius:20px; }
+        .badge-pending { background:#fef3c7; color:#92400e; border:1px solid #000000; }
+
+        .empty-row td { padding:36px; text-align:center; color:#94a3b8; font-size:11px; letter-spacing:.08em; }
 
         .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #000000; flex-wrap:wrap; gap:8px; }
         .pg-info { font-size:11px; color:#94a3b8; }
@@ -108,13 +48,32 @@
         .pg-btn:hover:not(:disabled) { border-color:#000000; color:#2563eb; background:#eff6ff; }
         .pg-btn.active { background:#2563eb; border-color:#000000; color:#fff; }
         .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
-       
 
-        @media print {
-            body * { visibility:hidden; }
-            .qr-box, .qr-box * { visibility:visible; }
-            .qr-box { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); border:1px solid #000000; background:#fff; width:300px; height:300px; display:grid; place-items:center; }
-        }
+        /* ─── MODAL ─── */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.4); backdrop-filter:blur(4px); z-index:200; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:#fff; border-radius:5px; width:100%; max-width:480px; border:1px solid #000000; box-shadow:0 24px 64px rgba(0,0,0,.18); overflow:hidden; margin:16px; }
+        .modal-header { padding:18px 24px; background:#f5f9ff; border-bottom:1px solid #000000; display:flex; align-items:center; justify-content:space-between; }
+        .modal-header h3 { font-size:13px; font-weight:700; color:#0f172a; letter-spacing:.06em; text-transform:uppercase; }
+        .btn-modal-close { background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; }
+        .btn-modal-close:hover { color:#334155; }
+        .modal-body { padding:22px 24px; display:flex; flex-direction:column; gap:10px; }
+        .detail-row { display:flex; align-items:center; gap:12px; background:#f8faff; border:1px solid #000000; border-radius:5px; padding:10px 14px; }
+        .detail-lbl { font-size:9px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.14em; min-width:90px; flex-shrink:0; }
+        .detail-val { font-size:13px; font-weight:600; color:#0f172a; word-break:break-all; }
+
+        .renew-field { display:none; flex-direction:column; gap:6px; border-top:1px solid #000000; padding-top:14px; margin-top:4px; }
+        .renew-field.show { display:flex; }
+        .renew-field label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:.14em; text-transform:uppercase; }
+        .renew-field input[type=date] { padding:10px 14px; background:#f8faff; border:1.5px solid #000000; color:#0f172a; font-size:13px; outline:none; border-radius:5px; }
+
+        .modal-footer { padding:14px 24px; background:#f5f9ff; border-top:1px solid #000000; display:flex; gap:8px; flex-wrap:wrap; }
+        .btn-approve { flex:1; min-width:110px; padding:10px; background:linear-gradient(135deg,#10b981,#059669); border:1px solid #000000; color:#fff; font-size:12px; font-weight:800; cursor:pointer; border-radius:5px; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .btn-approve:hover { opacity:.9; }
+        .btn-decline { flex:1; min-width:110px; padding:10px; background:linear-gradient(135deg,#ef4444,#dc2626); border:1px solid #000000; color:#fff; font-size:12px; font-weight:800; cursor:pointer; border-radius:5px; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .btn-decline:hover { opacity:.9; }
+        .btn-cancel-modal { flex:1; min-width:80px; padding:10px; border:1.5px solid #000000; background:#fff; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; border-radius:5px; }
+        .btn-cancel-modal:hover { border-color:#000000; color:#2563eb; }
     </style>
 </head>
 <body>
@@ -124,7 +83,7 @@
             <span>STAFF PORTAL</span>
         </div>
         <div class="buttons">
-            <a href="/staff/generate" ><i class="bi bi-qr-code"></i> Generator</a>
+            <a href="/staff/generate"><i class="bi bi-qr-code"></i> Generator</a>
             <a href="/staff/history"><i class="bi bi-stopwatch"></i> History</a>
             <a href="/staff/search"><i class="bi bi-search"></i> Search</a>
             <a href="/staff/profile"><i class="bi bi-people"></i> Profile</a>
@@ -138,40 +97,264 @@
     <div class="right">
         <div class="header">
             <h1><i class="bi bi-qr-code"></i> USER REQUEST</h1>
-            <p>USER REQUEST FOR RENEWWAL OR QR CODES</p>
+            <p>USER REQUEST FOR RENEWAL OR QR CODES</p>
         </div>
 
-        
-
         <div class="table-section">
+
+            <!-- ── NEW QR REQUESTS ── -->
             <div class="section-header">
-                <div class="section-header-left">
-                    <h3>Renewal Request</h3>
-                </div>
-                <span class="pg-info" id="myPgInfo">—</span>
+                <div class="section-header-left"><h3>New QR Requests</h3></div>
+                <span class="pg-info" id="reqPgInfo">—</span>
             </div>
             <div class="table-wrap">
-                <table class="qr-row-table" id="qrtab">
+                <table class="qr-row-table" id="reqtab">
                     <thead>
-                        <tr><th>#</th><th>QR DATA</th><th>Plate</th><th>orcr</th><th>Created At</th></tr>
+                        <tr><th>#</th><th>Owner</th><th>Plate</th><th>Requested By</th><th>Requested At</th><th>Status</th></tr>
                     </thead>
-                    <tbody id="qrBody">
-                        <tr><td style="color:#94a3b8;">—</td><td style="color:#94a3b8;">No records yet</td><td>—</td><td>—</td><td>—</td></tr>
+                    <tbody id="reqBody">
+                        <tr class="empty-row"><td colspan="6">Loading…</td></tr>
                     </tbody>
                 </table>
                 <div class="pagination">
-                    <span class="pg-info" id="myPgBottom">—</span>
+                    <span class="pg-info" id="reqPgBottom">—</span>
                     <div class="pg-btns">
-                        <button class="pg-btn" id="myBtnPrev" onclick="changeMyPage(myPage - 1)" disabled>‹ Prev</button>
-                        <div id="myPgNumbers" style="display:flex;gap:5px;"></div>
-                        <button class="pg-btn" id="myBtnNext" onclick="changeMyPage(myPage + 1)" disabled>Next ›</button>
+                        <button class="pg-btn" id="reqPrev" onclick="changeReqPage(reqPage - 1)" disabled>‹ Prev</button>
+                        <div id="reqPgNumbers" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="reqNext" onclick="changeReqPage(reqPage + 1)" disabled>Next ›</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- ── RENEWAL REQUESTS ── -->
+            <div class="section-header">
+                <div class="section-header-left"><h3>Renewal Requests</h3></div>
+                <span class="pg-info" id="renPgInfo">—</span>
+            </div>
+            <div class="table-wrap">
+                <table class="qr-row-table" id="rentab">
+                    <thead>
+                        <tr><th>#</th><th>Owner</th><th>Plate</th><th>Requested By</th><th>Requested At</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="renBody">
+                        <tr class="empty-row"><td colspan="6">Loading…</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span class="pg-info" id="renPgBottom">—</span>
+                    <div class="pg-btns">
+                        <button class="pg-btn" id="renPrev" onclick="changeRenPage(renPage - 1)" disabled>‹ Prev</button>
+                        <div id="renPgNumbers" style="display:flex;gap:5px;"></div>
+                        <button class="pg-btn" id="renNext" onclick="changeRenPage(renPage + 1)" disabled>Next ›</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── DETAIL MODAL ── -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">📋 Request Details</h3>
+                <button class="btn-modal-close" onclick="closeDetailModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row"><span class="detail-lbl">Requested By</span><span class="detail-val" id="dRequester">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">QR Data</span><span class="detail-val" id="dData">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Plate</span><span class="detail-val" id="dPlate">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Owner</span><span class="detail-val" id="dOwner">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Email</span><span class="detail-val" id="dEmail">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Phone</span><span class="detail-val" id="dPhone">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Department</span><span class="detail-val" id="dDepartment">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Vehicle Type</span><span class="detail-val" id="dVehicle">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Current Expiry</span><span class="detail-val" id="dExpiry">—</span></div>
+                <div class="detail-row"><span class="detail-lbl">Status</span><span class="detail-val" id="dStatus">—</span></div>
+
+                <div class="renew-field" id="renewField">
+                    <label>New Expiry Date</label>
+                    <input type="date" id="renewExpiryInput">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-approve" id="btnApprove" onclick="approveCurrent()">
+                    <i class="bi bi-check-circle-fill"></i> Approve
+                </button>
+                <button class="btn-decline" id="btnDecline" onclick="declineCurrent()">
+                    <i class="bi bi-x-circle-fill"></i> Decline
+                </button>
+                <button class="btn-cancel-modal" onclick="closeDetailModal()">Close</button>
             </div>
         </div>
     </div>
 
+    <script>
+        const LIMIT = 5;
+        let reqPage = 1, reqPages = 1;
+        let renPage = 1, renPages = 1;
+        let activePendingId = null;
+        let activeType = null; // "request" | "renewal"
 
-    
+        function statusBadge(action) {
+            return `<span class="badge badge-pending">${escapeHTML(action || "pending")}</span>`;
+        }
+
+        function renderRows(bodyId, rows, page) {
+            const tbody = document.getElementById(bodyId);
+            if (!rows.length) {
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="6">📭 No pending requests</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows.map((r, i) => {
+                // r: 0 pendingId,1 type,2 actions,3 request_by,4 qrid,5 data,6 plate,
+                //    7 owner_name,8 owner_email,9 owner_phone,10 department,11 expiry,
+                //    12 status,13 vehicle_type,14 space_units,15 created_at,16 username
+                const encoded = encodeURIComponent(JSON.stringify(r));
+                return `
+                <tr class="clickable" onclick="openDetail('${encoded}')">
+                    <td style="color:#94a3b8;">${(page - 1) * LIMIT + i + 1}</td>
+                    <td style="color:#0f172a;font-weight:600;">${escapeHTML(r[7] || "—")}</td>
+                    <td style="color:#1e3a8a;font-weight:700;">${escapeHTML(r[6] || "—")}</td>
+                    <td>${escapeHTML(r[16] || "—")}</td>
+                    <td style="font-size:11px;color:#64748b;">${escapeHTML(r[15] || "—")}</td>
+                    <td>${statusBadge(r[2])}</td>
+                </tr>`;
+            }).join("");
+        }
+
+        function updatePager(prefix, total, page, pages) {
+            const info = `Page ${page} of ${pages}  (${total} total)`;
+            document.getElementById(prefix + "PgInfo").textContent = info;
+            document.getElementById(prefix + "PgBottom").textContent = info;
+            document.getElementById(prefix + "Prev").disabled = page <= 1;
+            document.getElementById(prefix + "Next").disabled = page >= pages;
+
+            const nums = document.getElementById(prefix + "PgNumbers");
+            nums.innerHTML = "";
+            let start = Math.max(1, page - 2);
+            let end = Math.min(pages, start + 4);
+            if (end - start < 4) start = Math.max(1, end - 4);
+            for (let p = start; p <= end; p++) {
+                const btn = document.createElement("button");
+                btn.className = `pg-btn${p === page ? " active" : ""}`;
+                btn.textContent = p;
+                btn.onclick = () => (prefix === "req" ? changeReqPage(p) : changeRenPage(p));
+                nums.appendChild(btn);
+            }
+        }
+
+        async function loadRequests(page = 1) {
+            reqPage = page;
+            const res = await API.get(`/staff/qr_requests?page=${page}&limit=${LIMIT}`);
+            if (!res || res.status !== "good") {
+                renderRows("reqBody", [], 1);
+                updatePager("req", 0, 1, 1);
+                return;
+            }
+            reqPages = res.pages;
+            renderRows("reqBody", res.data, page);
+            updatePager("req", res.total, page, res.pages);
+        }
+
+        async function loadRenewals(page = 1) {
+            renPage = page;
+            const res = await API.get(`/staff/qr_renewals?page=${page}&limit=${LIMIT}`);
+            if (!res || res.status !== "good") {
+                renderRows("renBody", [], 1);
+                updatePager("ren", 0, 1, 1);
+                return;
+            }
+            renPages = res.pages;
+            renderRows("renBody", res.data, page);
+            updatePager("ren", res.total, page, res.pages);
+        }
+
+        function changeReqPage(p) { if (p >= 1 && p <= reqPages) loadRequests(p); }
+        function changeRenPage(p) { if (p >= 1 && p <= renPages) loadRenewals(p); }
+
+        function openDetail(encoded) {
+            const r = JSON.parse(decodeURIComponent(encoded));
+            activePendingId = r[0];
+            activeType = r[1] === "qr_renewal" ? "renewal" : "request";
+
+            document.getElementById("modalTitle").textContent =
+                activeType === "renewal" ? "📋 Renewal Request" : "📋 New QR Request";
+            document.getElementById("dRequester").textContent = r[16] || "—";
+            document.getElementById("dData").textContent = r[5] || "Not yet generated";
+            document.getElementById("dPlate").textContent = r[6] || "—";
+            document.getElementById("dOwner").textContent = r[7] || "—";
+            document.getElementById("dEmail").textContent = r[8] || "—";
+            document.getElementById("dPhone").textContent = r[9] || "—";
+            document.getElementById("dDepartment").textContent = r[10] || "—";
+            document.getElementById("dVehicle").textContent = r[13] || "—";
+            document.getElementById("dExpiry").textContent = r[11] || "No expiry set";
+            document.getElementById("dStatus").textContent = (r[2] || "pending").toUpperCase();
+
+            const renewField = document.getElementById("renewField");
+            if (activeType === "renewal") {
+                renewField.classList.add("show");
+                document.getElementById("renewExpiryInput").value =
+                    (r[11] && r[11] !== "None") ? String(r[11]).split(" ")[0] : "";
+            } else {
+                renewField.classList.remove("show");
+            }
+
+            document.getElementById("detailModal").classList.add("show");
+        }
+
+        function closeDetailModal() {
+            document.getElementById("detailModal").classList.remove("show");
+            activePendingId = null;
+            activeType = null;
+        }
+
+        async function approveCurrent() {
+            if (!activePendingId) return;
+            const btn = document.getElementById("btnApprove");
+            btn.disabled = true;
+
+            let res;
+            if (activeType === "request") {
+                res = await API.put(`/staff/approve_request/${activePendingId}`, {});
+            } else {
+                const expiry = document.getElementById("renewExpiryInput").value;
+                if (!expiry) {
+                    showMessageModal("Please choose a new expiry date.", "Missing Date");
+                    btn.disabled = false;
+                    return;
+                }
+                res = await API.put(`/staff/approve_renewal/${activePendingId}`, { expiry });
+            }
+
+            showMessageModal(res.message, res.status);
+            btn.disabled = false;
+            if (res.status === "good") {
+                closeDetailModal();
+                loadRequests(reqPage);
+                loadRenewals(renPage);
+            }
+        }
+
+        async function declineCurrent() {
+            if (!activePendingId) return;
+            if (!confirm("Decline this request?")) return;
+
+            const res = await API.put(`/staff/reject_request/${activePendingId}`, {});
+            showMessageModal(res.message, res.status);
+            if (res.status === "good") {
+                closeDetailModal();
+                loadRequests(reqPage);
+                loadRenewals(renPage);
+            }
+        }
+
+        document.getElementById("detailModal").addEventListener("click", function (e) {
+            if (e.target === this) closeDetailModal();
+        });
+
+        loadRequests(1);
+        loadRenewals(1);
+    </script>
 </body>
 </html>

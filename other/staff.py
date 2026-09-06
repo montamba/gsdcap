@@ -24,6 +24,13 @@ class Staff:
                 jsonify({"status": "forbidden", "message": "Staff access required"}),
                 403,
             )
+            
+    def _generate_unique_code(self):
+        abc = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+        while True:
+            code = "GSD-" + "".join(random.sample(abc, 5)) + "-" + "".join(random.sample(abc, 5))
+            if not self.sql.codeindata(code):
+                return code
 
     def routes(self):
         self.staff.before_request(self._protect)
@@ -49,28 +56,120 @@ class Staff:
             return render_template("staff/request.html")
         
         
-        @self.staff.route("/getuserqrrequest")
-        def getuserqrrequest():
-            limit = request.args.get("limit")
-            offset = request.args.get("offset") 
-            
-            
-            data = self.sql.getqrrequestwithusersandqrcode(limit, offset)
-            
+     
             
         
         @self.staff.route("/generate_code")
         def generate_code():
-            indata = True
-            abc = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+            return jsonify({"code": self._generate_unique_code()})
+
+        @self.staff.route("/userreques")
+        def user_request_page():
+            return render_template("staff/userrequest.html")
+
+        @self.staff.route("/qr_requests", methods=["GET"])
+        def qr_requests():
+            page = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            data = self.sql.getqrrequestwithusersandqrcode(limit=limit, offset=offset)
             
-            code = ""
-            while indata:
-                code = "GSD-" + "".join(random.sample(abc, 5))+"-"+"".join(random.sample(abc, 5))
-                indata = self.sql.codeindata(code)
-                
-            return jsonify({"code":code})
-            
+            print("dattttttttttttttt")
+            print(data,"\n\n")
+            total = self.sql.count_qr_pending_by_type("request_qr")
+
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
+                for row in data
+            ]
+            return jsonify({
+                "status": "good",
+                "data": serialized,
+                "total": total,
+                "page": page,
+                "pages": max(1, -(-total // limit)),
+            })
+
+        @self.staff.route("/qr_renewals", methods=["GET"])
+        def qr_renewals():
+            page = max(1, int(request.args.get("page", 1)))
+            limit = int(request.args.get("limit", 5))
+            offset = (page - 1) * limit
+
+            data = self.sql.getqrrenewalwithusersandqrcode(limit=limit, offset=offset)
+            total = self.sql.count_qr_pending_by_type("qr_renewal")
+
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
+                for row in data
+            ]
+            return jsonify({
+                "status": "good",
+                "data": serialized,
+                "total": total,
+                "page": page,
+                "pages": max(1, -(-total // limit)),
+            })
+
+        @self.staff.route("/request_detail/<int:pending_id>", methods=["GET"])
+        def request_detail(pending_id):
+            row = self.sql.get_qr_pending_detail(pending_id)
+            if not row:
+                return jsonify({"status": "bad", "message": "Request not found"})
+            serialized = [
+                str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row
+            ]
+            return jsonify({"status": "good", "data": serialized})
+
+        @self.staff.route("/approve_request/<int:pending_id>", methods=["PUT"])
+        def approve_request(pending_id):
+            detail = self.sql.get_qr_pending_detail(pending_id)
+            if not detail:
+                return jsonify({"status": "bad", "message": "Request not found"})
+            if detail[2] != "pending":
+                return jsonify({"status": "bad", "message": "Request already reviewed"})
+
+            qr_id = detail[4]
+            code = self._generate_unique_code()
+            ok = self.sql.approve_qr_request(pending_id, qr_id, code, session["user_id"])
+            if ok:
+                self.cache.deletethathas("qrcode")
+                return jsonify({"status": "good", "message": f"Approved — QR code: {code}"})
+            return jsonify({"status": "bad", "message": "Failed to approve request"})
+
+        @self.staff.route("/approve_renewal/<int:pending_id>", methods=["PUT"])
+        def approve_renewal(pending_id):
+            data = request.get_json() or {}
+            new_expiry = (data.get("expiry") or "").strip()
+            if not new_expiry:
+                return jsonify({"status": "bad", "message": "New expiry date is required"})
+
+            detail = self.sql.get_qr_pending_detail(pending_id)
+            if not detail:
+                return jsonify({"status": "bad", "message": "Request not found"})
+            if detail[2] != "pending":
+                return jsonify({"status": "bad", "message": "Request already reviewed"})
+
+            qr_id = detail[4]
+            ok = self.sql.approve_qr_renewal(pending_id, qr_id, new_expiry, session["user_id"])
+            if ok:
+                self.cache.deletethathas("qrcode")
+                return jsonify({"status": "good", "message": "Renewal approved"})
+            return jsonify({"status": "bad", "message": "Failed to approve renewal"})
+
+        @self.staff.route("/reject_request/<int:pending_id>", methods=["PUT"])
+        def reject_request(pending_id):
+            detail = self.sql.get_qr_pending_detail(pending_id)
+            if not detail:
+                return jsonify({"status": "bad", "message": "Request not found"})
+            if detail[2] != "pending":
+                return jsonify({"status": "bad", "message": "Request already reviewed"})
+
+            ok = self.sql.reject_qr_pending(pending_id, session["user_id"])
+            if ok:
+                return jsonify({"status": "good", "message": "Request rejected"})
+            return jsonify({"status": "bad", "message": "Failed to reject request"})
 
         @self.staff.route("/getuserdata", methods=["GET"])
         def getuserdata():

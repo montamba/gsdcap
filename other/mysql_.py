@@ -595,54 +595,171 @@ class SQL:
             return False
         
     #------------------------Request
-    
-    def getqrrequestwithusersandqrcode(self, limit= 10, offset = 0):
+    def has_pending_request(self, data: str, request_type: str) -> bool:
+        """Check if a QR (by its code) already has a pending request of this type."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT qrpending.id FROM qrpending
+                   LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
+                   WHERE qrcode.data=%s AND qrpending.request_type=%s AND qrpending.actions='pending'""",
+                (data, request_type),
+            )
+            row = cur.fetchone()
+            cur.close()
+            return row is not None
+        except Exception as e:
+            print(f"[DB] has_pending_request error: {e}")
+            return False
+        
+        
+    def getqrrequestwithusersandqrcode(self, limit=10, offset=0):
         try:
             cur = self._cursor()
             cur.execute(
                 """
                 SELECT 
-                    qrpending.*, 
-                    qrcode.*, 
-                    users.username 
-                FROM qrpending 
-                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id 
-                LEFT JOIN users ON qrpending.request_by = users.id 
-                WHERE qrpending.request_type = 'request_qr' 
-                LIMIT %s OFFSET %s;
-                """
+                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
+                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
+                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
+                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
+                    users.username
+                FROM qrpending
+                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
+                LEFT JOIN users ON qrpending.request_by = users.id
+                WHERE qrpending.request_type = 'request_qr' AND qrpending.actions = 'pending'
+                ORDER BY qrpending.id DESC
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
             )
-            self._commit()
+            result = cur.fetchall()
+            
+            print("imhere \n\n", result)
             cur.close()
-            return True
+            return result
         except Exception as e:
             print(f"[DB] getqrrequestwithusersandqrcode error: {e}")
-            return False
-        
-        
-    def getqrrenewalwithusersandqrcode(self, limit= 10, offset = 0):
+            return []
+
+    def getqrrenewalwithusersandqrcode(self, limit=10, offset=0):
         try:
             cur = self._cursor()
             cur.execute(
                 """
                 SELECT 
-                    qrpending.*, 
-                    qrcode.*, 
-                    users.username 
-                FROM qrpending 
-                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id 
-                LEFT JOIN users ON qrpending.request_by = users.id 
-                WHERE qrpending.request_type = 'renew_qr' 
-                LIMIT %s OFFSET %s;
+                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
+                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
+                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
+                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
+                    users.username
+                FROM qrpending
+                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
+                LEFT JOIN users ON qrpending.request_by = users.id
+                WHERE qrpending.request_type = 'qr_renewal' AND qrpending.actions = 'pending'
+                ORDER BY qrpending.id DESC
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] getqrrenewalwithusersandqrcode error: {e}")
+            return []
+
+    def count_qr_pending_by_type(self, request_type):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "SELECT COUNT(*) FROM qrpending WHERE request_type=%s AND actions='pending'",
+                (request_type,),
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] count_qr_pending_by_type error: {e}")
+            return 0
+
+    def get_qr_pending_detail(self, pending_id):
+        """Same column order as the two list methods above, for one row."""
+        try:
+            cur = self._cursor()
+            cur.execute(
                 """
+                SELECT 
+                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
+                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
+                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
+                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
+                    users.username
+                FROM qrpending
+                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
+                LEFT JOIN users ON qrpending.request_by = users.id
+                WHERE qrpending.id = %s
+                """,
+                (pending_id,),
+            )
+            result = cur.fetchone()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_qr_pending_detail error: {e}")
+            return None
+
+    def approve_qr_request(self, pending_id, qr_id, code, reviewer_id) -> bool:
+        """New QR request approved: attach the generated code and activate it."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE qrcode SET data=%s, status='active' WHERE id=%s",
+                (code, qr_id),
+            )
+            cur.execute(
+                "UPDATE qrpending SET actions='approved', review_by=%s WHERE id=%s",
+                (reviewer_id, pending_id),
             )
             self._commit()
             cur.close()
             return True
         except Exception as e:
-            print(f"[DB] getqrrenewalwithusersandqrcode error: {e}")
+            print(f"[DB] approve_qr_request error: {e}")
             return False
-            
+
+    def approve_qr_renewal(self, pending_id, qr_id, new_expiry, reviewer_id) -> bool:
+        """Renewal approved: push the new expiry and reactivate the pass."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE qrcode SET expiry=%s, status='active', car_status=NULL WHERE id=%s",
+                (new_expiry, qr_id),
+            )
+            cur.execute(
+                "UPDATE qrpending SET actions='approved', review_by=%s WHERE id=%s",
+                (reviewer_id, pending_id),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] approve_qr_renewal error: {e}")
+            return False
+
+    def reject_qr_pending(self, pending_id, reviewer_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE qrpending SET actions='rejected', review_by=%s WHERE id=%s",
+                (reviewer_id, pending_id),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] reject_qr_pending error: {e}")
+            return False
 
     # ========================================================================================================= users
     def fetchselfrequest(self, email, limit, offset):

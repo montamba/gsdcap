@@ -56,6 +56,9 @@ class Users:
         @self.users.route("/myemail", methods=["GET"])
         def myemail():
             return jsonify({"data": {"email": session["email"]}})
+        
+        
+            
 
         @self.users.route("/update_username", methods=["POST"])
         def update_username():
@@ -235,6 +238,11 @@ class Users:
 
             if not code:
                 return jsonify({"status": "bad", "message": "QR code is required"})
+
+            if self.sql.has_pending_request(code, "qr_renewal"):
+                return jsonify(
+                    {"status": "bad", "message": "A renewal request for this QR is already pending"}
+                )
 
             ok = self.sql.requestrenewal(code, session["user_id"])
             if ok:

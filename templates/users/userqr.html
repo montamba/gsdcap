@@ -190,6 +190,7 @@
                 text-transform: uppercase;
                 transition: all .2s;
             }
+            .btn-renewal:disabled { opacity: .5; cursor: not-allowed; }
             .mobile-nav a i { font-size: 18px; }
             .mobile-nav a.active,
             .mobile-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
@@ -382,7 +383,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-renewal" id="btnModalRenewal" onclick="handleRequestRenewal(this.getAttribute('data-id'))">
+                <button type="button" class="btn-renewal" id="btnModalRenewal" onclick="handleRequestRenewal(this.getAttribute('data-code'))">
                     <i class="bi bi-arrow-repeat"></i> Request Renewal
                 </button>
             </div>
@@ -610,8 +611,18 @@
                 const status = val[8] || "Active";
                 const expDate = val[7] ? new Date(val[7]).toLocaleDateString() : "No Expiry";
 
-                // Set data[0] to renewal button
-                document.getElementById("btnModalRenewal").setAttribute("data-id", qrId);
+                // Renewal needs the QR's *code*, not its numeric id — the backend
+                // looks the row up by the `data` column.
+                const renewBtn = document.getElementById("btnModalRenewal");
+                if (qrCodeValue && qrCodeValue !== "pending") {
+                    renewBtn.setAttribute("data-code", qrCodeValue);
+                    renewBtn.disabled = false;
+                    renewBtn.title = "";
+                } else {
+                    renewBtn.removeAttribute("data-code");
+                    renewBtn.disabled = true;
+                    renewBtn.title = "This QR code hasn't been issued yet";
+                }
 
                 document.getElementById("mdPlate").textContent = plate;
                 document.getElementById("mdName").textContent = name;
@@ -650,11 +661,31 @@
         }
 
         /* ── RENEWAL REQUEST HANDLER ── */
-        function handleRequestRenewal(id) {
-            console.log("Selected QR ID (data[0]):", id);
-            
-            // YOUR CUSTOM LOGIC HERE:
-            // e.g. API.post('/users/request_renewal', { id: id })
+        async function handleRequestRenewal(code) {
+            if (!code) {
+                showMessageModal("This QR code hasn't been issued yet, so it can't be renewed.", "Not Available");
+                return;
+            }
+
+            const btn = document.getElementById("btnModalRenewal");
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+
+            try {
+                const res = await API.post("/users/request_renewal", { qrcode: code });
+                showMessageModal(res.message, res.status);
+                if (res.status === "good") {
+                    closeQrModal();
+                    await fetchMyQR();
+                }
+            } catch (err) {
+                console.error("Renewal request error:", err);
+                showMessageModal("Something went wrong. Please try again.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         }
 
         /* ── SUBMIT REQUEST ── */
