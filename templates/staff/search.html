@@ -815,7 +815,7 @@
             let rows = res.data;
             if (q) {
                 rows = rows.filter(d =>
-                    (d[ 1 ] || "").toLowerCase().includes(q.toLowerCase()) ||
+                    (d[ 1 ] || "None").toLowerCase().includes(q.toLowerCase()) ||
                     (d[ 2 ] || "").toLowerCase().includes(q.toLowerCase()) ||
                     (d[ 3 ] || "").toLowerCase().includes(q.toLowerCase())
                 );
@@ -853,7 +853,7 @@
                 // Safe text insertion into cells
                 tr.innerHTML = `
                     <td style="color:#94a3b8;">${offset + i + 1}</td>
-                    <td style="color:#2563eb;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(d[ 1 ])}</td>
+                    <td style="color:#2563eb;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(d[ 1 ] || "none")}</td>
                     <td style="font-weight:700;color:#1e3a8a;">${escapeHTML(d[ 2 ])}</td>
                     <td><span class="badge ${badgeCls}">${escapeHTML(status)}</span></td>
                     <td style="font-size:11px;color:#64748b;">${escapeHTML(expiry)}</td>

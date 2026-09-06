@@ -120,6 +120,8 @@ class Guard:
             return jsonify(
                 {"status": "bad", "message": "Something went wrong. Please try again."}
             )
+            
+        
 
         @self.guard.route("/getParking")
         def getParking():
@@ -136,12 +138,17 @@ class Guard:
             name_count = f"guard_history_count_{session['user_id']}"
 
             try:
-                if not self.cache.check_key(name_data):
+                if not self.cache.check_key(name_data) or not self.cache.is_empty(name_data):
                     sqldata = self.sql.gethistorybyguard(
                         session["user_id"], limit=limit, offset=offset
                     )
                     self.cache.add(name_data, sqldata)
                 data = self.cache.get(name_data)
+                
+                print("================================================================")
+                print(data)
+                print("================================================================")
+                
 
                 if not self.cache.check_key(name_count):
                     sqltotal = self.sql.counthistorybyguard(session["user_id"])
@@ -174,6 +181,35 @@ class Guard:
             except Exception as e:
                 print("History error:", e)
                 return jsonify({"status": "bad", "message": "Failed to fetch history"})
+            
+        @self.guard.route("/manual_entry", methods=["POST"])
+        def manual_entry():
+            data: dict = request.get_json()
+            plate = (data.get("plate")).strip()
+            vehicle_type= (data.get("vehicle_type")).strip()
+            action = (data.get("action")).strip()
+            department = (data.get("department")).strip()
+            
+            vehicle_type = "car" if "car" == vehicle_type else "motorcycle"
+            space = 2 if "car" == vehicle_type else 1
+            
+            inserted = self._log(None, "accepted", action, department, plate)
+            
+            self.sql.updateparking(space, action)
+            
+            
+            if inserted:
+                return jsonify({
+                    "status":"good",
+                    "message":"Added succesfull"
+                })
+                
+            return jsonify({
+                        "status":"Bad",
+                        "message":"Please try again"
+                    })
+            
+                    
 
         @self.guard.route("/check_qr", methods=["POST"])
         def check_qr():
@@ -232,7 +268,7 @@ class Guard:
             required_units = 1 if vehicle_type == "motorcycle" else 2
 
             if available_units < required_units and new_action == "IN":
-                self._log(qrdata, "failed", action)
+                self._log(qrdata, "failed", action, department, plate)
                 return jsonify(
                     {
                         "status": "bad",
@@ -246,7 +282,7 @@ class Guard:
                 )
 
             if qr_status == "revoked":
-                self._log(qrdata, "failed", action)
+                self._log(qrdata, "failed", action, department, plate)
                 return jsonify(
                     {
                         "status": "bad",
@@ -261,7 +297,7 @@ class Guard:
 
             # ── EXPIRED ───────────────────────────────────
             if expiry and datetime.now() > expiry:
-                self._log(qrdata, "expired", action)
+                self._log(qrdata, "expired", action, department, plate)
                 return jsonify(
                     {
                         "status": "expired",
@@ -277,7 +313,7 @@ class Guard:
 
             # ── DUPLICATE ACTION ──────────────────────────
             if car_status == new_action:
-                self._log(qrdata, "failed", action)
+                self._log(qrdata, "failed", action, department, plate)
                 return jsonify(
                     {
                         "status": "Invalid",
@@ -292,7 +328,7 @@ class Guard:
                 )
 
             # ── ACCEPTED ──────────────────────────────────
-            self._log(qrdata, "accepted", action)
+            self._log(qrdata, "accepted", action, department, plate)
 
             try:
                 cur = self.sql.sql.cursor()
@@ -324,6 +360,8 @@ class Guard:
                 }
             )
 
-    def _log(self, qrdata, status, action="entry"):
+    def _log(self, qrdata, status, action="entry", department=None, plate=None):
         """Insert a scan record into history. action is 'entry' or 'exit'."""
-        self.sql.guard_log(qrdata,session["user_id"],status,action)
+        inserted = self.sql.inserthistory(qrdata, session["user_id"], status, action, plate, department)
+        
+        return inserted

@@ -7,6 +7,7 @@ import smtplib
 import qrcode
 import bcrypt
 import math
+import random
 
 from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
@@ -384,6 +385,19 @@ class SQL:
             return False
 
     # QR QUERIES --------------------------------------------------------------
+    def codeindata(self, code):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT * FROM qrcode WHERE data=%s", (code,))
+            result = cur.fetchone()
+            cur.close()
+            if result:
+                return True
+            return False
+        except Exception as e:
+            print(f"[DB] codeindata error: {e}")
+            return False
+        
 
     def getqrbydata(self, data: str):
         try:
@@ -499,7 +513,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] getqrstats error: {e}")
             return []
-
+        
     def saveqr(
         self,
         data: str,
@@ -681,13 +695,13 @@ class SQL:
     # ──────────────────────────────────────────────────────────────
 
     def inserthistory(
-        self, data: str, guard, status: str, action: str = "entry"
+        self, data: str, guard, status: str, action: str = "entry", plate:str= None, department=None
     ) -> bool:
         try:
             cur = self._cursor()
             cur.execute(
-                "INSERT INTO history(data, guard, status, action) VALUES (%s,%s,%s,%s)",
-                (data, guard, status, action),
+                "INSERT INTO history(data, guard, status, action, department,plate) VALUES (%s,%s,%s,%s, %s,%s)",
+                (data, guard, status, action, department, plate),
             )
             self._commit()
             cur.close()
@@ -728,13 +742,12 @@ class SQL:
                 """SELECT h.id,
                           h.created_at                    AS date,
                           COALESCE(u.username, '—')       AS guard_name,
-                          COALESCE(q.plate,   '—')        AS plate,
+                          COALESCE(u.plate,   '—')        AS plate,
                           h.data                          AS qr_code,
                           COALESCE(h.action,  'entry')    AS action,
                           h.status                        AS scan_result
                    FROM   history h
                    LEFT JOIN users   u ON h.guard = u.id
-                   LEFT JOIN qrcode  q ON h.data  = q.data
                    ORDER  BY h.id DESC
                    LIMIT %s OFFSET %s""",
                 (limit, offset),
@@ -750,16 +763,7 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                """SELECT h.id,
-                          h.data,
-                          h.status,
-                          h.created_at                   AS created_at,
-                          COALESCE(q.plate,      '')     AS plate,
-                          COALESCE(q.owner_name, '')     AS owner_name,
-                          COALESCE(h.action,     'entry') AS action,
-                          q.department
-                   FROM history h
-                   LEFT JOIN qrcode q ON h.data = q.data
+                """SELECT h.* FROM history h
                    WHERE h.guard = %s
                    ORDER BY h.id DESC
                    LIMIT %s OFFSET %s""",
@@ -940,17 +944,7 @@ class SQL:
             print(f"[DB] check_magic error: {e}")
             return False
     
-    def guard_log(self, qrdata,user,status,action):
-        try:
-            cur = self._cursor()
-            cur.execute(
-                "INSERT INTO history(data, guard, status, action) VALUES (%s, %s, %s, %s)",
-                (qrdata, user, status, action),
-            )
-            self._commit()
-            cur.close()
-        except Exception as e:
-            print("[db] History log error:", e)
+    
         
     def add_admin(self, username, email, password):
         try:

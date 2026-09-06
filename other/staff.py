@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from other.cache import cache
-import threading
+import random
 
 
 class Staff:
@@ -47,6 +47,19 @@ class Staff:
         @self.staff.route("/request_page")
         def request_page():
             return render_template("staff/request.html")
+        
+        @self.staff.route("/generate_code")
+        def generate_code():
+            indata = True
+            abc = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+            
+            code = ""
+            while indata:
+                code = "GSD-" + "".join(random.sample(abc, 5))+"-"+"".join(random.sample(abc, 5))
+                indata = self.sql.codeindata(code)
+                
+            return jsonify({"code":code})
+            
 
         @self.staff.route("/getuserdata", methods=["GET"])
         def getuserdata():

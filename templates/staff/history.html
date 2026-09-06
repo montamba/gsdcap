@@ -193,7 +193,7 @@
                 td2.style.color = "#2563eb";
                 td2.style.fontWeight = "700";
                 td2.style.fontSize = "11px";
-                td2.textContent = d[1];
+                td2.textContent = d[1] || "None";
 
                 const td3 = document.createElement("td");
                 td3.style.color = "#334155";
@@ -251,7 +251,7 @@
                 td2.style.overflow = "hidden";
                 td2.style.textOverflow = "ellipsis";
                 td2.style.whiteSpace = "nowrap";
-                td2.textContent = d[1];
+                td2.textContent = d[1] || "None";
 
                 const td3 = document.createElement("td");
                 td3.style.color = "#334155";

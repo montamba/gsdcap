@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>QR Scanner — GSD Parking</title>
     <script src="/../../static/scripts/scrit.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
-        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Syne', sans-serif; }
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Syne', sans-serif;
+        }
 
         body {
             background: #eef4ff;
@@ -20,7 +28,8 @@
         /* ─── SIDEBAR ─── */
         aside {
             position: sticky;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             height: 100vh;
             width: 240px;
             min-width: 240px;
@@ -28,7 +37,7 @@
             display: flex;
             flex-direction: column;
             z-index: 100;
-            box-shadow: 4px 0 32px rgba(30,58,138,0.18);
+            box-shadow: 4px 0 32px rgba(30, 58, 138, 0.18);
         }
 
         .logos {
@@ -38,66 +47,123 @@
             align-items: center;
             gap: 8px;
             background: #172e72;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             text-align: center;
         }
 
         .circle {
-            width: 60px; height: 60px;
-            display: grid; place-items: center;
+            width: 60px;
+            height: 60px;
+            display: grid;
+            place-items: center;
             border-radius: 16px;
-            background: rgba(255,255,255,0.12);
-            border: 2px solid rgba(255,255,255,0.2);
-            font-size: 20px; font-weight: 800;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-size: 20px;
+            font-weight: 800;
             color: #ffffff;
             font-family: 'Space Mono', monospace;
         }
 
         .logos span {
-            font-size: 10px; font-weight: 700;
-            color: rgba(148,163,184,0.7);
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(148, 163, 184, 0.7);
             letter-spacing: 0.2em;
             text-transform: uppercase;
         }
 
-        .buttons { display: flex; flex-direction: column; padding: 14px 0; flex: 1; }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            padding: 14px 0;
+            flex: 1;
+        }
 
         .buttons a {
             text-decoration: none;
-            color: rgba(186,210,255,0.75);
-            font-size: 14px; font-weight: 600;
+            color: rgba(186, 210, 255, 0.75);
+            font-size: 14px;
+            font-weight: 600;
             padding: 11px 20px;
-            display: flex; align-items: center; gap: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             border-left: 3px solid transparent;
             transition: all 0.2s;
         }
-        .buttons a:hover { background: rgba(255,255,255,0.07); color: #ffffff; border-left-color: rgba(255,255,255,0.3); }
-        .buttons a.active { background: rgba(255,255,255,0.12); color: #ffffff; border-left-color: #60a5fa; }
 
-        .logout { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .buttons a:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #ffffff;
+            border-left-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .buttons a.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-left-color: #60a5fa;
+        }
+
+        .logout {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
         .logout button {
-            width: 100%; padding: 10px;
-            background: rgba(239,68,68,0.12);
-            border: 1px solid rgba(239,68,68,0.3);
+            width: 100%;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             color: #fca5a5;
             font-family: 'Syne', sans-serif;
-            font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
         }
-        .logout button:hover { background: rgba(239,68,68,0.22); color: #ffffff; }
+
+        .logout button:hover {
+            background: rgba(239, 68, 68, 0.22);
+            color: #ffffff;
+        }
 
         /* ─── MAIN ─── */
-        .right { flex: 1; overflow-x: hidden; min-width: 0; }
+        .right {
+            flex: 1;
+            overflow-x: hidden;
+            min-width: 0;
+        }
 
         .header {
             background: #ffffff;
             border-bottom: 1px solid #c7d9f5;
             padding: 22px 32px;
-            box-shadow: 0 1px 8px rgba(37,99,235,0.06);
+            box-shadow: 0 1px 8px rgba(37, 99, 235, 0.06);
         }
-        .header h1 { font-size: 20px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
-        .header h1 i { color: #2563eb; }
-        .header p { font-size: 11px; color: #94a3b8; font-family: 'Space Mono', monospace; margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 i {
+            color: #2563eb;
+        }
+
+        .header p {
+            font-size: 11px;
+            color: #94a3b8;
+            font-family: 'Space Mono', monospace;
+            margin-top: 3px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
 
         /* ─── PARKING STATUS STRIP ─── */
         .parking-strip {
@@ -117,47 +183,85 @@
             gap: 14px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.06);
             transition: transform 0.2s;
         }
+
         .pk-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 3px;
             border-radius: 10px 10px 0 0;
         }
-        .pk-card.pk-total::before  { background: #2563eb; }
-        .pk-card.pk-avail::before  { background: #10b981; }
-        .pk-card.pk-occ::before    { background: #ef4444; }
+
+        .pk-card.pk-total::before {
+            background: #2563eb;
+        }
+
+        .pk-card.pk-avail::before {
+            background: #10b981;
+        }
+
+        .pk-card.pk-occ::before {
+            background: #ef4444;
+        }
 
         .pk-icon {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 8px;
-            display: grid; place-items: center;
+            display: grid;
+            place-items: center;
             font-size: 18px;
             flex-shrink: 0;
         }
-        .pk-card.pk-total .pk-icon  { background: #dbeafe; color: #2563eb; }
-        .pk-card.pk-avail .pk-icon  { background: #d1fae5; color: #10b981; }
-        .pk-card.pk-occ .pk-icon    { background: #fee2e2; color: #ef4444; }
+
+        .pk-card.pk-total .pk-icon {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .pk-card.pk-avail .pk-icon {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .pk-card.pk-occ .pk-icon {
+            background: #fee2e2;
+            color: #ef4444;
+        }
 
         .pk-label {
-            font-size: 9px; font-weight: 700;
+            font-size: 9px;
+            font-weight: 700;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.14em;
             font-family: 'Space Mono', monospace;
             margin-bottom: 2px;
         }
+
         .pk-num {
-            font-size: 26px; font-weight: 800;
+            font-size: 26px;
+            font-weight: 800;
             font-family: 'Space Mono', monospace;
             line-height: 1;
         }
-        .pk-card.pk-total .pk-num { color: #2563eb; }
-        .pk-card.pk-avail .pk-num { color: #10b981; }
-        .pk-card.pk-occ .pk-num   { color: #ef4444; }
+
+        .pk-card.pk-total .pk-num {
+            color: #2563eb;
+        }
+
+        .pk-card.pk-avail .pk-num {
+            color: #10b981;
+        }
+
+        .pk-card.pk-occ .pk-num {
+            color: #ef4444;
+        }
 
         /* Full status bar */
         .pk-bar-wrap {
@@ -166,8 +270,9 @@
             border: 1px solid #c7d9f5;
             border-radius: 10px;
             padding: 12px 18px;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.06);
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.06);
         }
+
         .pk-bar-label {
             display: flex;
             justify-content: space-between;
@@ -177,14 +282,22 @@
             letter-spacing: 0.1em;
             margin-bottom: 7px;
         }
-        .pk-bar-label span:first-child { color: #10b981; }
-        .pk-bar-label span:last-child  { color: #ef4444; }
+
+        .pk-bar-label span:first-child {
+            color: #10b981;
+        }
+
+        .pk-bar-label span:last-child {
+            color: #ef4444;
+        }
+
         .pk-bar-track {
             height: 6px;
             background: #dbeafe;
             border-radius: 4px;
             overflow: hidden;
         }
+
         .pk-bar-fill {
             height: 100%;
             background: linear-gradient(90deg, #ef4444, #f97316);
@@ -206,52 +319,91 @@
             border: 1px solid #c7d9f5;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.07);
             margin-bottom: 16px;
             width: 100%;
         }
+
         .action-head {
             padding: 14px 20px;
             background: #f5f9ff;
             border-bottom: 1px solid #ddeaff;
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .action-head::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; flex-shrink: 0; }
-        .action-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
-        .action-head i { color: #2563eb; }
 
-        .action-buttons { padding: 20px; display: flex; gap: 12px; }
+        .action-head::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .action-head h2 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .action-head i {
+            color: #2563eb;
+        }
+
+        .action-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+        }
 
         .action-btn {
-            flex: 1; padding: 16px;
+            flex: 1;
+            padding: 16px;
             border: 2px solid #ddeaff;
             background: #f8faff;
             color: #64748b;
             font-family: 'Syne', sans-serif;
-            font-size: 14px; font-weight: 700;
-            cursor: pointer; border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 10px;
             transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             letter-spacing: 0.04em;
         }
-        .action-btn:hover { border-color: #c7d9f5; background: #ffffff; }
+
+        .action-btn:hover {
+            border-color: #c7d9f5;
+            background: #ffffff;
+        }
+
         .action-btn.entry-active {
             background: linear-gradient(135deg, #2563eb, #0ea5e9);
             border-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
+
         .action-btn.exit-active {
             background: linear-gradient(135deg, #ef4444, #f97316);
             border-color: #ef4444;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
+
         .action-btn.manual-active {
             background: linear-gradient(135deg, #4f46e5, #6366f1);
             border-color: #4f46e5;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
 
         /* ─── MANUAL INPUT STYLES ─── */
@@ -260,23 +412,27 @@
             border: 1px solid #c7d9f5;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.07);
             flex: 1;
             min-width: 320px;
         }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
+
         .form-group.full-width {
             grid-column: span 2;
         }
+
         .form-group label {
             font-size: 10px;
             font-weight: 700;
@@ -285,7 +441,9 @@
             letter-spacing: 0.12em;
             font-family: 'Space Mono', monospace;
         }
-        .form-group input, .form-group select {
+
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 14px;
             background: #f8faff;
@@ -297,15 +455,19 @@
             outline: none;
             transition: all 0.2s;
         }
-        .form-group input:focus, .form-group select:focus {
+
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: #2563eb;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
+
         .type-selector {
             display: flex;
             gap: 10px;
         }
+
         .type-btn {
             flex: 1;
             padding: 10px;
@@ -323,6 +485,7 @@
             gap: 6px;
             transition: all 0.2s;
         }
+
         .type-btn.active {
             background: #dbeafe;
             border-color: #2563eb;
@@ -335,20 +498,48 @@
             border: 1px solid #c7d9f5;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.07);
             flex-shrink: 0;
         }
+
         .card-head {
             padding: 14px 20px;
             background: #f5f9ff;
             border-bottom: 1px solid #ddeaff;
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .card-head::before { content: ''; width: 3px; height: 14px; background: #2563eb; border-radius: 2px; flex-shrink: 0; }
-        .card-head h2 { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
-        .card-head i { color: #2563eb; }
 
-        .video-body { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .card-head::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .card-head h2 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .card-head i {
+            color: #2563eb;
+        }
+
+        .video-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
 
         .video-frame {
             position: relative;
@@ -359,54 +550,128 @@
             width: 100%;
             max-width: 380px;
         }
-        .video-frame::before, .video-frame::after { content: ''; position: absolute; width: 24px; height: 24px; z-index: 2; pointer-events: none; }
-        .video-frame::before { top: 10px; left: 10px; border-top: 3px solid #2563eb; border-left: 3px solid #2563eb; border-radius: 2px 0 0 0; }
-        .video-frame::after  { bottom: 10px; right: 10px; border-bottom: 3px solid #2563eb; border-right: 3px solid #2563eb; border-radius: 0 0 2px 0; }
 
-        #reader { width: 340px; }
+        .video-frame::before,
+        .video-frame::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .video-frame::before {
+            top: 10px;
+            left: 10px;
+            border-top: 3px solid #2563eb;
+            border-left: 3px solid #2563eb;
+            border-radius: 2px 0 0 0;
+        }
+
+        .video-frame::after {
+            bottom: 10px;
+            right: 10px;
+            border-bottom: 3px solid #2563eb;
+            border-right: 3px solid #2563eb;
+            border-radius: 0 0 2px 0;
+        }
+
+        #reader {
+            width: 340px;
+        }
 
         .scan-line {
-            position: absolute; left: 0; right: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
             height: 2px;
             background: linear-gradient(90deg, transparent, #2563eb, transparent);
             animation: scanMove 2s ease-in-out infinite;
-            z-index: 3; pointer-events: none;
+            z-index: 3;
+            pointer-events: none;
         }
-        @keyframes scanMove { 0%{top:10%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:90%;opacity:0} }
+
+        @keyframes scanMove {
+            0% {
+                top: 10%;
+                opacity: 0
+            }
+
+            10% {
+                opacity: 1
+            }
+
+            90% {
+                opacity: 1
+            }
+
+            100% {
+                top: 90%;
+                opacity: 0
+            }
+        }
 
         .scan-pulse {
             display: none;
             position: absolute;
-            inset: 0; z-index: 4; pointer-events: none;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
             border-radius: 8px;
             box-shadow: inset 0 0 0 3px #2563eb;
             animation: pulseBorder 0.8s ease-in-out infinite alternate;
         }
-        .scanning .scan-pulse { display: block; }
+
+        .scanning .scan-pulse {
+            display: block;
+        }
+
         @keyframes pulseBorder {
-            from { box-shadow: inset 0 0 0 3px #2563eb; }
-            to   { box-shadow: inset 0 0 0 3px #0ea5e9, inset 0 0 20px rgba(37,99,235,0.3); }
+            from {
+                box-shadow: inset 0 0 0 3px #2563eb;
+            }
+
+            to {
+                box-shadow: inset 0 0 0 3px #0ea5e9, inset 0 0 20px rgba(37, 99, 235, 0.3);
+            }
         }
 
         .btn-capture {
             padding: 12px 28px;
             background: linear-gradient(135deg, #2563eb, #0ea5e9);
-            border: none; color: #ffffff;
+            border: none;
+            color: #ffffff;
             font-family: 'Syne', sans-serif;
-            font-size: 14px; font-weight: 800;
-            cursor: pointer; border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            border-radius: 8px;
             letter-spacing: 0.04em;
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: all 0.2s;
-            box-shadow: 0 3px 12px rgba(37,99,235,0.28);
+            box-shadow: 0 3px 12px rgba(37, 99, 235, 0.28);
             width: 100%;
             justify-content: center;
         }
-        .btn-capture:hover { opacity: 0.92; box-shadow: 0 5px 18px rgba(37,99,235,0.38); transform: translateY(-1px); }
-        .btn-capture:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-capture:hover {
+            opacity: 0.92;
+            box-shadow: 0 5px 18px rgba(37, 99, 235, 0.38);
+            transform: translateY(-1px);
+        }
+
+        .btn-capture:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-capture.scanning-state {
             background: linear-gradient(135deg, #f59e0b, #f97316);
-            box-shadow: 0 3px 12px rgba(245,158,11,0.35);
+            box-shadow: 0 3px 12px rgba(245, 158, 11, 0.35);
         }
 
         /* ─── RESULT CARD ─── */
@@ -415,10 +680,17 @@
             border: 1px solid #c7d9f5;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 1px 6px rgba(37,99,235,0.07);
-            flex: 1; min-width: 280px;
+            box-shadow: 0 1px 6px rgba(37, 99, 235, 0.07);
+            flex: 1;
+            min-width: 280px;
         }
-        .result-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+        .result-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
         .result-banner {
             width: 100%;
@@ -429,48 +701,133 @@
             background: #f5f9ff;
             transition: all 0.3s;
         }
-        .result-banner .banner-icon  { font-size: 40px; margin-bottom: 8px; }
-        .result-banner .banner-title { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; font-family: 'Space Mono', monospace; }
-        .result-banner .banner-msg   { font-size: 12px; color: #64748b; margin-top: 4px; }
 
-        .result-banner.idle    { background: #f5f9ff;  border-color: #ddeaff; }
-        .result-banner.success { background: #f0fdf4;  border-color: #6ee7b7; }
-        .result-banner.fail    { background: #fef2f2;  border-color: #fca5a5; }
-        .result-banner.expired { background: #fffbeb;  border-color: #fde68a; }
-        .result-banner.scanning { background: #eff6ff; border-color: #93c5fd; animation: scanPulse 1s ease-in-out infinite alternate; }
+        .result-banner .banner-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .result-banner .banner-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .result-banner .banner-msg {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .result-banner.idle {
+            background: #f5f9ff;
+            border-color: #ddeaff;
+        }
+
+        .result-banner.success {
+            background: #f0fdf4;
+            border-color: #6ee7b7;
+        }
+
+        .result-banner.fail {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .result-banner.expired {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .result-banner.scanning {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            animation: scanPulse 1s ease-in-out infinite alternate;
+        }
+
         @keyframes scanPulse {
-            from { border-color: #93c5fd; }
-            to   { border-color: #2563eb; box-shadow: 0 0 16px rgba(37,99,235,0.15); }
+            from {
+                border-color: #93c5fd;
+            }
+
+            to {
+                border-color: #2563eb;
+                box-shadow: 0 0 16px rgba(37, 99, 235, 0.15);
+            }
         }
 
-        .result-banner.success .banner-title { color: #065f46; }
-        .result-banner.fail    .banner-title { color: #991b1b; }
-        .result-banner.expired .banner-title { color: #92400e; }
-        .result-banner.idle    .banner-title { color: #64748b; }
-        .result-banner.scanning .banner-title { color: #2563eb; }
+        .result-banner.success .banner-title {
+            color: #065f46;
+        }
 
-        .info-rows { display: flex; flex-direction: column; gap: 8px; }
+        .result-banner.fail .banner-title {
+            color: #991b1b;
+        }
+
+        .result-banner.expired .banner-title {
+            color: #92400e;
+        }
+
+        .result-banner.idle .banner-title {
+            color: #64748b;
+        }
+
+        .result-banner.scanning .banner-title {
+            color: #2563eb;
+        }
+
+        .info-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .info-row {
-            display: flex; align-items: center; gap: 12px;
-            background: #f8faff; border: 1px solid #ddeaff;
-            border-radius: 8px; padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8faff;
+            border: 1px solid #ddeaff;
+            border-radius: 8px;
+            padding: 10px 14px;
         }
-        .info-row .lbl { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.14em; font-family: 'Space Mono', monospace; min-width: 70px; }
-        .info-row .val { font-size: 13px; font-weight: 600; color: #0f172a; font-family: 'Space Mono', monospace; }
+
+        .info-row .lbl {
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-family: 'Space Mono', monospace;
+            min-width: 70px;
+        }
+
+        .info-row .val {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            font-family: 'Space Mono', monospace;
+        }
 
         /* ─── MOBILE ─── */
         @media (max-width: 768px) {
-            aside { display: none; }
+            aside {
+                display: none;
+            }
 
             .mobile-nav {
                 display: flex !important;
                 position: fixed;
-                bottom: 0; left: 0; right: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 background: #1e3a8a;
                 z-index: 200;
-                border-top: 1px solid rgba(255,255,255,0.1);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
                 padding-bottom: env(safe-area-inset-bottom);
             }
+
             .mobile-nav a {
                 flex: 1;
                 display: flex;
@@ -480,23 +837,45 @@
                 gap: 4px;
                 padding: 10px 4px;
                 text-decoration: none;
-                color: rgba(186,210,255,0.7);
+                color: rgba(186, 210, 255, 0.7);
                 font-size: 9px;
                 font-weight: 700;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 transition: all 0.2s;
             }
-            .mobile-nav a i { font-size: 20px; }
+
+            .mobile-nav a i {
+                font-size: 20px;
+            }
+
             .mobile-nav a.active,
-            .mobile-nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+            .mobile-nav a:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.1);
+            }
 
-            .header { padding: 16px 18px; }
-            .header h1 { font-size: 17px; }
+            .header {
+                padding: 16px 18px;
+            }
 
-            .parking-strip { grid-template-columns: repeat(3, 1fr); padding: 14px 16px 0; gap: 8px; }
-            .pk-bar-wrap { margin: 10px 16px 0; }
-            .pk-num { font-size: 20px; }
+            .header h1 {
+                font-size: 17px;
+            }
+
+            .parking-strip {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 14px 16px 0;
+                gap: 8px;
+            }
+
+            .pk-bar-wrap {
+                margin: 10px 16px 0;
+            }
+
+            .pk-num {
+                font-size: 20px;
+            }
 
             .scanner-wrap {
                 padding: 14px 16px 90px;
@@ -504,21 +883,70 @@
                 gap: 16px;
             }
 
-            .video-card, .result-card, .action-selector, .manual-card { width: 100%; }
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width { grid-column: span 1; }
-            #reader { width: 100%; }
-            .video-frame { max-width: 100%; }
-            .video-body { padding: 14px; }
-            .action-buttons { padding: 14px; gap: 8px; }
-            .action-btn { padding: 14px 10px; font-size: 13px; }
-            .result-body { padding: 16px; }
-            .result-banner { padding: 16px; }
-            .result-banner .banner-icon { font-size: 32px; }
-            .result-banner .banner-title { font-size: 14px; }
+            .video-card,
+            .result-card,
+            .action-selector,
+            .manual-card {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+
+            #reader {
+                width: 100%;
+            }
+
+            .video-frame {
+                max-width: 100%;
+            }
+
+            .video-body {
+                padding: 14px;
+            }
+
+            .action-buttons {
+                padding: 14px;
+                gap: 8px;
+            }
+
+            .action-btn {
+                padding: 14px 10px;
+                font-size: 13px;
+            }
+
+            .result-body {
+                padding: 16px;
+            }
+
+            .result-banner {
+                padding: 16px;
+            }
+
+            .result-banner .banner-icon {
+                font-size: 32px;
+            }
+
+            .result-banner .banner-title {
+                font-size: 14px;
+            }
+        }
+
+        .entry-opt {
+            background: lightgreen;
+        }
+
+        .exit-opt {
+            background: red;
         }
     </style>
 </head>
+
 <body>
     <!-- Desktop sidebar -->
     <aside>
@@ -529,7 +957,7 @@
         <div class="buttons">
             <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
             <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
-            <a href="/guard/parking" ><i class="bi bi-p-circle"></i> Parking</a>
+            <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
             <a href="/guard/profile"><i class="bi bi-person-circle"></i> Profile</a>
         </div>
         <div class="logout">
@@ -541,7 +969,7 @@
     <nav class="mobile-nav" style="display:none;">
         <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
         <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
-        <a href="/guard/parking" ><i class="bi bi-p-circle"></i> Parking</a>
+        <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
         <a href="/guard/profile"><i class="bi bi-person-circle"></i> Profile</a>
         <a href="/auth/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </nav>
@@ -640,27 +1068,42 @@
                 <div style="padding: 20px;">
                     <form id="manualForm" onsubmit="submitManualInput(event)" class="form-grid">
                         <div class="form-group full-width">
-                            <label for="mOwner">Owner Name</label>
-                            <input type="text" id="mOwner" placeholder="e.g. Juan Dela Cruz" required>
+                            <label for="mDepartment">Department</label>
+                            <select id="mDepartment">
+                                <option value="VISITOR">Visitor</option>
+                                <option value="STUDENT">Student</option>
+                                <option value="EMPLOYEE">Employee</option>
+                                <option value="GSD">GSD</option>
+                                <option value="CITE">CITE</option>
+                                <option value="CAS">CAS</option>
+                                <option value="CAHS">CAHS</option>
+                                <option value="COE">COE</option>
+                                <option value="COED">COED</option>
+                                <option value="COME">COME</option>
+                                <option value="CBA">CBA</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="mPlate">Plate Number</label>
-                            <input type="text" id="mPlate" placeholder="e.g. ABC 1234" required style="text-transform: uppercase;">
+                            <input type="text" id="mPlate" placeholder="e.g. ABC 1234" required
+                                style="text-transform: uppercase;">
                         </div>
                         <div class="form-group">
                             <label for="mAction">Action Mode</label>
                             <select id="mAction">
-                                <option value="entry">ENTRY</option>
-                                <option value="exit">EXIT</option>
+                                <option value="entry" class="entry-opt">ENTRY</option>
+                                <option value="exit" class="exit-opt">EXIT</option>
                             </select>
                         </div>
                         <div class="form-group full-width">
                             <label>Vehicle Type</label>
                             <div class="type-selector">
-                                <button type="button" class="type-btn active" id="btnCar" onclick="selectVehicleType('car')">
+                                <button type="button" class="type-btn active" id="btnCar"
+                                    onclick="selectVehicleType('car')">
                                     <i class="bi bi-car-front-fill"></i> Car
                                 </button>
-                                <button type="button" class="type-btn" id="btnMotorcycle" onclick="selectVehicleType('motorcycle')">
+                                <button type="button" class="type-btn" id="btnMotorcycle"
+                                    onclick="selectVehicleType('motorcycle')">
                                     <i class="bi bi-bicycle"></i> Motorcycle
                                 </button>
                             </div>
@@ -691,8 +1134,10 @@
                         <div class="info-row"><span class="lbl">Owner</span><span class="val" id="rOwner">—</span></div>
                         <div class="info-row"><span class="lbl">Plate</span><span class="val" id="rPlate">—</span></div>
                         <div class="info-row"><span class="lbl">Type</span><span class="val" id="rType">—</span></div>
-                        <div class="info-row"><span class="lbl">Valid Until</span><span class="val" id="rExpiry">—</span></div>
-                        <div class="info-row"><span class="lbl">Action</span><span class="val" id="rAction">—</span></div>
+                        <div class="info-row"><span class="lbl">Valid Until</span><span class="val"
+                                id="rExpiry">—</span></div>
+                        <div class="info-row"><span class="lbl">Action</span><span class="val" id="rAction">—</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -710,16 +1155,16 @@
         async function getParking() {
             try {
                 const data = await API.get("/guard/getParking");
-                const total    = data.total    ?? 0;
-                const occupied = data.occupied  ?? 0;
+                const total = data.total ?? 0;
+                const occupied = data.occupied ?? 0;
                 const available = data.available ?? (total - occupied);
 
                 document.getElementById("pkTotal").textContent = total;
                 document.getElementById("pkAvail").textContent = available;
-                document.getElementById("pkOcc").textContent   = occupied;
+                document.getElementById("pkOcc").textContent = occupied;
 
                 document.getElementById("pkAvailLabel").textContent = `${available} Available`;
-                document.getElementById("pkOccLabel").textContent   = `${occupied} Occupied`;
+                document.getElementById("pkOccLabel").textContent = `${occupied} Occupied`;
 
                 const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
                 document.getElementById("pkBarFill").style.width = pct + "%";
@@ -731,10 +1176,10 @@
         // ─── ACTION ────────────────────────────────────────────
         function setAction(action) {
             currentAction = action;
-            
+
             // Handle active class toggles on action selector buttons
             document.getElementById("entryBtn").className = "action-btn" + (action === "entry" ? " entry-active" : "");
-            document.getElementById("exitBtn").className  = "action-btn" + (action === "exit"  ? " exit-active"  : "");
+            document.getElementById("exitBtn").className = "action-btn" + (action === "exit" ? " exit-active" : "");
             document.getElementById("manualBtn").className = "action-btn" + (action === "manualinput" ? " manual-active" : "");
 
             const cameraCard = document.getElementById("cameraCard");
@@ -743,12 +1188,12 @@
             if (action === "manualinput") {
                 cameraCard.style.display = "none";
                 manualCard.style.display = "block";
-                
+
                 // Stop scanner if active
                 if (scanning) {
                     toggleScan();
                 }
-                
+
                 setBanner("idle", "✍️", "MANUAL INPUT MODE", "Fill out the form and submit");
             } else {
                 cameraCard.style.display = "block";
@@ -774,7 +1219,7 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
 
-            const ownerName = document.getElementById("mOwner").value;
+            const department = document.getElementById("mDepartment").value;
             const plateNumber = document.getElementById("mPlate").value.toUpperCase();
             const action = document.getElementById("mAction").value;
 
@@ -782,7 +1227,7 @@
 
             try {
                 const res = await API.post("/guard/manual_entry", {
-                    owner_name: ownerName,
+                    department: department,
                     plate: plateNumber,
                     vehicle_type: selectedVehicleType,
                     action: action
@@ -797,13 +1242,12 @@
                 }
 
                 document.getElementById("infoRows").style.display = "flex";
-                document.getElementById("rOwner").textContent  = ownerName;
-                document.getElementById("rPlate").textContent  = plateNumber;
-                document.getElementById("rType").textContent   = selectedVehicleType.toUpperCase();
+                document.getElementById("rOwner").textContent = department;
+                document.getElementById("rPlate").textContent = plateNumber;
+                document.getElementById("rType").textContent = selectedVehicleType.toUpperCase();
                 document.getElementById("rExpiry").textContent = "MANUAL LOG";
                 document.getElementById("rAction").textContent = action.toUpperCase();
 
-                // Refresh parking stats
                 await getParking();
 
             } catch (err) {
@@ -846,7 +1290,7 @@
                 captureBtn.classList.remove("scanning-state");
                 processingLock = false;
             },
-            () => {}
+            () => { }
         ).catch(err => console.error("Camera error:", err));
 
         function toggleScan() {
@@ -887,10 +1331,10 @@
                 }
 
                 document.getElementById("infoRows").style.display = "flex";
-                document.getElementById("rOwner").textContent  = res.owner_name  || "—";
-                document.getElementById("rPlate").textContent  = res.plate       || "—";
-                document.getElementById("rType").textContent   = res.vehicle_type || "—";
-                document.getElementById("rExpiry").textContent = res.valid_until  || "—";
+                document.getElementById("rOwner").textContent = res.owner_name || "—";
+                document.getElementById("rPlate").textContent = res.plate || "—";
+                document.getElementById("rType").textContent = res.vehicle_type || "—";
+                document.getElementById("rExpiry").textContent = res.valid_until || "—";
                 document.getElementById("rAction").textContent = currentAction.toUpperCase();
 
             } catch (e) {
@@ -902,13 +1346,14 @@
         function setBanner(type, icon, title, msg) {
             const banner = document.getElementById("resultBanner");
             banner.className = "result-banner " + type;
-            banner.querySelector(".banner-icon").textContent  = icon;
+            banner.querySelector(".banner-icon").textContent = icon;
             banner.querySelector(".banner-title").textContent = title;
-            banner.querySelector(".banner-msg").textContent   = msg;
+            banner.querySelector(".banner-msg").textContent = msg;
         }
 
         getParking();
         setInterval(getParking, 20000);
     </script>
 </body>
+
 </html>

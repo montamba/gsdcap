@@ -389,7 +389,6 @@
                     <tr class="hist-table">
                         <th>#</th>
                         <th>QR Code</th>
-                        <th>Owner</th>
                         <th>Department</th>
                         <th>Plate</th>
                         <th>Result</th>
@@ -444,7 +443,8 @@
                     return;
                 }
 
-                // Update total stat counters only on page 1 or when no filters active
+                console.log(res)
+
                 // (server returns total across all pages, so we track it separately)
                 updateStats(res.total, res.data);
 
@@ -478,7 +478,7 @@
             // This gives a live feel; a dedicated stats endpoint would be more accurate for breakdowns
             let accepted = 0, expired = 0, failed = 0;
             pageData.forEach(d => {
-                const s = (d[2] || '').toLowerCase();
+                const s = (d[2] || '');
                 if (s === 'accepted') accepted++;
                 else if (s === 'expired') expired++;
                 else failed++;
@@ -505,14 +505,13 @@
 
             // d = [0:id, 1:data, 2:status, 3:created_at, 4:plate, 5:owner_name, 6:action]
             tbody.innerHTML = data.map((d, i) => {
-                const statusClass = d[2] === 'accepted' ? 'badge-accepted'
-                                  : d[2] === 'expired'  ? 'badge-expired'
+                const statusClass = d[3] === 'accepted' ? 'badge-accepted'
+                                  : d[3] === 'expired'  ? 'badge-expired'
                                   : 'badge-failed';
-                const actionLabel = (d[6] || 'entry').toLowerCase();
+                const actionLabel = (d[4] || 'entry').toLowerCase();
                 const actionClass = actionLabel === 'exit' ? 'action-exit' : 'action-entry';
-                const createdAt   = d[3] ? String(d[3]).slice(0, 16) : '—';
-                const plate       = d[4] || '—';
-                const ownerName   = d[5] || '—';
+                const createdAt   = d[5] ? String(d[5]).slice(0, 16) : '—';
+                const plate       = d[6] || '—';
                 const department = d[7] ?? ""
 
                 return `
@@ -521,11 +520,10 @@
                     <td style="color:#2563eb;font-family:'Space Mono',monospace;font-size:11px;
                                font-weight:700;white-space:nowrap;overflow:hidden;
                                text-overflow:ellipsis;">${d[1] || '—'}</td>
-                    <td style="color:#334155;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ownerName}</td>
                     <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${department}</td>
 
                     <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${plate}</td>
-                    <td><span class="badge ${statusClass}">${d[2] || '—'}</span></td>
+                    <td><span class="badge ${statusClass}">${d[3] || '—'}</span></td>
                     <td><span class="${actionClass}">${actionLabel === 'exit' ? 'OUT' : 'IN'}</span></td>
                     <td style="font-size:11px;color:#64748b;font-family:'Space Mono',monospace;">${createdAt}</td>
                 </tr>`;

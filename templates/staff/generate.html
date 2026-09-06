@@ -14,10 +14,11 @@
     <style>
         *, *::before, *::after {
             font-family: 'Roboto', sans-serif !important;
+            box-sizing: border-box; /* Added to fix padding overflow issues */
         }
 
-        .right{
-            position:relative;
+        .right {
+            position: relative;
         }
 
         .header { background:#fff; border-bottom:1px solid #000000; padding:22px 32px; box-shadow:0 1px 8px rgba(0,0,0,.06); }
@@ -99,7 +100,9 @@
         td { color:#334155; border-bottom:1px solid #000000; }
         tbody tr:last-child td { border-bottom:none; }
         tbody tr:hover td { background:#f8faff; }
-        table.qr-row-table tr { display:grid; grid-template-columns:40px 1fr 1fr 130px 130px; }
+        
+        /* Updated Grid Template for Table Rows to match header & body columns correctly */
+        table.qr-row-table tr { display:grid; grid-template-columns:50px 1.5fr 1.5fr 1fr 1fr; width: 100%; }
 
         .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#f5f9ff; border-top:1px solid #000000; flex-wrap:wrap; gap:8px; }
         .pg-info { font-size:11px; color:#94a3b8; }
@@ -108,7 +111,6 @@
         .pg-btn:hover:not(:disabled) { border-color:#000000; color:#2563eb; background:#eff6ff; }
         .pg-btn.active { background:#2563eb; border-color:#000000; color:#fff; }
         .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
-       
 
         @media print {
             body * { visibility:hidden; }
@@ -198,7 +200,8 @@
 
                     <div class="form-group">
                         <label>Owner Phone</label>
-                        <input type="text" id="owner_number" placeholder="Phone number(optiona)" required>
+                        <!-- Removed typo in placeholder "Phone number(optiona)" -> "Phone number (optional)" -->
+                        <input type="text" id="owner_number" placeholder="Phone number (optional)">
                     </div>
 
                     <div class="form-group">
@@ -215,9 +218,6 @@
                     </button>
                 </div>
             </div>
-
-
-        
 
             <!-- Preview -->
             <div class="qr-preview">
@@ -273,33 +273,24 @@
         </div>
     </div>
 
-
     <script>
         const LIMIT = 5;
         let myPage  = 1;
         let myPages = 1;
 
-        // Escape HTML helper function to prevent XSS attacks
-        function escapeHTML(str) {
-            if (!str) return '—';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+    
+
+        async function makeCode() {
+            let code = await API.get("/staff/generate_code");
+            console.log(code);
+            return code.code;
         }
 
-        function makeCode() {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            const seg = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
-            return `GSD-${seg(4)}-${seg(4)}`;
-        }
-
-        function regenerateCode() {
-            const code = makeCode();
+        async function regenerateCode() {
+            const code = await makeCode();
             document.getElementById("text").value = code;
             if (document.getElementById("qrLabel").style.display !== "none") generateQR();
+            toggleEmailBtn(); 
         }
 
         function toggleEmailBtn() {
@@ -355,7 +346,7 @@
             if (res.status === "good") {
                 getQrdata(1);
                 regenerateCode();
-                ["plate","validuntil","owner_name","owner_email"].forEach(id => document.getElementById(id).value = "");
+                ["plate","validuntil","owner_name","owner_number","owner_email"].forEach(id => document.getElementById(id).value = "");
                 document.getElementById("vehicle_type").value = "car";
                 document.getElementById("ownerCard").classList.remove("show");
                 document.getElementById("qrcode").innerHTML = `<span class="placeholder-text">CLICK<br>PREVIEW<br>TO SEE QR</span>`;
@@ -371,7 +362,6 @@
             const code  = document.getElementById("text").value.trim();
             const email = document.getElementById("owner_email").value.trim();
 
-
             if (!code || !email) { showMessageModal("A QR code and owner email are both required.", "Missing Info"); return; }
             
             btn.disabled = true;
@@ -386,7 +376,6 @@
             showMessageModal(res.message, res.status);
             btn.innerHTML = '<i class="bi bi-envelope-arrow-up"></i> Send Code to Owner';
             btn.disabled  = false;
-            
         }
 
         async function getQrdata(page = 1) {
@@ -400,7 +389,6 @@
 
             myPages = res.pages;
             
-            // Safely escape dynamic values to prevent XSS
             document.getElementById("qrBody").innerHTML = res.data.map((d, i) => `
                 <tr>
                     <td style="color:#94a3b8;">${(page-1)*LIMIT+i+1}</td>
