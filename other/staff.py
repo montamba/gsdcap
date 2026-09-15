@@ -75,8 +75,7 @@ class Staff:
 
             data = self.sql.getqrrequestwithusersandqrcode(limit=limit, offset=offset)
             
-            print("dattttttttttttttt")
-            print(data,"\n\n")
+            
             total = self.sql.count_qr_pending_by_type("request_qr")
 
             serialized = [
@@ -439,14 +438,20 @@ class Staff:
             code = request.args.get("qrcode")
             plate = request.args.get("plate")
             try:
+                qr = self.sql.getqrbydata(code)  
+                was_in = qr and qr[11] == "IN"
+
                 cur = self.sql._cursor()
                 cur.execute(
                     "UPDATE qrcode SET status='revoked', car_status='OUT' WHERE data=%s AND plate=%s",
-                    (code,plate),
+                    (code, plate),
                 )
                 self.sql._commit()
                 cur.close()
-                self.sql.updateparking()
+
+                if was_in:
+                    self.sql.updateparking(qr[13], "exit") 
+
                 self.cache.deletethathas("qrcode")
                 self.cache.deletethathas("history")
                 return jsonify({"status": "good", "message": "QR revoked successfully"})

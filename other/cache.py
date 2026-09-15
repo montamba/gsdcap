@@ -8,7 +8,6 @@ class Cache:
         self.__clearcount = 0
 
     def add(self, name, value):
-        print("add name: ", name, " Value: ", value)
         self.__DATA[name] = value
 
     def delete(self, name):
@@ -17,16 +16,14 @@ class Cache:
     def clear(self):
         self.__DATA.clear()
 
-    def self_clear(self):
-        print("start")
+    def self_clear(self, interval=60):
         while True:
-            time.sleep(15000)
-            print("clearing cache +", self.__clearcount)
+            time.sleep(interval)
             self.__clearcount += 1
+            print(f"[cache] auto-clear #{self.__clearcount}")
             self.clear()
 
     def get(self, name):
-        
         return self.__DATA.get(name)
 
     def deletethathas(self, name):
@@ -38,10 +35,8 @@ class Cache:
 
     def check_key(self, name):
         return name in self.__DATA
-    
+
     def is_empty(self, name):
-       
-        
         return self.__DATA[name]
 
     def prin(self):
@@ -50,4 +45,5 @@ class Cache:
 
 cache = Cache()
 
-threading.Thread(target=cache.self_clear)
+_cleaner = threading.Thread(target=cache.self_clear, args=(60,), daemon=True)
+_cleaner.start()
