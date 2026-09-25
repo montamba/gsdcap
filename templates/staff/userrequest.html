@@ -353,8 +353,15 @@
             if (e.target === this) closeDetailModal();
         });
 
-        loadRequests(1);
-        loadRenewals(1);
+        async function init(){
+            await loadRequests(1);
+            await loadRenewals(1);
+
+        }
+
+        init()
+
+        
     </script>
 </body>
 </html>

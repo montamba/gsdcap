@@ -73,18 +73,19 @@ class Staff:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            data = self.sql.getqrrequestwithusersandqrcode(limit=limit, offset=offset)
+            
+            
+            for i in range(3):
+                data = self.sql.getqrrequestwithusersandqrcode(limit=limit, offset=offset)
+                if data: break
             
             
             total = self.sql.count_qr_pending_by_type("request_qr")
 
-            serialized = [
-                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
-                for row in data
-            ]
+            
             return jsonify({
                 "status": "good",
-                "data": serialized,
+                "data": data,
                 "total": total,
                 "page": page,
                 "pages": max(1, -(-total // limit)),
@@ -96,16 +97,18 @@ class Staff:
             limit = int(request.args.get("limit", 5))
             offset = (page - 1) * limit
 
-            data = self.sql.getqrrenewalwithusersandqrcode(limit=limit, offset=offset)
+
+            for i in range(3):
+                data = self.sql.getqrrenewalwithusersandqrcode(limit=limit, offset=offset)
+                if data: break
+            
+            
             total = self.sql.count_qr_pending_by_type("qr_renewal")
 
-            serialized = [
-                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in row]
-                for row in data
-            ]
+            
             return jsonify({
                 "status": "good",
-                "data": serialized,
+                "data": data,
                 "total": total,
                 "page": page,
                 "pages": max(1, -(-total // limit)),
