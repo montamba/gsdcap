@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, session, redirect, url_for
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
 from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
@@ -37,6 +37,17 @@ class Main:
 
 
     def routes(self):
+        
+        @app.route("/robots.txt")
+        def robots():
+            return send_from_directory(".", "robots.txt")
+        
+        
+        @app.route("/sitemap.xml")
+        def sitemap():
+            return send_from_directory(".", "sitemap.xml")
+        
+        
         @self.app.after_request
         def limit_search_indexing(response):
             if response.mimetype == "text/html" and request.path not in ("/", "/user/signin"):
