@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, session, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, Response
 from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
@@ -38,14 +38,25 @@ class Main:
 
     def routes(self):
         
-        @app.route("/robots.txt")
+        @app.route('/robots.txt')
         def robots():
-            return send_from_directory(".", "robots.txt")
-        
-        
-        @app.route("/sitemap.xml")
+            content = """User-agent: *
+        Allow: /
+        Sitemap: https://gsdcap.vercel.app/sitemap.xml"""
+            return Response(content, mimetype="text/plain")
+
+        @app.route('/sitemap.xml')
         def sitemap():
-            return send_from_directory(".", "sitemap.xml")
+            content = """<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url>
+                <loc>https://gsdcap.vercel.app/</loc>
+            </url>
+            <url>
+                <loc>https://gsdcap.vercel.app/user/signin</loc>
+            </url>
+        </urlset>"""
+            return Response(content, mimetype="application/xml")
         
         
         @self.app.after_request
