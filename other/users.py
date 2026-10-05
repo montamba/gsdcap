@@ -239,6 +239,10 @@ class Users:
             if not code:
                 return jsonify({"status": "bad", "message": "QR code is required"})
 
+            qr = self.sql.getqrbydata(code)
+            if not qr or (qr[4] or "").lower() != session["email"].lower():
+                return jsonify({"status": "bad", "message": "QR code not found"})
+
             if self.sql.has_pending_request(code, "qr_renewal"):
                 return jsonify(
                     {"status": "bad", "message": "A renewal request for this QR is already pending"}

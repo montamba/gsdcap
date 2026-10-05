@@ -926,10 +926,10 @@
 
                 const roleLabel = u[ 2 ] === "user" ? "staff" : u[ 2 ];
                 let badge = {
-                    "user": `<span class="role-badge role-staff">👥 User </span>`,
-                    "guard": `<span class="role-badge role-staff">👤 Staff</span>`,
-                    "staff": `<span class="role-badge role-guard">🔒 Guard</span>`
-                }
+                    "user":  `<span class="role-badge role-user">👥 User </span>`,
+                    "staff": `<span class="role-badge role-staff">👤 Staff</span>`,
+                    "guard": `<span class="role-badge role-guard">🔒 Guard</span>`
+                };
                 return `
                 <tr class="pending-table" style="background:#fffafa;">
                     <td style="font-family:'Space Mono',monospace;color:#94a3b8;">${escapeHTML(u[ 0 ])}</td>
@@ -944,7 +944,7 @@
                         <button class="btn-sm success" onclick="restoreUser(${escapeHTML(u[ 0 ])})" title="Restore account">
                             <i class="bi bi-arrow-counterclockwise"></i> Restore
                         </button>
-                        <button class="btn-sm danger" onclick="confirmDeleteNow(${escapeHTML(u[ 0 ])}, '${escapeHTML(u[ 1 ])}')" title="Delete now">
+                        <button class="btn-sm danger" data-u="${escapeHTML(u[ 1 ])}" onclick="confirmDeleteNow(${escapeHTML(u[ 0 ])}, this.dataset.u)" title="Delete now">
                             <i class="bi bi-trash3-fill"></i>
                         </button>
                     </td>
@@ -1000,12 +1000,10 @@
             updatePager(res.total, res.page, res.pages);
 
             document.getElementById("cnt-total").textContent = res.total;
-            const guards = res.data.filter(u => u[ 2 ] === "guard").length;
-            const staff = res.data.filter(u => u[ 2 ] === "staff").length;
-            const user = res.data.filter(u => u[ 2 ] === "user").length;
-            document.getElementById("cnt-guard").textContent = guards;
-            document.getElementById("cnt-staff").textContent = staff;
-            document.getElementById("cnt-user").textContent = user;
+            const c = await API.get("/admin/user_counts");
+            document.getElementById("cnt-guard").textContent = c.guard ?? 0;
+            document.getElementById("cnt-staff").textContent = c.staff ?? 0;
+            document.getElementById("cnt-user").textContent  = c.user  ?? 0;
         }
 
         function updatePager(total, page, pages) {

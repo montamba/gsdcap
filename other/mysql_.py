@@ -8,6 +8,7 @@ import qrcode
 import bcrypt
 import math
 import random
+from html import escape
 
 from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
@@ -230,6 +231,17 @@ class SQL:
         except Exception as e:
             print(f"[DB] countallusers error: {e}")
             return 0
+
+    def countusersbyrole(self):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT role, COUNT(*) FROM users GROUP BY role")
+            result = dict(cur.fetchall())
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] countusersbyrole error: {e}")
+            return {}
 
     def getuser(self, user_id):
         try:
@@ -499,10 +511,10 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute("""
-                SELECT 
-                    SUM(status = 'active'),
-                    SUM(status = 'revoke'),
-                    SUM(expiry < NOW()),
+                SELECT
+                    COALESCE(SUM(status = 'active' AND (expiry IS NULL OR expiry >= NOW())), 0),
+                    COALESCE(SUM(status <> 'revoked' AND expiry < NOW()), 0),
+                    COALESCE(SUM(status = 'revoked'), 0),
                     COUNT(*)
                 FROM qrcode
             """)
@@ -909,7 +921,7 @@ class SQL:
                 """SELECT h.id,
                           h.created_at                    AS date,
                           COALESCE(u.username, '—')       AS guard_name,
-                          COALESCE(u.plate,   '—')        AS plate,
+                          COALESCE(h.plate,   '—')        AS plate,
                           h.data                          AS qr_code,
                           COALESCE(h.action,  'entry')    AS action,
                           h.status                        AS scan_result
@@ -969,7 +981,7 @@ class SQL:
             data["total"] = parking[3]
             data["occupied"] = parking[2]
             data["available"] = parking[1]
-            data["total_occupied"] = parking[0]
+            data["total_occupied"] = float(parking[4] or 0)
             
             return data
         except Exception as e:
@@ -978,18 +990,15 @@ class SQL:
 
     def setparkingslot(self, total):
         try:
-            data  = self.getparking()
-            
-            available = total - data.get("occupied")
-            
-            
+            data = self.getparking()
+            available = total - data.get("occupied", 0)
             cur = self._cursor()
-            cur.execute("UPDATE parking SET available=%s, total=%s WHERE id=1",(available,total,))
-            
+            cur.execute("UPDATE parking SET available=%s, total=%s WHERE id=1", (available, total))
+            self._commit()
             cur.close()
             return True
         except Exception as e:
-            print(f"[DB] counthistorybyguard error: {e}")
+            print(f"[DB] setparkingslot error: {e}")
             return False
         
 
@@ -1045,16 +1054,15 @@ class SQL:
             cur = self._cursor()
             cur.execute("""
                 SELECT
-                    COUNT(CASE WHEN action = 'entry' THEN 1 END) AS entry,
-                    COUNT(CASE WHEN action = 'exit' THEN 1 END) AS exit
+                    COUNT(CASE WHEN action = 'entry' THEN 1 END),
+                    COUNT(CASE WHEN action = 'exit' THEN 1 END)
                 FROM history
+                WHERE status = 'accepted' AND DATE(created_at) = CURDATE()
             """)
 
             entry, exit_ = cur.fetchone()
-            return {
-                "entry": entry,
-                "exit": exit_,
-            }
+            cur.close()
+            return {"entry": entry, "exit": exit_}
         except Exception as e:
             print(f"[DB] get_total_entry_exit error: {e}")
             return {"entry": 0, "exit": 0}
@@ -1168,6 +1176,8 @@ class SQL:
             return False
 
         try:
+            owner_name = escape(owner_name or "")
+            plate = escape(plate or "")
             qr_bytes = self._generate_qr_image(qr_data)
 
             msg = MIMEMultipart("related")

@@ -184,30 +184,24 @@ class Guard:
             
         @self.guard.route("/manual_entry", methods=["POST"])
         def manual_entry():
-            data: dict = request.get_json()
-            plate = (data.get("plate")).strip()
-            vehicle_type= (data.get("vehicle_type")).strip()
-            action = (data.get("action")).strip()
-            department = (data.get("department")).strip()
-            
-            vehicle_type = "car" if "car" == vehicle_type else "motorcycle"
-            space = 2 if "car" == vehicle_type else 1
-            
-            inserted = self._log(None, "accepted", action, department, plate)
-            
+            data = request.get_json(silent=True) or {}
+            plate = (data.get("plate") or "").strip().upper()
+            vehicle_type = (data.get("vehicle_type") or "car").strip().lower()
+            action = (data.get("action") or "").strip().lower()
+            department = (data.get("department") or "VISITOR").strip().upper()
+            if not plate or len(plate) > 20 or action not in ("entry", "exit") or vehicle_type not in ("car", "motorcycle"):
+                return jsonify({"status": "bad", "message": "Invalid input"})
+            space = 2 if vehicle_type == "car" else 1
+            if action == "entry":
+                p = self.sql.getparking()
+                free = int(round((p["total"] - p["total_occupied"]) * 2))
+                if free < space:
+                    return jsonify({"status": "bad", "message": "Parking lot has no available space"})
+            if not self._log(None, "accepted", action, department, plate):
+                return jsonify({"status": "bad", "message": "Please try again"})
             self.sql.updateparking(space, action)
-            
-            
-            if inserted:
-                return jsonify({
-                    "status":"good",
-                    "message":"Added succesfull"
-                })
-                
-            return jsonify({
-                        "status":"Bad",
-                        "message":"Please try again"
-                    })
+            self.cache.deletethathas("history")
+            return jsonify({"status": "good", "message": "Added successfully"})
             
                     
 
@@ -215,7 +209,9 @@ class Guard:
         def check_qr():
             data = request.get_json()
             qrdata = (data.get("data") or "").strip()
-            action = (data.get("action") or "entry").strip()  # "entry" or "exit"
+            action = (data.get("action") or "entry").strip().lower()
+            if action not in ("entry", "exit"):
+                return jsonify({"status": "bad", "message": "Invalid action"})
             
 
             new_action = "IN" if action == "entry" else "OUT"
@@ -229,9 +225,7 @@ class Guard:
             
             print("running here")
             parking = self.sql.getparking()
-            available_units = max(
-                0, parking.get("total", 0) * 2 - parking.get("occupied", 0)
-            )
+            available_units = max(0, int(round((parking.get("total", 0) - parking.get("total_occupied", 0)) * 2)))
             
             
             

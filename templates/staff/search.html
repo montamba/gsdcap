@@ -846,8 +846,8 @@
             data.forEach((d, i) => {
                 const status = effectiveStatus(d[ 8 ], d[ 7 ]);
                 const badgeCls = status === "active" ? "badge-active" : status === "expired" ? "badge-expired" : "badge-revoked";
-                const expiry = d[ 5 ] || "—";
-                const createdAt = d[ 8 ] || "—";
+                const expiry = d[ 7 ] || "—";
+                const createdAt = d[ 10 ] || "—";
 
                 const tr = document.createElement("tr");
                 tr.className = "clickable";
@@ -932,10 +932,10 @@
             document.getElementById("dCarStatus").textContent = d[ 11 ] || "NOT SCANNED";
             document.getElementById("dExpiry").textContent = d[ 7 ] || "No expiry set";
             document.getElementById("dCreatedAt").textContent = d[ 10 ] || "—";
-            document.getElementById("dCreatedBy").textContent = d[ 12 ] || "—";
+            document.getElementById("dCreatedBy").textContent = d[ 14 ] || "—";
 
-            if (d[ 5 ] && d[ 5 ] !== "None") {
-                document.getElementById("renewDate").value = d[ 5 ].split(" ")[ 0 ];
+            if (d[ 7 ] && d[ 7 ] !== "None") {
+                document.getElementById("renewDate").value = d[ 7 ].split(" ")[ 0];
             } else {
                 document.getElementById("renewDate").value = "";
             }

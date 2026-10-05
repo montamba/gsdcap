@@ -1,5 +1,10 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect
+import re
+from datetime import datetime
 from other.cache import cache
+
+def _ser(rows):
+    return [[str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in r] for r in (rows or [])]
 import random
 
 
@@ -85,7 +90,7 @@ class Staff:
             
             return jsonify({
                 "status": "good",
-                "data": data,
+                "data": _ser(data),
                 "total": total,
                 "page": page,
                 "pages": max(1, -(-total // limit)),
@@ -108,7 +113,7 @@ class Staff:
             
             return jsonify({
                 "status": "good",
-                "data": data,
+                "data": _ser(data),
                 "total": total,
                 "page": page,
                 "pages": max(1, -(-total // limit)),
@@ -146,6 +151,11 @@ class Staff:
             new_expiry = (data.get("expiry") or "").strip()
             if not new_expiry:
                 return jsonify({"status": "bad", "message": "New expiry date is required"})
+            try:
+                if datetime.strptime(new_expiry[:10], "%Y-%m-%d").date() < datetime.now().date():
+                    return jsonify({"status": "bad", "message": "Expiry is in the past"})
+            except ValueError:
+                return jsonify({"status": "bad", "message": "Invalid date"})
 
             detail = self.sql.get_qr_pending_detail(pending_id)
             if not detail:
@@ -252,14 +262,15 @@ class Staff:
 
         @self.staff.route("/updateuser", methods=["PUT"])
         def updateuser():
-            data = request.get_json()
-            username = data.get("username")
-            email = data.get("email")
-            try:
-                self.sql.updateuser(username, email, session["user_id"])
-                self.cache.deletethathas("users")
-            except:
-                return jsonify({"status": "bad", "message": "Failed to update"})
+            data = request.get_json(silent=True) or {}
+            username = (data.get("username") or "").strip()
+            email = (data.get("email") or "").strip().lower()
+            if len(username) < 3 or "@" not in email:
+                return jsonify({"status": "bad", "message": "Enter a valid username and email"})
+            if not self.sql.updateuser(username, email, session["user_id"]):
+                return jsonify({"status": "bad", "message": "Username or email already taken"})
+            session["email"] = email
+            self.cache.deletethathas("users")
             return jsonify({"status": "good", "message": "Updated successfully"})
 
         @self.staff.route("/recentqr")
@@ -352,7 +363,7 @@ class Staff:
             return jsonify(
                 {
                     "status": "good",
-                    "data": qrs,
+                    "data": _ser(qrs),
                     "total": total,
                     "page": page,
                     "limit": limit,
@@ -374,60 +385,48 @@ class Staff:
 
         @self.staff.route("/save_qr", methods=["POST"])
         def save_qr():
-            data = request.get_json()
-            qr_data = (data.get("data") or "").strip()
-            plate = (data.get("plate") or "").strip()
-            valid_until = data.get("valid_until" or None)
-            owner_name = (data.get("owner_name")).strip()
-            owner_email = (data.get("owner_email") or "").strip()
-            owner_number = (data.get("owner_number")).strip() or None
-            vehicle_type = (data.get("vehicle_type") or "car").strip().lower()
-            department = (data.get("department") or "visitor").strip().lower()
-            
-            if not all([qr_data,plate,valid_until,owner_name,owner_email,vehicle_type,department]):
-                return jsonify({
-                        "status": "bad",
-                        "message": "fill all the requirements",
-                    })
-
-            if not qr_data:
-                return jsonify({"status": "bad", "message": "QR data is required"})
-            if vehicle_type not in ("car", "motorcycle"):
-                return jsonify(
-                    {
-                        "status": "bad",
-                        "message": "Vehicle type must be car or motorcycle",
-                    }
-                )
-            
-
-            res = self.sql.saveqr(
-                    qr_data,
-                    plate,
-                    valid_until,
-                    session["user_id"],
-                    owner_name,
-                    owner_email,
-                    owner_number,
-                    vehicle_type,
-                    department
-                )
-            
-            
-            if not res:
-                return jsonify({"status": "bad", "message": "Something went wrong"})
+            d = request.get_json(silent=True) or {}
+            s = lambda k: (d.get(k) or "").strip()
+            code = s("data")
+            plate = re.sub(r"\s+", "", s("plate")).upper()
+            name, email = s("owner_name"), s("owner_email").lower()
+            phone = s("owner_number") or None
+            vtype, dept, expiry = s("vehicle_type").lower(), s("department").upper(), s("valid_until")
+            if not all([code, plate, name, email, expiry, vtype, dept]):
+                return jsonify({"status": "bad", "message": "Fill in all required fields"})
+            if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+                return jsonify({"status": "bad", "message": "Invalid email"})
+            if len(plate) > 20:
+                return jsonify({"status": "bad", "message": "Plate too long"})
+            if vtype not in ("car", "motorcycle"):
+                return jsonify({"status": "bad", "message": "Vehicle type must be car or motorcycle"})
+            try:
+                if datetime.strptime(expiry, "%Y-%m-%d").date() < datetime.now().date():
+                    return jsonify({"status": "bad", "message": "Expiry is in the past"})
+            except ValueError:
+                return jsonify({"status": "bad", "message": "Invalid date"})
+            if self.sql.codeindata(code):
+                return jsonify({"status": "bad", "message": "Code already exists, regenerate"})
+            if not self.sql.saveqr(code, plate, expiry, session["user_id"], name, email, phone, vtype, dept):
+                return jsonify({"status": "bad", "message": "Save failed"})
             self.cache.deletethathas("qrcode")
-            
-            return jsonify({"status": "good", "message": "QR saved successfully"})
+            if not self.sql.getqrbydata(code):
+                return jsonify({"status": "bad", "message": "Saved but could not verify"})
+            return jsonify({"status": "good", "message": f"Saved and verified: {code}", "code": code})
 
         @self.staff.route("/renew_qr/<int:qr_id>", methods=["PUT"])
         def renew_qr(qr_id):
             """Set a new expiry date on any QR code — staff can manage all."""
 
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             new_expiry = (data.get("expiry") or "").strip()
             if not new_expiry:
                 return jsonify({"status": "bad", "message": "Expiry date is required"})
+            try:
+                if datetime.strptime(new_expiry[:10], "%Y-%m-%d").date() < datetime.now().date():
+                    return jsonify({"status": "bad", "message": "Expiry is in the past"})
+            except ValueError:
+                return jsonify({"status": "bad", "message": "Invalid date"})
             try:
                 self.sql.renewqr_any(qr_id, new_expiry)
                 self.cache.deletethathas("qrcode")
@@ -465,14 +464,13 @@ class Staff:
         @self.staff.route("/send_qr_email", methods=["POST"])
         def send_qr_email():
 
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             qr_data = (data.get("data") or "").strip()
             owner_name = (data.get("owner_name") or "Anonymous").strip()
             owner_email = (data.get("owner_email") or "").strip()
             plate = (data.get("plate") or "").strip()
             valid_until = (data.get("valid_until") or "").strip()
 
-            print("data to send ", data)
 
             if not owner_email:
                 return jsonify(
@@ -480,25 +478,12 @@ class Staff:
                 )
             if not qr_data:
                 return jsonify({"status": "bad", "message": "QR data is required"})
-
-           
-            print(f"sending on {owner_email}")
-            try:
-                self.sql.send_qr_email(
-                        owner_email, owner_name, qr_data, plate, valid_until
-                    )
-                print("print send succesfull")
-            except Exception as e:
-                print("Background email error:", e)
-
-            
-
-            return jsonify(
-                {
-                    "status": "good",
-                    "message": f"QR will be sent to {owner_email} shortly",
-                }
-            )
+            if not self.sql.getqrbydata(qr_data):
+                return jsonify({"status": "bad", "message": "Save the QR code first"})
+            ok = self.sql.send_qr_email(owner_email, owner_name, qr_data, plate, valid_until)
+            if not ok:
+                return jsonify({"status": "bad", "message": "Email failed to send. Check SMTP settings."})
+            return jsonify({"status": "good", "message": f"QR sent to {owner_email}"})
 
         @self.staff.route("/delete_qr/<int:id>", methods=["DELETE"])
         def delete_qr(id):

@@ -1,4 +1,3 @@
-
 -- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: gsdparking
@@ -54,7 +53,7 @@ CREATE TABLE `history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `data` varchar(200) DEFAULT NULL,
   `guard` int DEFAULT NULL,
-  `status` enum('failed','accepted','expired') DEFAULT NULL,
+  `status` varchar(20) DEFAULT NULL,
   `action` varchar(10) NOT NULL DEFAULT 'entry',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `plate` varchar(20) DEFAULT NULL,
@@ -124,9 +123,14 @@ CREATE TABLE `qrcode` (
   `car_status` enum('IN','OUT') DEFAULT NULL,
   `vehicle_type` varchar(20) NOT NULL DEFAULT 'car',
   `space_units` tinyint NOT NULL DEFAULT '2',
+  `vehicle_color` varchar(20) DEFAULT NULL,
+  `vehicle_model_brand` varchar(20) DEFAULT NULL,
+  `requirements` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `data` (`data`),
   KEY `fk_user` (`created_by`),
+  KEY `requirements` (`requirements`),
+  CONSTRAINT `qrcode_ibfk_1` FOREIGN KEY (`requirements`) REFERENCES `vehicle_requirements` (`id`),
   CONSTRAINT `qrcode_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -137,7 +141,7 @@ CREATE TABLE `qrcode` (
 
 LOCK TABLES `qrcode` WRITE;
 /*!40000 ALTER TABLE `qrcode` DISABLE KEYS */;
-INSERT INTO `qrcode` VALUES (1,'GSD-CPAB-7SFX','123ABC','mon','monmon272005@gmail.com','09876543','visitor','2026-09-05 00:00:00','active',1,'2026-08-29 08:46:37',NULL,'car',2),(2,'GSD-VK3A-AMWY','123ABC','monmon','monmon272005@gmail.com','123','student','2026-09-05 00:00:00','active',1,'2026-08-29 09:27:24','IN','car',2),(3,'GSD-YEL7-ADZV','123ABC','teat','monmon272005@gmail.com','mon','visitor','2026-10-10 00:00:00','active',1,'2026-09-02 12:42:20','OUT','motorcycle',1),(4,'GSD-UFG5-AXTS','Test123','Mon','monmon272005@gmail.com',NULL,'visitor','2026-10-02 00:00:00','active',1,'2026-09-04 08:32:25',NULL,'car',2),(5,NULL,'123ABC','mon','michael@michael','098876',NULL,NULL,'active',7,'2026-09-05 05:12:19',NULL,'motorcycle',1),(6,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:15:03',NULL,'car',2),(7,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:16:25',NULL,'car',2),(8,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:17:37',NULL,'car',2),(9,NULL,'123ABC','viy','michael@michael','',NULL,NULL,'active',7,'2026-09-05 05:17:55',NULL,'car',2),(10,NULL,'123ABC','viy','michael@michael','meme',NULL,NULL,'active',7,'2026-09-05 05:24:19',NULL,'car',2),(11,'GSD-W3PG0-ZXJLB','TRY123','Mob','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 06:30:14',NULL,'car',2),(12,NULL,'123ABC','kychu','michael@michael','',NULL,NULL,'active',7,'2026-09-10 08:42:52',NULL,'car',2),(13,'GSD-VNPXD-GQT3Z','123ABC','Fritz','michael@michael','',NULL,NULL,'active',7,'2026-09-17 02:13:52',NULL,'motorcycle',1);
+INSERT INTO `qrcode` VALUES (1,'GSD-CPAB-7SFX','123ABC','mon','monmon272005@gmail.com','09876543','visitor','2026-09-05 00:00:00','active',1,'2026-08-29 08:46:37',NULL,'car',2,NULL,NULL,NULL),(2,'GSD-VK3A-AMWY','123ABC','monmon','monmon272005@gmail.com','123','student','2026-09-05 00:00:00','active',1,'2026-08-29 09:27:24','IN','car',2,NULL,NULL,NULL),(3,'GSD-YEL7-ADZV','123ABC','teat','monmon272005@gmail.com','mon','visitor','2026-10-10 00:00:00','active',1,'2026-09-02 12:42:20','OUT','motorcycle',1,NULL,NULL,NULL),(4,'GSD-UFG5-AXTS','Test123','Mon','monmon272005@gmail.com',NULL,'visitor','2026-10-02 00:00:00','active',1,'2026-09-04 08:32:25',NULL,'car',2,NULL,NULL,NULL),(5,NULL,'123ABC','mon','michael@michael','098876',NULL,NULL,'active',7,'2026-09-05 05:12:19',NULL,'motorcycle',1,NULL,NULL,NULL),(6,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:15:03',NULL,'car',2,NULL,NULL,NULL),(7,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:16:25',NULL,'car',2,NULL,NULL,NULL),(8,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:17:37',NULL,'car',2,NULL,NULL,NULL),(9,NULL,'123ABC','viy','michael@michael','',NULL,NULL,'active',7,'2026-09-05 05:17:55',NULL,'car',2,NULL,NULL,NULL),(10,NULL,'123ABC','viy','michael@michael','meme',NULL,NULL,'active',7,'2026-09-05 05:24:19',NULL,'car',2,NULL,NULL,NULL),(11,'GSD-W3PG0-ZXJLB','TRY123','Mob','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 06:30:14',NULL,'car',2,NULL,NULL,NULL),(12,NULL,'123ABC','kychu','michael@michael','',NULL,NULL,'active',7,'2026-09-10 08:42:52',NULL,'car',2,NULL,NULL,NULL),(13,'GSD-VNPXD-GQT3Z','123ABC','Fritz','michael@michael','',NULL,NULL,'active',7,'2026-09-17 02:13:52',NULL,'motorcycle',1,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `qrcode` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -233,6 +237,34 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'fritz','fritz@fritz','$2b$12$901p7/3NpmLsdjDwtjNrPOumlAMoOPp/wvEibpBoNe5CMSnO1tFm2','staff','2026-08-29 08:45:59',NULL),(2,'mon','mon@mon','$2b$12$orVOARZqGpZ9JG9adeWA2enTen3k8Oeaz.3AMGDwHWY/LrSV3NRWG','guard','2026-08-29 09:25:41',NULL),(3,'viy','viy@viy','$2b$12$FgGd.IZede716Axy/t.l2.f/hSxOQIYI5V/kGi8B05qjO0gs/c1J2','guard','2026-09-02 12:08:36',NULL),(4,'godwin','godwin@godwin','$2b$12$Ri0vansvPsC.sCEA51/FTutmy6546OK7aAJse2cmUPjfYuvZpZAfW','guard','2026-09-02 12:09:11',NULL),(5,'carl','carl@carl','$2b$12$sbz5eYnGqbyYyOq4icLv9.02Rpqsl1Gu8lRnezY/Ximlioz84y1JG','guard','2026-09-02 12:10:07',NULL),(6,'ela','ela@ela','$2b$12$i7by3pWNQkmK0pijUBK/W.tv4PzpYMXioreEZczCbyBMoAapN8pVG','guard','2026-09-02 12:10:40',NULL),(7,'michael','michael@michael','$2b$12$OYLGrBLWO0pwOlBFy7gEvOdOzs5FuMNa4twukFTKIo9S1m0eWfcli','user','2026-09-05 05:11:35',NULL),(9,'monmon','monmon272005@gmail.com','$2b$12$TTpLH3xibhpsq/iP7hUmXeITVYzwwXbgDptThzYKCnRHH6lhDkrAu','user','2026-09-05 08:11:55',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `vehicle_requirements`
+--
+
+DROP TABLE IF EXISTS `vehicle_requirements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vehicle_requirements` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `OR_path` varchar(50) DEFAULT NULL,
+  `CR_path` varchar(50) DEFAULT NULL,
+  `driver_license_path` varchar(50) DEFAULT NULL,
+  `employee_id_path` varchar(50) DEFAULT NULL,
+  `registration_form_path` varchar(50) DEFAULT NULL,
+  `affidavit` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vehicle_requirements`
+--
+
+LOCK TABLES `vehicle_requirements` WRITE;
+/*!40000 ALTER TABLE `vehicle_requirements` DISABLE KEYS */;
+/*!40000 ALTER TABLE `vehicle_requirements` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -243,4 +275,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-25  9:29:02
+-- Dump completed on 2026-09-25 10:26:27

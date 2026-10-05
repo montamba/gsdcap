@@ -6,6 +6,12 @@ from other.mysql_ import SQL
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
 
+def _paging():
+    try: page = max(1, int(request.args.get("page", 1)))
+    except ValueError: page = 1
+    try: limit = min(100, max(1, int(request.args.get("limit", 5))))
+    except ValueError: limit = 5
+    return page, limit, (page - 1) * limit
 
 
 class Admin:
@@ -67,22 +73,22 @@ class Admin:
 
         @self.admin.route("/setparking", methods=["PUT"])
         def setParking():
-            redata = request.get_json()
-            total = int(redata.get("total", 0))
-            
-            isinsert =self.sql.setparkingslot(total)
-            
-            if not isinsert:
-                return jsonify(
-                         {"status": "bad", "message": "Update Failed", "total": total}
-                        )
-            
-            return jsonify(
-                {"status": "ok", "message": "Updated successfully", "total": total}
-            )
+            redata = request.get_json(silent=True) or {}
+            current = self.sql.getparking()
+            try:
+                total = int(redata.get("total"))
+            except (TypeError, ValueError):
+                return jsonify({"status": "bad", "message": "Enter a whole number", "total": current["total"]})
+            if total < 1 or total < current["occupied"]:
+                return jsonify({"status": "bad", "message": f"Total must be at least {max(1, current['occupied'])} (currently occupied)", "total": current["total"]})
+            if not self.sql.setparkingslot(total):
+                return jsonify({"status": "bad", "message": "Update Failed", "total": current["total"]})
+            return jsonify({"status": "ok", "message": "Updated successfully", "total": total})
 
         @self.admin.route("/pending_deletions", methods=["GET"])
         def pending_deletions():
+            self.sql.purge_expired_deletions()
+            self.cache.deletethathas("users")
             rows = self.sql.get_pending_deletions()
             serialized = [
                 [
@@ -92,6 +98,11 @@ class Admin:
                 for r in rows
             ]
             return jsonify({"status": "good", "data": serialized})
+
+        @self.admin.route("/user_counts")
+        def user_counts():
+            c = self.sql.countusersbyrole()
+            return jsonify({"status": "good", "guard": c.get("guard", 0), "staff": c.get("staff", 0), "user": c.get("user", 0)})
 
         @self.admin.route("/restore_user/<int:id>", methods=["PUT"])
         def restore_user(id):
@@ -111,28 +122,18 @@ class Admin:
         @self.admin.route("/getusers", methods=["GET"])
         def getUsers():
             name = "admin_users"
-            page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 5))
-            offset = (page - 1) * limit
+            page, limit, offset = _paging()
 
-            keyname = name + str(offset)
-            if not self.cache.check_key(keyname) or not self.cache.is_empty(keyname):
-                print("not in users cache")
-                
-                sqlusers= self.sql.getalluser(limit=limit, offset=offset)
-                
-                self.cache.add(keyname, sqlusers)
-            
-
-            if self.cache.check_key(keyname):
-                users = self.cache.get(keyname)
-
+            keyname = f"{name}{limit}_{offset}"
+            users = self.cache.get(keyname)
+            if users is None:
+                users = self.sql.getalluser(limit=limit, offset=offset)
+                self.cache.add(keyname, users)
             keyname2 = name + "count"
-            if not self.cache.check_key(keyname2):
-                sqltotal = self.sql.countallusers()
-                self.cache.add(keyname2, sqltotal)
-
             total = self.cache.get(keyname2)
+            if total is None:
+                total = self.sql.countallusers()
+                self.cache.add(keyname2, total)
 
             serialized = [
                 [
@@ -168,6 +169,8 @@ class Admin:
 
             if not all([username, email, password, role]):
                 return jsonify({"status": "bad", "message": "All fields are required"})
+            if role not in ("guard", "staff"):
+                return jsonify({"status": "bad", "message": "Role must be guard or staff"})
 
             if len(password) < 8:
                 return jsonify(
@@ -190,7 +193,8 @@ class Admin:
                     }
                 )
 
-            self.sql.adduser(username, email, password, role)
+            if not self.sql.adduser(username, email, password, role):
+                return jsonify({"status": "bad", "message": "Could not add user"})
             self.cache.deletethathas("users")
             return jsonify({"status": "good", "message": "User added successfully"})
 
@@ -199,9 +203,7 @@ class Admin:
         @self.admin.route("/get_qr", methods=["GET"])
         def getqr():
             name = "admin_qrcode"
-            page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 5))
-            offset = (page - 1) * limit
+            page, limit, offset = _paging()
 
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):
@@ -216,7 +218,7 @@ class Admin:
                 self.cache.add(keyname2, sqltotal)
 
             total = self.cache.get(keyname2)
-            ndata = [[str(d[1]), str(d[8]), str(d[12] or "—")] for d in data]
+            ndata = [[str(d[1] or "—"), str(d[10]), str(d[14] or "—")] for d in data]
 
             return jsonify(
                 {
@@ -245,9 +247,7 @@ class Admin:
         @self.admin.route("/get_history")
         def gethistory():
             name = "admin_history"
-            page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 5))
-            offset = (page - 1) * limit
+            page, limit, offset = _paging()
 
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):
@@ -283,9 +283,7 @@ class Admin:
         @self.admin.route("/get_report_logs")
         def get_report_logs():
             name = "admin_history"
-            page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 5))
-            offset = (page - 1) * limit
+            page, limit, offset = _paging()
 
             keyname = name + "full" + str(offset)
             if not self.cache.check_key(keyname):
@@ -357,26 +355,8 @@ class Admin:
 
         @self.admin.route("/recent_activity")
         def recent_activity():
-            name = "admin_qrcode"
-
-            keyname = name + str(0)
-            if not self.cache.check_key(keyname):
-                sqlrows = self.sql.getallqr(limit=10, offset=0)
-                self.cache.add(keyname, sqlrows)
-
-            rows = self.cache.get(keyname)
-
-            result = []
-            for r in rows:
-                result.append(
-                    {
-                        "qr_code": r[1],
-                        "time": str(r[8]),
-                        "action": "entry" if r[9] == "IN" else "exit",
-                        "plate": r[2] or "—",
-                        "status": "accepted",
-                    }
-                )
+            rows = self.sql.gethistory_full(limit=10, offset=0)
+            result = [{"qr_code": r[4] or "MANUAL", "time": str(r[1]), "action": (r[5] or "entry").lower(), "plate": r[3] or "—", "status": r[6]} for r in rows]
             return jsonify({"status": "good", "data": result})
 
         # ─── ADMIN PROFILE ────────────────────────────────

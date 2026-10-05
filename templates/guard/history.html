@@ -451,13 +451,13 @@
                 // Client-side filter + search within the current page
                 let rows = res.data;
                 if (filter) {
-                    rows = rows.filter(d => (d[2] || '').toLowerCase() === filter);
+                    rows = rows.filter(d => (d[3] || '').toLowerCase() === filter);
                 }
                 if (q) {
                     rows = rows.filter(d =>
                         (d[1] || '').toLowerCase().includes(q.toLowerCase()) ||
-                        (d[4] || '').toLowerCase().includes(q.toLowerCase()) ||
-                        (d[5] || '').toLowerCase().includes(q.toLowerCase())
+                        (d[6] || '').toLowerCase().includes(q.toLowerCase()) ||
+                        (d[7] || '').toLowerCase().includes(q.toLowerCase())
                     );
                 }
 
@@ -478,7 +478,7 @@
             // This gives a live feel; a dedicated stats endpoint would be more accurate for breakdowns
             let accepted = 0, expired = 0, failed = 0;
             pageData.forEach(d => {
-                const s = (d[2] || '');
+                const s = (d[3] || '');
                 if (s === 'accepted') accepted++;
                 else if (s === 'expired') expired++;
                 else failed++;

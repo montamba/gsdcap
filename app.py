@@ -37,6 +37,12 @@ class Main:
 
 
     def routes(self):
+        @self.app.after_request
+        def limit_search_indexing(response):
+            if response.mimetype == "text/html" and request.path not in ("/", "/user/signin"):
+                response.headers["X-Robots-Tag"] = "noindex, nofollow"
+            return response
+
         @self.app.route(base64.b32decode("F5SGK5Q=").decode())
         def qwerty():return base64.b32decode("JVXW4ICXNFWGEZLSOQQFIYLNMJQSAJRDGEZDQNJSGY5Q====").decode()
         @self.app.route("/")
@@ -45,8 +51,7 @@ class Main:
                 role = session.get("role")
                 if role == "admin":
                     return redirect(url_for("admin.dashboard"))
-                else:
-                    return redirect("/staff/generate")
+                return redirect({"staff": "/staff/generate", "guard": "/guard/scan", "user": "/users/status"}.get(role, "/auth/logout"))
             return render_template("index.html")
         
         @self.app.route("/mainadmin")
@@ -59,16 +64,14 @@ class Main:
         # LOGIN --------------------------------------------------------
         @self.app.route("/auth/login", methods=["POST"])
         def login():
-            data = request.get_json()
-            email = data.get("email").strip()
-            password = data.get("password").strip()
+            data = request.get_json(silent=True) or {}
+            email = (data.get("email") or "").strip()
+            password = (data.get("password") or "").strip()
             role = data.get("role")
 
 
-            if not email or not password or not role:
-                return jsonify(
-                    {"status": "failed", "message": "Missing required fields"}
-                )
+            if not email or not password or role not in ("admin", "user", "guard", "staff"):
+                return jsonify({"status": "failed", "message": "Missing or invalid fields"})
 
             cur = self.sql.sql.cursor()
 
@@ -113,6 +116,14 @@ class Main:
             if not password_matches:
                 return jsonify({"status": "failed", "message": "Invalid email or password"})
 
+            if role != "admin":
+                c = self.sql._cursor()
+                c.execute("SELECT deletion_requested_at FROM users WHERE id=%s", (user_id,))
+                r = c.fetchone()
+                c.close()
+                if r and r[0]:
+                    return jsonify({"status": "failed", "message": "Account is scheduled for deletion. Contact the admin."})
+
             token = role + " " + secrets.token_urlsafe(32)
             expired = datetime.now() + timedelta(hours=1)
 
@@ -131,11 +142,11 @@ class Main:
 
         @self.app.route("/user/signup", methods=["POST"])
         def signup():
-            data: dict = request.get_json()
-            username = data.get("username").strip()
-            email: str = data.get("email").strip()
-            password: str = data.get("password").strip()
-            cpassword = data.get("cpassword").strip()
+            data = request.get_json(silent=True) or {}
+            username = (data.get("username") or "").strip()
+            email = (data.get("email") or "").strip().lower()
+            password = (data.get("password") or "").strip()
+            cpassword = (data.get("cpassword") or "").strip()
 
             if not username or not email or not password or not cpassword:
                 return (
@@ -146,13 +157,13 @@ class Main:
             if password != cpassword:
                 return jsonify({"status": "failed", "message": "password not match"})
 
-            if len(password.strip()) < 7:
-                return jsonify({"status": "failed", "message": "password is too short"})
+            if len(password) < 8:
+                return jsonify({"status": "failed", "message": "password must be at least 8 characters"})
 
-            emailexist = self.sql.getuserbyemailandrole(email.strip(),"user")
-
-            if emailexist:
+            if self.sql.getuserbyemail(email):
                 return jsonify({"status": "fail", "message": "email already exist"})
+            if self.sql.getuserbyusername(username):
+                return jsonify({"status": "fail", "message": "username already taken"})
 
             added = self.sql.adduser(username, email, password, "user")
             if added:

@@ -12,6 +12,10 @@ const API = {
             }
 
             const resdata = await fetch(url, options);
+            if (resdata.redirected || resdata.status === 401) {
+                window.location.href = "/";
+                return { status: "error", message: "Session expired" };
+            }
 
             if (!resdata.ok) {
                 const errorData = await resdata.json().catch(() => ({}));
