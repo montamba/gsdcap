@@ -39,27 +39,6 @@ class Main:
 
     def routes(self):
         
-        @app.route('/robots.txt')
-        def robots():
-            content = """User-agent: *
-        Allow: /
-        Sitemap: https://gsdcap.vercel.app/sitemap.xml"""
-            return Response(content, mimetype="text/plain")
-
-        @app.route('/sitemap.xml')
-        def sitemap():
-            content = """<?xml version="1.0" encoding="UTF-8"?>
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-            <url>
-                <loc>https://gsdcap.vercel.app/</loc>
-            </url>
-            <url>
-                <loc>https://gsdcap.vercel.app/user/signin</loc>
-            </url>
-        </urlset>"""
-            return Response(content, mimetype="application/xml")
-        
-        
         @self.app.after_request
         def limit_search_indexing(response):
             if response.mimetype == "text/html" and request.path not in ("/", "/user/signin"):
