@@ -846,6 +846,41 @@ class SQL:
         except Exception as e:
             print(f"[DB] addqrrequest error: {e}")
             return False
+
+    def add_public_qr_request(self, plate, owner_name, owner_email, owner_phone, vehicle_type, department):
+        """Create a QR request from the public form; request_by is nullable in qrpending."""
+        try:
+            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
+            space_units = 1 if vehicle_type == "motorcycle" else 2
+            cur = self._cursor()
+            cur.execute(
+                """SELECT qrpending.id FROM qrpending
+                   JOIN qrcode ON qrcode.id=qrpending.qrid
+                   WHERE qrpending.request_type='request_qr' AND qrpending.actions='pending'
+                   AND UPPER(qrcode.plate)=UPPER(%s) AND LOWER(qrcode.owner_email)=LOWER(%s)
+                   LIMIT 1""",
+                (plate, owner_email),
+            )
+            if cur.fetchone():
+                cur.close()
+                return "duplicate"
+            cur.execute(
+                """INSERT INTO qrcode
+                   (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units, status)
+                   VALUES (%s,%s,%s,%s,%s,%s,%s,'pending')""",
+                (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units),
+            )
+            qr_id = cur.lastrowid
+            cur.execute(
+                "INSERT INTO qrpending (qrid, request_type, request_by) VALUES (%s,'request_qr',NULL)",
+                (qr_id,),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] add_public_qr_request error: {e}")
+            return False
         
     
     def requestrenewal(self, id, data):

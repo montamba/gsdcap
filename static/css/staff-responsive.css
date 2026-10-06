@@ -1,0 +1,69 @@
+/* Shared responsive layout for the staff portal pages. */
+@media (max-width: 900px) {
+  body { display:flex; flex-direction:column; min-width:0; }
+  body > aside { position:relative; top:auto; width:100%; min-width:0; height:auto; min-height:56px; flex-direction:row; align-items:center; }
+  body > aside .logos { display:none; }
+  body > aside .buttons { flex:1; min-width:0; flex-direction:row; padding:5px 4px; overflow-x:auto; scrollbar-width:thin; }
+  body > aside .buttons a { flex:0 0 auto; white-space:nowrap; border-left:0; border-bottom:3px solid transparent; padding:10px 12px; font-size:12px; }
+  body > aside .buttons a.active { border-bottom-color:#60a5fa; }
+  body > aside .buttons a:hover { border-left-color:transparent; }
+  body > aside .logout { flex:0 0 86px; padding:5px 8px; border-top:0; }
+  body > aside .logout button { padding:9px 5px; font-size:11px; }
+  body > .right { width:100%; min-width:0; }
+  .gen-wrap { flex-direction:column; }
+  .gen-form, .qr-preview { width:100%; min-width:0; }
+  .stat-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .profile-card { max-width:680px; }
+  .section, .table-box, .table-wrap { max-width:100%; overflow-x:auto; }
+  .section table, .table-box table, .table-wrap table { min-width:680px; }
+  .recent-table tr { grid-template-columns:50px minmax(180px,1.6fr) 120px 100px 130px; }
+  .all-table tr { grid-template-columns:50px minmax(180px,1fr) 130px 100px 130px 110px; }
+  table.qr-row-table tr { min-width:680px; }
+  .modal-overlay { padding:12px; overflow-y:auto; }
+  .modal { max-height:calc(100vh - 24px); overflow-y:auto; }
+}
+
+@media (max-width: 600px) {
+  body > aside { min-height:52px; }
+  body > aside .buttons a { padding:9px 9px; font-size:11px; gap:6px; }
+  body > aside .logout { flex-basis:72px; padding:4px; }
+  body > aside .logout button { font-size:10px; }
+  .header { padding:17px 16px !important; }
+  .header h1 { font-size:18px !important; }
+  .gen-wrap { gap:14px; padding:16px !important; }
+  .form-body { padding:16px !important; }
+  .qr-inner { padding:20px 14px !important; }
+  .table-section { padding:0 16px 20px !important; }
+  .stat-row { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:16px !important; }
+  .stat-item { padding:15px 12px !important; }
+  .stat-item .num { font-size:29px !important; }
+  .section { margin:14px 16px !important; }
+  .section-head { padding:12px !important; }
+  .inner { padding:16px !important; }
+  .public-link-card { margin:16px 16px 0 !important; padding:14px !important; }
+  .public-link-info { min-width:0 !important; width:100%; }
+  .public-link-line { flex-direction:column; }
+  .public-link-line input { min-width:0 !important; width:100%; }
+  #publicQr { margin:auto; }
+  .table-section { padding-top:18px !important; }
+  .pagination { padding:10px !important; }
+  .pg-btn { padding:6px 8px !important; }
+  .detail-row { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
+  .detail-lbl { min-width:0 !important; }
+  .modal { padding:22px !important; }
+  .modal-body { padding:16px !important; }
+  .modal-footer, .modal-actions { flex-wrap:wrap; }
+  .modal-footer > button, .modal-actions > button { min-width:calc(50% - 6px) !important; }
+  .card-body { padding:22px !important; }
+  .right:has(.profile-card) { padding:18px 14px !important; }
+  .info-value { overflow-wrap:anywhere; }
+  .search-body { align-items:stretch !important; }
+  .search-body input, .search-body select, .search-body button { width:100%; min-width:0 !important; }
+}
+
+@media (max-width: 380px) {
+  body > aside .buttons a { padding:8px 7px; font-size:10px; }
+  body > aside .logout { flex-basis:64px; }
+  .stat-row { grid-template-columns:1fr; }
+  .btn-row { grid-template-columns:1fr !important; }
+}

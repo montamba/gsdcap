@@ -13,7 +13,7 @@ A web-based vehicle parking monitoring system. Staff issue QR passes for vehicle
 | Role | Login | What they can do |
 |------|-------|------------------|
 | **Admin** | `/` (Admin tab) | Dashboard, set total parking slots, manage staff/guard accounts, restore or delete pending account deletions, view reports and logs |
-| **Staff** | `/` (Staff tab) | Generate, preview, save, and email QR codes; search, renew, and revoke QR codes; review user QR/renewal requests; view history |
+| **Staff** | `/` (Staff tab) | Generate, preview, save, and email QR codes; search, renew, and revoke QR codes; review user and public QR/renewal requests; view history |
 | **Guard** | `/` (Guard tab) | Scan QR codes for entry/exit, manual entry for vehicles without a QR, view live parking map, view own scan history |
 | **User** | `/user/signin` | Sign up, request a new QR pass, view own QR codes, request renewal, manage profile |
 
@@ -132,6 +132,7 @@ For production, run without `debug=True` behind a WSGI server such as gunicorn.
 |-----|------|
 | `/` | Login (admin, staff, guard) |
 | `/user/signin`, `/user/signuppage` | User login and signup |
+| `/request-qr` | Public QR request form (staff approval required) |
 | `/admin/dashboard`, `/admin/park`, `/admin/users`, `/admin/reports`, `/admin/profile` | Admin |
 | `/staff/generate`, `/staff/history`, `/staff/search`, `/staff/profile`, `/staff/userreques` | Staff |
 | `/guard/scan`, `/guard/history`, `/guard/parking`, `/guard/profile` | Guard |
@@ -149,6 +150,7 @@ For production, run without `debug=True` behind a WSGI server such as gunicorn.
 | `PUT /staff/renew_qr/<id>` | Set a new expiry on a QR |
 | `PUT /staff/revoke_qr` | Revoke a QR (frees the slot if the vehicle was inside) |
 | `POST /staff/send_qr_email` | Email the QR image to the owner |
+| `POST /public/qr-request` | Submit a public QR request for staff review |
 | `PUT /staff/approve_request/<id>` | Approve a user's QR request |
 | `PUT /staff/approve_renewal/<id>` | Approve a renewal with a new expiry |
 | `PUT /admin/setparking` | Set total parking slots |

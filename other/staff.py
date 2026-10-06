@@ -392,9 +392,9 @@ class Staff:
             name, email = s("owner_name"), s("owner_email").lower()
             phone = s("owner_number") or None
             vtype, dept, expiry = s("vehicle_type").lower(), s("department").upper(), s("valid_until")
-            if not all([code, plate, name, email, expiry, vtype, dept]):
+            if not all([code, plate, name, expiry, vtype, dept]):
                 return jsonify({"status": "bad", "message": "Fill in all required fields"})
-            if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            if email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
                 return jsonify({"status": "bad", "message": "Invalid email"})
             if len(plate) > 20:
                 return jsonify({"status": "bad", "message": "Plate too long"})

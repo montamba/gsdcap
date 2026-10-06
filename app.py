@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 import secrets
 from datetime import datetime, timedelta
 import base64
+import re
 from jinja2 import TemplateNotFound
 
 
@@ -197,6 +198,39 @@ class Main:
         @self.app.route("/user/signuppage")
         def usersignup():
             return render_template("users/userssigup.html")
+
+        @self.app.route("/request-qr")
+        def public_qr_request_page():
+            return render_template("public_qr_request.html")
+
+        @self.app.route("/public/qr-request", methods=["POST"])
+        def public_qr_request():
+            data = request.get_json(silent=True) or {}
+            # A filled honeypot means this was likely submitted by a bot.
+            if (data.get("website") or "").strip():
+                return jsonify({"status": "good", "message": "Request submitted for staff review."})
+            name = (data.get("owner_name") or "").strip()
+            plate = re.sub(r"\s+", "", (data.get("plate") or "")).upper()
+            email = (data.get("email") or "").strip().lower()
+            phone = (data.get("phone") or "").strip() or None
+            vehicle_type = (data.get("vehicle_type") or "").strip().lower()
+            department = (data.get("department") or "").strip().upper()
+            if not all([name, plate, email, vehicle_type, department]):
+                return jsonify({"status": "bad", "message": "Please complete all required fields."}), 400
+            if len(name) > 255 or len(plate) > 50 or len(email) > 255 or (phone and len(phone) > 20):
+                return jsonify({"status": "bad", "message": "One or more fields are too long."}), 400
+            if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+                return jsonify({"status": "bad", "message": "Enter a valid email address."}), 400
+            if vehicle_type not in ("car", "motorcycle"):
+                return jsonify({"status": "bad", "message": "Choose a valid vehicle type."}), 400
+            if department not in ("VISITOR", "STUDENT", "EMPLOYEE", "GSD", "CITE", "CAS", "CAHS", "COE", "COED", "COME", "CBA"):
+                return jsonify({"status": "bad", "message": "Choose a valid department or group."}), 400
+            result = self.sql.add_public_qr_request(plate, name, email, phone, vehicle_type, department)
+            if result == "duplicate":
+                return jsonify({"status": "bad", "message": "A request for this plate and email is already awaiting review."}), 409
+            if not result:
+                return jsonify({"status": "bad", "message": "Could not submit the request. Please try again."}), 500
+            return jsonify({"status": "good", "message": "Request submitted for staff review."})
         
         
         @self.app.route("/user/signin")
