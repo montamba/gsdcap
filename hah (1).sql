@@ -58,6 +58,7 @@ CREATE TABLE `history` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `plate` varchar(20) DEFAULT NULL,
   `department` varchar(20) DEFAULT NULL,
+  `is_authorized` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `guard` (`guard`),
   CONSTRAINT `history_ibfk_guard` FOREIGN KEY (`guard`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -70,7 +71,7 @@ CREATE TABLE `history` (
 
 LOCK TABLES `history` WRITE;
 /*!40000 ALTER TABLE `history` DISABLE KEYS */;
-INSERT INTO `history` VALUES (64,NULL,3,'accepted','entry','2026-09-06 12:17:48','123ABC','VISITOR'),(65,NULL,3,'accepted','entry','2026-09-06 12:17:48',NULL,NULL),(66,NULL,3,'accepted','entry','2026-09-06 12:19:06','LLL222','COED');
+INSERT INTO `history` VALUES (64,NULL,3,'accepted','entry','2026-09-06 12:17:48','123ABC','VISITOR',0),(65,NULL,3,'accepted','entry','2026-09-06 12:17:48',NULL,NULL,0),(66,NULL,3,'accepted','entry','2026-09-06 12:19:06','LLL222','COED',0);
 /*!40000 ALTER TABLE `history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -275,4 +276,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-25 10:26:27
+-- Dump completed on 2026-10-07 17:09:03

@@ -341,24 +341,7 @@
 </head>
 
 <body>
-    <aside>
-        <div class="logos">
-            <div class="logo"><img src="https://www.freeiconspng.com/thumbs/car-icon-png/car-icon-png-25.png"
-                    alt="logo"></div>
-            <h2>GSD Parking</h2>
-        </div>
-        <div class="butt">
-            <p class="sml">Overview</p>
-            <button onclick="window.location.href='/users/status'"><i class="bi bi-qr-code"></i> QR Status</button>
-            <p class="sml">Account</p>
-            <button class="active-nav" onclick="window.location.href='/users/profile'"><i class="bi bi-person-circle"></i> Profile</button>
-        </div>
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="window.location.href='/auth/logout'">
-                <i class="bi bi-box-arrow-left"></i> Logout
-            </button>
-        </div>
-    </aside>
+    {% set active_page = 'profile' %}{% include "users/_sidebar.html" %}
 
     <!-- Mobile bottom nav -->
     <nav class="mobile-nav">

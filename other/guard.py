@@ -130,30 +130,30 @@ class Guard:
 
         @self.guard.route("/my_history", methods=["GET"])
         def my_history():
-            page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 10))
+            try:
+                page = max(1, int(request.args.get("page", 1)))
+                limit = min(100, max(1, int(request.args.get("limit", 10))))
+                year = int(request.args["year"]) if request.args.get("year") else None
+                month = int(request.args["month"]) if request.args.get("month") else None
+                day = int(request.args["day"]) if request.args.get("day") else None
+                if year is not None and not 1900 <= year <= 9999:
+                    raise ValueError
+                if month is not None and not 1 <= month <= 12:
+                    raise ValueError
+                if day is not None and not 1 <= day <= 31:
+                    raise ValueError
+            except (TypeError, ValueError):
+                return jsonify({"status": "bad", "message": "Invalid date filter"}), 400
             offset = (page - 1) * limit
 
-            name_data = f"guard_history_{session['user_id']}_{offset}_{limit}"
-            name_count = f"guard_history_count_{session['user_id']}"
-
             try:
-                if not self.cache.check_key(name_data) or not self.cache.is_empty(name_data):
-                    sqldata = self.sql.gethistorybyguard(
-                        session["user_id"], limit=limit, offset=offset
-                    )
-                    self.cache.add(name_data, sqldata)
-                data = self.cache.get(name_data)
-                
-                print("================================================================")
-                print(data)
-                print("================================================================")
-                
-
-                if not self.cache.check_key(name_count):
-                    sqltotal = self.sql.counthistorybyguard(session["user_id"])
-                    self.cache.add(name_count, sqltotal)
-                total = self.cache.get(name_count)
+                data = self.sql.gethistorybyguard(
+                    session["user_id"], limit=limit, offset=offset,
+                    year=year, month=month, day=day
+                )
+                total = self.sql.counthistorybyguard(
+                    session["user_id"], year=year, month=month, day=day
+                )
 
                 serialized = []
                 for row in data:
@@ -197,11 +197,17 @@ class Guard:
                 free = int(round((p["total"] - p["total_occupied"]) * 2))
                 if free < space:
                     return jsonify({"status": "bad", "message": "Parking lot has no available space"})
-            if not self._log(None, "accepted", action, department, plate):
+            is_authorized = self.sql.isplateauthorized(plate)
+            if not self._log(None, "accepted", action, department, plate, is_authorized=is_authorized):
                 return jsonify({"status": "bad", "message": "Please try again"})
             self.sql.updateparking(space, action)
             self.cache.deletethathas("history")
-            return jsonify({"status": "good", "message": "Added successfully"})
+            message = (
+                "Added successfully"
+                if is_authorized
+                else "Access granted. Plate not found in registered records; marked unauthorized."
+            )
+            return jsonify({"status": "good", "message": message, "is_authorized": is_authorized})
             
                     
 
@@ -325,18 +331,8 @@ class Guard:
             self._log(qrdata, "accepted", action, department, plate)
 
             try:
-                cur = self.sql.sql.cursor()
-                if action == "entry":
-                    cur.execute(
-                        "UPDATE qrcode SET car_status='IN' WHERE data=%s", (qrdata,)
-                    )
-                else:
-                    cur.execute(
-                        "UPDATE qrcode SET car_status='OUT' WHERE data=%s", (qrdata,)
-                    )
-                self.sql.sql.commit()
-                cur.close()
-                self.sql.updateparking(qr[13],action)
+                self.sql.set_car_status(qrdata, new_action)   # 'IN' / 'OUT'
+                self.sql.updateparking(qr[13], action)        # qr[13] = space_units
             except Exception as e:
                 print("Parking update error:", e)
 
@@ -354,8 +350,13 @@ class Guard:
                 }
             )
 
-    def _log(self, qrdata, status, action="entry", department=None, plate=None):
+    def _log(self, qrdata, status, action="entry", department=None, plate=None, is_authorized=None):
         """Insert a scan record into history. action is 'entry' or 'exit'."""
-        inserted = self.sql.inserthistory(qrdata, session["user_id"], status, action, plate, department)
+        if is_authorized is None:
+            is_authorized = status == "accepted" and qrdata is not None
+        inserted = self.sql.inserthistory(
+            qrdata, session["user_id"], status, action, plate, department,
+            is_authorized=is_authorized
+        )
         
         return inserted

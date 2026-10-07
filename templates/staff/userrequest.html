@@ -83,22 +83,7 @@
     <link rel="stylesheet" href="/../../static/css/staff-responsive.css">
 </head>
 <body>
-    <aside>
-        <div class="logos">
-            <div class="circle">P</div>
-            <span>STAFF PORTAL</span>
-        </div>
-        <div class="buttons">
-            <a href="/staff/generate"><i class="bi bi-qr-code"></i> Generator</a>
-            <a href="/staff/history"><i class="bi bi-stopwatch"></i> History</a>
-            <a href="/staff/search"><i class="bi bi-search"></i> Search</a>
-            <a href="/staff/profile"><i class="bi bi-people"></i> Profile</a>
-            <a href="/staff/userreques" class="active"><i class="bi bi-people"></i> User Request</a>
-        </div>
-        <div class="logout">
-            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
-        </div>
-    </aside>
+    {% set active_page = 'userrequest' %}{% include "staff/_sidebar.html" %}
 
     <div class="right">
         <div class="header">

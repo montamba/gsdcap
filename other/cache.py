@@ -16,7 +16,7 @@ class Cache:
     def clear(self):
         self.__DATA.clear()
 
-    def self_clear(self, interval=60):
+    def self_clear(self, interval=900):
         while True:
             time.sleep(interval)
             self.__clearcount += 1
@@ -45,5 +45,5 @@ class Cache:
 
 cache = Cache()
 
-_cleaner = threading.Thread(target=cache.self_clear, args=(60,), daemon=True)
+_cleaner = threading.Thread(target=cache.self_clear, args=(900,), daemon=True)
 _cleaner.start()

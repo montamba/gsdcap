@@ -1,0 +1,14 @@
+<aside>
+    <div class="logos"><div class="circle">P</div><span>STAFF PORTAL</span></div>
+    <div class="buttons">
+        <a href="/staff/generate" {% if active_page == 'generate' %}class="active"{% endif %}><i class="bi bi-qr-code"></i> Generator</a>
+        <a href="/staff/history" {% if active_page == 'history' %}class="active"{% endif %}><i class="bi bi-stopwatch"></i> History</a>
+        <a href="/staff/search" {% if active_page == 'search' %}class="active"{% endif %}><i class="bi bi-search"></i> Search</a>
+        <a href="/staff/profile" {% if active_page == 'profile' %}class="active"{% endif %}><i class="bi bi-people"></i> Profile</a>
+        <a href="/staff/userreques" {% if active_page == 'userrequest' %}class="active"{% endif %}><i class="bi bi-people"></i> User Request</a>
+    </div>
+    <div class="logout">
+        {% if active_page == 'search' %}<button id="btnLogout"><i class="bi bi-box-arrow-left"></i> Logout</button>
+        {% else %}<button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>{% endif %}
+    </div>
+</aside>

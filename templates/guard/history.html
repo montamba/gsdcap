@@ -250,6 +250,10 @@
         .pg-btn:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
         .pg-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
         .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .date-filters { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding: 12px 18px; }
+        .date-filters select { border:1px solid #c7d9f5; border-radius:6px; padding:8px; color:#1e3a8a; background:#fff; }
+        .date-filters button { border:0; border-radius:6px; padding:8px 12px; background:#2563eb; color:#fff; cursor:pointer; }
+        .auth-flag { color:#dc2626; font-weight:800; }
 
         @media print{
             body * { visibility: hidden; }
@@ -300,10 +304,10 @@
             .hist-table tr { grid-template-columns: 36px 1fr 100px 90px 80px; }
             .hist-table th:nth-child(3),
             .hist-table td:nth-child(3),
-            .hist-table th:nth-child(6),
-            .hist-table td:nth-child(6),
             .hist-table th:nth-child(7),
-            .hist-table td:nth-child(7) { display: none; }
+            .hist-table td:nth-child(7),
+            .hist-table th:nth-child(8),
+            .hist-table td:nth-child(8) { display: none; }
 
             .right { padding-bottom: 70px; }
         }
@@ -312,21 +316,7 @@
 <body>
 
     <!-- Desktop sidebar -->
-    <aside>
-        <div class="logos">
-            <div class="circle">G</div>
-            <span>GUARD PORTAL</span>
-        </div>
-        <div class="buttons">
-            <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
-            <a href="/guard/history" class="active"><i class="bi bi-clock-history"></i> My History</a>
-            <a href="/guard/parking" ><i class="bi bi-p-circle"></i> Parking</a>
-            <a href="/guard/profile"><i class="bi bi-person-circle"></i> Profile</a>
-        </div>
-        <div class="logout">
-            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
-        </div>
-    </aside>
+    {% set active_page = 'history' %}{% include "guard/_sidebar.html" %}
 
     <!-- Mobile bottom nav -->
     <nav class="mobile-nav" style="display:none;">
@@ -348,6 +338,7 @@
                 <h4><i class="bi bi-list-check"></i> Total Scans</h4>
                 <div class="num" id="statTotal">—</div>
             </div>
+
             <div class="stat-item">
                 <h4><i class="bi bi-check-circle"></i> Accepted</h4>
                 <div class="num" id="statAccepted">—</div>
@@ -384,6 +375,18 @@
                 <button class="ftab" onclick="setFilter('failed', this)">Failed</button>
             </div>
 
+            <div class="date-filters" aria-label="Filter history by date">
+                <label for="filterYear">Year</label><select id="filterYear" onchange="loadHistory(1)"><option value="">All</option></select>
+                <label for="filterMonth">Month</label><select id="filterMonth" onchange="loadHistory(1)">
+                    <option value="">All</option>
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option>
+                    <option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option>
+                    <option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+                <label for="filterDay">Day</label><select id="filterDay" onchange="loadHistory(1)"><option value="">All</option></select>
+                <button type="button" onclick="clearDateFilters()">Clear dates</button>
+            </div>
+
             <table>
                 <thead>
                     <tr class="hist-table">
@@ -392,6 +395,7 @@
                         <th>Department</th>
                         <th>Plate</th>
                         <th>Result</th>
+                        <th>Authorized</th>
                         <th>Act.</th>
                         <th>Scanned At</th>
                     </tr>
@@ -421,6 +425,21 @@
         let activeFilter = 'all';
         let searchTimer  = null;
 
+        const yearSelect = document.getElementById("filterYear");
+        const thisYear = new Date().getFullYear();
+        for (let year = thisYear; year >= thisYear - 10; year--) {
+            yearSelect.add(new Option(year, year));
+        }
+        const daySelect = document.getElementById("filterDay");
+        for (let day = 1; day <= 31; day++) daySelect.add(new Option(day, day));
+
+        function clearDateFilters() {
+            yearSelect.value = "";
+            document.getElementById("filterMonth").value = "";
+            daySelect.value = "";
+            loadHistory(1);
+        }
+
         // Stats are updated from the full-count response
         let statTotals = { total: 0, accepted: 0, expired: 0, failed: 0 };
 
@@ -431,7 +450,12 @@
             const filter = activeFilter !== 'all' ? activeFilter : '';
 
             // Build URL — server paginates, client filters within page for instant feel
-            const url = `/guard/my_history?page=${page}&limit=${LIMIT}`;
+            const params = new URLSearchParams({ page, limit: LIMIT });
+            ["filterYear", "filterMonth", "filterDay"].forEach((id, index) => {
+                const value = document.getElementById(id).value;
+                if (value) params.set(["year", "month", "day"][index], value);
+            });
+            const url = `/guard/my_history?${params.toString()}`;
 
             
 
@@ -524,6 +548,7 @@
 
                     <td style="font-family:'Space Mono',monospace;color:#1e3a8a;font-weight:700;">${plate}</td>
                     <td><span class="badge ${statusClass}">${d[3] || '—'}</span></td>
+                    <td>${Number(d[8]) === 1 ? '<span title="Authorized">Yes</span>' : '<span class="auth-flag" title="Not authorized" aria-label="Not authorized">🚩</span>'}</td>
                     <td><span class="${actionClass}">${actionLabel === 'exit' ? 'OUT' : 'IN'}</span></td>
                     <td style="font-size:11px;color:#64748b;font-family:'Space Mono',monospace;">${createdAt}</td>
                 </tr>`;

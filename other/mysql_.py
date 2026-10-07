@@ -17,6 +17,24 @@ from email.mime.image import MIMEImage
 
 load_dotenv()
 
+QR_COLS = """q.id, q.code, c.plate, c.owner_name, c.owner_email, c.owner_phone,
+             c.department, q.expiry, q.status, q.created_by, q.created_at,
+             q.car_status, c.vehicle_type, c.space_units"""
+QR_FROM = "FROM qrcode q JOIN car_details c ON c.id = q.car_details_id"
+QR_FROM_USER = QR_FROM + " LEFT JOIN users u ON q.created_by = u.id"
+
+PENDING_SELECT = """
+    SELECT p.id, p.request_type, p.actions, p.request_by,
+           q.id, q.code, c.plate, c.owner_name, c.owner_email,
+           c.owner_phone, c.department, q.expiry, q.status,
+           c.vehicle_type, c.space_units, q.created_at,
+           u.username
+    FROM qrpending p
+    LEFT JOIN qrcode q ON p.qrid = q.id
+    LEFT JOIN car_details c ON q.car_details_id = c.id
+    LEFT JOIN users u ON p.request_by = u.id
+"""
+
 
 class SQL:
     def __init__(self):
@@ -191,6 +209,25 @@ class SQL:
 
     def _commit(self):
         self.sql.commit()
+        
+    def _rollback(self):
+        try:
+            self.sql.rollback()
+        except Exception:
+            pass
+
+    def _insert_car(self, cur, plate, owner_name, owner_email, owner_phone,
+                    department, vehicle_type):
+        """Insert a car_details row using an existing cursor (same transaction)."""
+        vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
+        space_units = 1 if vehicle_type == "motorcycle" else 2
+        cur.execute(
+            """INSERT INTO car_details
+            (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)""",
+            (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units),
+        )
+        return cur.lastrowid
 
     # USER QUERIES -----------------------------------------------------
 
@@ -212,7 +249,12 @@ class SQL:
     def countqrbyemailandhasdata(self, email):
         try:
             cur = self._cursor()
-            cur.execute("SELECT COUNT(*) FROM qrcode WHERE owner_email=%s AND data IS NOT NULL", (email,))
+            cur.execute(
+                """SELECT COUNT(*) FROM qrcode q
+                   JOIN car_details c ON c.id = q.car_details_id
+                   WHERE c.owner_email=%s AND q.code IS NOT NULL""",
+                (email,),
+            )
             count = cur.fetchone()[0]
             cur.close()
             return count
@@ -400,12 +442,10 @@ class SQL:
     def codeindata(self, code):
         try:
             cur = self._cursor()
-            cur.execute("SELECT * FROM qrcode WHERE data=%s", (code,))
+            cur.execute("SELECT 1 FROM qrcode WHERE code=%s", (code,))
             result = cur.fetchone()
             cur.close()
-            if result:
-                return True
-            return False
+            return bool(result)
         except Exception as e:
             print(f"[DB] codeindata error: {e}")
             return False
@@ -414,23 +454,40 @@ class SQL:
     def getqrbydata(self, data: str):
         try:
             cur = self._cursor()
-            cur.execute("SELECT * FROM qrcode WHERE data=%s", (data,))
+            cur.execute(f"SELECT {QR_COLS} {QR_FROM} WHERE q.code=%s", (data,))
             result = cur.fetchone()
             cur.close()
             return result
         except Exception as e:
             print(f"[DB] getqrbydata error: {e}")
             return None
+
+    def isplateauthorized(self, plate: str) -> bool:
+        """Return whether a plate is registered in the QR vehicle records."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                "SELECT 1 FROM qrcode WHERE UPPER(TRIM(plate)) = %s LIMIT 1",
+                (plate.strip().upper(),),
+            )
+            result = cur.fetchone()
+            cur.close()
+            return result is not None
+        except Exception as e:
+            print(f"[DB] isplateauthorized error: {e}")
+            return False
         
         
     def getqrbyemailandhasdata(self, email, limit, offset):
         try:
             cur = self._cursor()
-            print("fetching from mysql ", email)
-            cur.execute("SELECT * FROM qrcode WHERE data IS NOT NULL AND owner_email=%s  LIMIT %s OFFSET %s", (email, limit, offset))
+            cur.execute(
+                f"""SELECT {QR_COLS} {QR_FROM}
+                    WHERE q.code IS NOT NULL AND c.owner_email=%s
+                    ORDER BY q.id DESC LIMIT %s OFFSET %s""",
+                (email, limit, offset),
+            )
             result = cur.fetchall()
-            print("fetching done ", email)
-            
             cur.close()
             return result
         except Exception as e:
@@ -440,7 +497,7 @@ class SQL:
     def getqrbyid(self, qr_id):
         try:
             cur = self._cursor()
-            cur.execute("SELECT * FROM qrcode WHERE id=%s", (qr_id,))
+            cur.execute(f"SELECT {QR_COLS} {QR_FROM} WHERE q.id=%s", (qr_id,))
             result = cur.fetchone()
             cur.close()
             return result
@@ -452,12 +509,10 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                """SELECT qrcode.*, users.username
-                   FROM qrcode
-                   LEFT JOIN users ON qrcode.created_by = users.id
-                   WHERE qrcode.created_by = %s
-                   ORDER BY qrcode.created_at DESC
-                   LIMIT %s OFFSET %s""",
+                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                    WHERE q.created_by = %s
+                    ORDER BY q.created_at DESC
+                    LIMIT %s OFFSET %s""",
                 (user_id, limit, offset),
             )
             result = cur.fetchall()
@@ -466,16 +521,14 @@ class SQL:
         except Exception as e:
             print(f"[DB] getqrbyuser error: {e}")
             return []
-
+        
     def getallqr(self, limit=5, offset=0):
         try:
             cur = self._cursor()
             cur.execute(
-                """SELECT qrcode.*, users.username
-                   FROM qrcode
-                   LEFT JOIN users ON qrcode.created_by = users.id
-                   ORDER BY qrcode.created_at DESC
-                   LIMIT %s OFFSET %s""",
+                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                    ORDER BY q.created_at DESC
+                    LIMIT %s OFFSET %s""",
                 (limit, offset),
             )
             result = cur.fetchall()
@@ -526,42 +579,23 @@ class SQL:
             print(f"[DB] getqrstats error: {e}")
             return []
         
-    def saveqr(
-        self,
-        data: str,
-        plate: str,
-        expiry,
-        created_by,
-        owner_name: str = "",
-        owner_email: str = "",
-        owner_number:str = "",
-        vehicle_type: str = "car",
-        department:"str" = "visitor"
-    ) -> bool:
+    def saveqr(self, code: str, plate: str, expiry, created_by,
+               owner_name: str = "", owner_email: str = "", owner_number: str = "",
+               vehicle_type: str = "car", department: str = "Null") -> bool:
         try:
-            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
-            space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
+            car_id = self._insert_car(cur, plate, owner_name, owner_email,
+                                      owner_number, department, vehicle_type)
             cur.execute(
-                """INSERT INTO qrcode(data, plate, owner_name, owner_email, owner_phone, expiry, created_by, vehicle_type, space_units, department)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)""",
-                (
-                    data,
-                    plate,
-                    owner_name,
-                    owner_email,
-                    owner_number,
-                    expiry,
-                    created_by,
-                    vehicle_type,
-                    space_units,
-                    department,
-                ),
+                """INSERT INTO qrcode (code, car_details_id, expiry, created_by)
+                   VALUES (%s,%s,%s,%s)""",
+                (code, car_id, expiry, created_by),
             )
             self._commit()
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] saveqr error: {e}")
             return False
 
@@ -597,24 +631,68 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                "DELETE FROM qrcode WHERE id=%s AND created_by=%s", (qr_id, user_id)
+                "SELECT car_details_id FROM qrcode WHERE id=%s AND created_by=%s",
+                (qr_id, user_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                cur.close()
+                return False
+            car_id = row[0]
+            cur.execute("DELETE FROM qrcode WHERE id=%s", (qr_id,))
+            # remove the car record too if no other QR still uses it
+            cur.execute(
+                """DELETE FROM car_details WHERE id=%s
+                   AND NOT EXISTS (SELECT 1 FROM qrcode WHERE car_details_id=%s)""",
+                (car_id, car_id),
             )
             self._commit()
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] deleteqr error: {e}")
+            return False
+        
+    def set_car_status(self, code, status) -> bool:
+        """status = 'IN' or 'OUT'"""
+        try:
+            cur = self._cursor()
+            cur.execute("UPDATE qrcode SET car_status=%s WHERE code=%s", (status, code))
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            self._rollback()
+            print(f"[DB] set_car_status error: {e}")
+            return False
+        
+    def revoke_qr(self, code, plate) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """UPDATE qrcode q
+                   JOIN car_details c ON c.id = q.car_details_id
+                   SET q.status='revoked', q.car_status='OUT'
+                   WHERE q.code=%s AND c.plate=%s""",
+                (code, plate),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            self._rollback()
+            print(f"[DB] revoke_qr error: {e}")
             return False
         
     #------------------------Request
     def has_pending_request(self, data: str, request_type: str) -> bool:
-        """Check if a QR (by its code) already has a pending request of this type."""
         try:
             cur = self._cursor()
             cur.execute(
-                """SELECT qrpending.id FROM qrpending
-                   LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
-                   WHERE qrcode.data=%s AND qrpending.request_type=%s AND qrpending.actions='pending'""",
+                """SELECT p.id FROM qrpending p
+                   JOIN qrcode q ON p.qrid = q.id
+                   WHERE q.code=%s AND p.request_type=%s AND p.actions='pending'""",
                 (data, request_type),
             )
             row = cur.fetchone()
@@ -629,49 +707,26 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                """
-                SELECT 
-                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
-                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
-                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
-                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
-                    users.username
-                FROM qrpending
-                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
-                LEFT JOIN users ON qrpending.request_by = users.id
-                WHERE qrpending.request_type = 'request_qr' AND qrpending.actions = 'pending'
-                ORDER BY qrpending.id DESC
-                LIMIT %s OFFSET %s
-                """,
+                PENDING_SELECT + """
+                WHERE p.request_type = 'request_qr' AND p.actions = 'pending'
+                ORDER BY p.id DESC LIMIT %s OFFSET %s""",
                 (limit, offset),
             )
             result = cur.fetchall()
-            
-            print("imhere \n\n", result)
             cur.close()
             return result
         except Exception as e:
             print(f"[DB] getqrrequestwithusersandqrcode error: {e}")
             return []
+        
 
     def getqrrenewalwithusersandqrcode(self, limit=10, offset=0):
         try:
             cur = self._cursor()
             cur.execute(
-                """
-                SELECT 
-                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
-                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
-                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
-                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
-                    users.username
-                FROM qrpending
-                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
-                LEFT JOIN users ON qrpending.request_by = users.id
-                WHERE qrpending.request_type = 'qr_renewal' AND qrpending.actions = 'pending'
-                ORDER BY qrpending.id DESC
-                LIMIT %s OFFSET %s
-                """,
+                PENDING_SELECT + """
+                WHERE p.request_type = 'qr_renewal' AND p.actions = 'pending'
+                ORDER BY p.id DESC LIMIT %s OFFSET %s""",
                 (limit, offset),
             )
             result = cur.fetchall()
@@ -696,24 +751,9 @@ class SQL:
             return 0
 
     def get_qr_pending_detail(self, pending_id):
-        """Same column order as the two list methods above, for one row."""
         try:
             cur = self._cursor()
-            cur.execute(
-                """
-                SELECT 
-                    qrpending.id, qrpending.request_type, qrpending.actions, qrpending.request_by,
-                    qrcode.id, qrcode.data, qrcode.plate, qrcode.owner_name, qrcode.owner_email,
-                    qrcode.owner_phone, qrcode.department, qrcode.expiry, qrcode.status,
-                    qrcode.vehicle_type, qrcode.space_units, qrcode.created_at,
-                    users.username
-                FROM qrpending
-                LEFT JOIN qrcode ON qrpending.qrid = qrcode.id
-                LEFT JOIN users ON qrpending.request_by = users.id
-                WHERE qrpending.id = %s
-                """,
-                (pending_id,),
-            )
+            cur.execute(PENDING_SELECT + " WHERE p.id = %s", (pending_id,))
             result = cur.fetchone()
             cur.close()
             return result
@@ -721,14 +761,11 @@ class SQL:
             print(f"[DB] get_qr_pending_detail error: {e}")
             return None
 
+
     def approve_qr_request(self, pending_id, qr_id, code, reviewer_id) -> bool:
-        """New QR request approved: attach the generated code and activate it."""
         try:
             cur = self._cursor()
-            cur.execute(
-                "UPDATE qrcode SET data=%s, status='active' WHERE id=%s",
-                (code, qr_id),
-            )
+            cur.execute("UPDATE qrcode SET code=%s, status='active' WHERE id=%s", (code, qr_id))
             cur.execute(
                 "UPDATE qrpending SET actions='approved', review_by=%s WHERE id=%s",
                 (reviewer_id, pending_id),
@@ -737,6 +774,7 @@ class SQL:
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] approve_qr_request error: {e}")
             return False
 
@@ -777,13 +815,14 @@ class SQL:
     def fetchselfrequest(self, email, limit, offset):
         try:
             cur = self._cursor()
-            
-            cur.execute("""
-                        SELECT qrpending.*, qrcode.created_at FROM qrpending LEFT JOIN  qrcode ON qrpending.qrid = qrcode.id WHERE qrcode.owner_email=%s LIMIT %s OFFSET %s
-                        """, (email,limit,offset,))
-            
+            cur.execute(
+                """SELECT p.*, q.created_at FROM qrpending p
+                   JOIN qrcode q ON p.qrid = q.id
+                   JOIN car_details c ON q.car_details_id = c.id
+                   WHERE c.owner_email=%s LIMIT %s OFFSET %s""",
+                (email, limit, offset),
+            )
             data = cur.fetchall()
-            
             cur.close()
             return data
         except Exception as e:
@@ -807,68 +846,50 @@ class SQL:
         
         
     
-    def addqrrequest(self, plate, owner_name, owner_email, owner_phone, created_by, vehicle_type):
+    def addqrrequest(self, plate, owner_name, owner_email, owner_phone,
+                     created_by, vehicle_type, department=None):
         try:
-            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
-            space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
+            car_id = self._insert_car(cur, plate, owner_name, owner_email,
+                                      owner_phone, department, vehicle_type)
             cur.execute(
-                """INSERT INTO 
-                    qrcode (plate, owner_name, owner_email, owner_phone, created_by, vehicle_type, space_units) 
-                    VALUES (%s,%s,%s,%s,%s,%s,%s);
-                """,
-                (plate, owner_name, owner_email, owner_phone, created_by, vehicle_type, space_units),
+                "INSERT INTO qrcode (car_details_id, created_by) VALUES (%s,%s)",
+                (car_id, created_by),
             )
-            
-            last = cur.lastrowid
-            
-            self._commit()
-            
-            #-------------
-
-            
-            
-            
-            # ------
-
+            qr_id = cur.lastrowid
             cur.execute(
-                """INSERT INTO 
-                    qrpending (qrid, request_type, request_by) 
-                    VALUES (%s,%s,%s);
-                """,
-                (last, "request_qr", created_by,),
+                "INSERT INTO qrpending (qrid, request_type, request_by) VALUES (%s,%s,%s)",
+                (qr_id, "request_qr", created_by),
             )
             self._commit()
-            
-
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] addqrrequest error: {e}")
             return False
 
-    def add_public_qr_request(self, plate, owner_name, owner_email, owner_phone, vehicle_type, department):
-        """Create a QR request from the public form; request_by is nullable in qrpending."""
+    def add_public_qr_request(self, plate, owner_name, owner_email, owner_phone,
+                              vehicle_type, department):
         try:
-            vehicle_type = "motorcycle" if vehicle_type == "motorcycle" else "car"
-            space_units = 1 if vehicle_type == "motorcycle" else 2
             cur = self._cursor()
             cur.execute(
-                """SELECT qrpending.id FROM qrpending
-                   JOIN qrcode ON qrcode.id=qrpending.qrid
-                   WHERE qrpending.request_type='request_qr' AND qrpending.actions='pending'
-                   AND UPPER(qrcode.plate)=UPPER(%s) AND LOWER(qrcode.owner_email)=LOWER(%s)
+                """SELECT p.id FROM qrpending p
+                   JOIN qrcode q ON q.id = p.qrid
+                   JOIN car_details c ON c.id = q.car_details_id
+                   WHERE p.request_type='request_qr' AND p.actions='pending'
+                   AND UPPER(c.plate)=UPPER(%s) AND LOWER(c.owner_email)=LOWER(%s)
                    LIMIT 1""",
                 (plate, owner_email),
             )
             if cur.fetchone():
                 cur.close()
                 return "duplicate"
+            car_id = self._insert_car(cur, plate, owner_name, owner_email,
+                                      owner_phone, department, vehicle_type)
             cur.execute(
-                """INSERT INTO qrcode
-                   (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units, status)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,'pending')""",
-                (plate, owner_name, owner_email, owner_phone, department, vehicle_type, space_units),
+                "INSERT INTO qrcode (car_details_id, status) VALUES (%s,'pending')",
+                (car_id,),
             )
             qr_id = cur.lastrowid
             cur.execute(
@@ -879,6 +900,7 @@ class SQL:
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] add_public_qr_request error: {e}")
             return False
         
@@ -886,20 +908,20 @@ class SQL:
     def requestrenewal(self, id, data):
         try:
             cur = self._cursor()
-            cur.execute("SELECT id FROM qrcode WHERE data=%s", (id,))
+            cur.execute("SELECT id FROM qrcode WHERE code=%s", (id,))
             row = cur.fetchone()
             if not row:
+                cur.close()
                 return False
-            qrid = row[0]
-
-            cur.execute("""INSERT INTO
-                        qrpending(qrid, request_type, request_by)
-                        VALUES (%s,%s,%s)
-                        """, (qrid, "qr_renewal", data))
+            cur.execute(
+                "INSERT INTO qrpending (qrid, request_type, request_by) VALUES (%s,%s,%s)",
+                (row[0], "qr_renewal", data),
+            )
             self._commit()
             cur.close()
             return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] requestrenewal error: {e}")
             return False
      
@@ -909,13 +931,13 @@ class SQL:
     # ──────────────────────────────────────────────────────────────
 
     def inserthistory(
-        self, data: str, guard, status: str, action: str = "entry", plate:str= None, department=None
+        self, data: str, guard, status: str, action: str = "entry", plate:str= None, department=None, is_authorized: bool = False
     ) -> bool:
         try:
             cur = self._cursor()
             cur.execute(
-                "INSERT INTO history(data, guard, status, action, department,plate) VALUES (%s,%s,%s,%s, %s,%s)",
-                (data, guard, status, action, department, plate),
+                "INSERT INTO history(data, guard, status, action, department,plate,is_authorized) VALUES (%s,%s,%s,%s, %s,%s,%s)",
+                (data, guard, status, action, department, plate, int(bool(is_authorized))),
             )
             self._commit()
             cur.close()
@@ -973,15 +995,27 @@ class SQL:
             print(f"[DB] gethistory_full error: {e}")
             return []
 
-    def gethistorybyguard(self, guard_id, limit=10, offset=0):
+    def gethistorybyguard(self, guard_id, limit=10, offset=0, year=None, month=None, day=None):
         try:
             cur = self._cursor()
+            conditions = ["h.guard = %s"]
+            params = [guard_id]
+            if year is not None:
+                conditions.append("YEAR(h.created_at) = %s")
+                params.append(year)
+            if month is not None:
+                conditions.append("MONTH(h.created_at) = %s")
+                params.append(month)
+            if day is not None:
+                conditions.append("DAY(h.created_at) = %s")
+                params.append(day)
+            params.extend([limit, offset])
             cur.execute(
-                """SELECT h.* FROM history h
-                   WHERE h.guard = %s
+                f"""SELECT h.* FROM history h
+                   WHERE {' AND '.join(conditions)}
                    ORDER BY h.id DESC
                    LIMIT %s OFFSET %s""",
-                (guard_id, limit, offset),
+                tuple(params),
             )
             result = cur.fetchall()
             cur.close()
@@ -990,10 +1024,21 @@ class SQL:
             print(f"[DB] gethistorybyguard error: {e}")
             return []
 
-    def counthistorybyguard(self, guard_id) -> int:
+    def counthistorybyguard(self, guard_id, year=None, month=None, day=None) -> int:
         try:
             cur = self._cursor()
-            cur.execute("SELECT COUNT(*) FROM history WHERE guard = %s", (guard_id,))
+            conditions = ["guard = %s"]
+            params = [guard_id]
+            if year is not None:
+                conditions.append("YEAR(created_at) = %s")
+                params.append(year)
+            if month is not None:
+                conditions.append("MONTH(created_at) = %s")
+                params.append(month)
+            if day is not None:
+                conditions.append("DAY(created_at) = %s")
+                params.append(day)
+            cur.execute(f"SELECT COUNT(*) FROM history WHERE {' AND '.join(conditions)}", tuple(params))
             count = cur.fetchone()[0]
             cur.close()
             return count

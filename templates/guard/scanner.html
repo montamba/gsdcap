@@ -949,21 +949,7 @@
 
 <body>
     <!-- Desktop sidebar -->
-    <aside>
-        <div class="logos">
-            <div class="circle">G</div>
-            <span>GUARD PORTAL</span>
-        </div>
-        <div class="buttons">
-            <a href="/guard/scan" class="active"><i class="bi bi-qr-code-scan"></i> Scanner</a>
-            <a href="/guard/history"><i class="bi bi-clock-history"></i> My History</a>
-            <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
-            <a href="/guard/profile"><i class="bi bi-person-circle"></i> Profile</a>
-        </div>
-        <div class="logout">
-            <button onclick="window.location.href='/auth/logout'"><i class="bi bi-box-arrow-left"></i> Logout</button>
-        </div>
-    </aside>
+    {% set active_page = 'scan' %}{% include "guard/_sidebar.html" %}
 
     <!-- Mobile bottom nav -->
     <nav class="mobile-nav" style="display:none;">
