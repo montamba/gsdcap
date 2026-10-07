@@ -213,142 +213,83 @@ class Guard:
 
         @self.guard.route("/check_qr", methods=["POST"])
         def check_qr():
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             qrdata = (data.get("data") or "").strip()
             action = (data.get("action") or "entry").strip().lower()
+
             if action not in ("entry", "exit"):
-                return jsonify({"status": "bad", "message": "Invalid action"})
-            
+                return jsonify({"status": "bad", "message": "Invalid action", "scan_result": "failed"})
+            if not qrdata:
+                return jsonify({"status": "bad", "message": "No QR data provided", "scan_result": "failed"})
 
             new_action = "IN" if action == "entry" else "OUT"
 
-            if not qrdata:
-                return jsonify({"status": "bad", "message": "No QR data provided"})
+            def finish(status, message, scan_result, log_status, info=None, **extra):
+                """Log the scan, clear cached history/QR data, and build the response."""
+                info = info or {}
+                self._log(qrdata, log_status, action, info.get("department"), info.get("plate"))
+                self.cache.deletethathas("history")
+                self.cache.deletethathas("qrcode")
+                payload = {"status": status, "message": message, "scan_result": scan_result, **info, **extra}
+                return jsonify(payload)
 
             qr = self.sql.getqrbydata(qrdata)
-            
-            print(qr, "===============")
-            
-            print("running here")
-            parking = self.sql.getparking()
-            available_units = max(0, int(round((parking.get("total", 0) - parking.get("total_occupied", 0)) * 2)))
-            
-            
-            
 
-            try:
-                self.cache.deletethathas("history")  # removing stored cache history
-            except Exception as e:
-                print(e)
-            print("running here2")
-
-            # ── QR NOT FOUND ──────────────────────────────
+            # ── QR NOT FOUND ──
             if not qr:
-                self._log(qrdata, "failed", action)
-                return jsonify(
-                    {
-                        "status": "bad",
-                        "message": "QR code not recognized",
-                        "scan_result": "failed",
-                    }
-                )
+                return finish("bad", "QR code not recognized", "failed", "failed")
 
             # qrcode columns:
-            # 0:id  1:data  2:plate  3:owner_name  4:owner_email
-            # 5:expiry  6:status  7:created_by  8:created_at  9:car_status
-            # 12:vehicle_type  11:space_units
+            # 0:id 1:code 2:plate 3:owner_name 4:owner_email 5:owner_phone
+            # 6:department 7:expiry 8:status 9:created_by 10:created_at
+            # 11:car_status 12:vehicle_type 13:space_units
             plate = qr[2] or "—"
-            owner_name = qr[3] or "—"
-            owner_email = qr[4] or "—"
             expiry = qr[7]
             qr_status = (qr[8] or "active").lower()
             car_status = qr[11]
-            department = qr[6]
-            vehicle_type = qr[12] if len(qr) > 12 and qr[12] else "car"
-            required_units = 1 if vehicle_type == "motorcycle" else 2
+            vehicle_type = qr[12] or "car"
+            units = qr[13] or (1 if vehicle_type == "motorcycle" else 2)  # car = 2, motorcycle = 1
 
-            if available_units < required_units and new_action == "IN":
-                self._log(qrdata, "failed", action, department, plate)
-                return jsonify(
-                    {
-                        "status": "bad",
-                        "message": "Parking lot has no available space",
-                        "scan_result": "failed",
-                        "owner_name": owner_name,
-                        "plate": plate,
-                        "vehicle_type": vehicle_type,
-                        "department": department,
-                    }
-                )
+            info = {
+                "owner_name": qr[3] or "—",
+                "owner_email": qr[4] or "—",
+                "plate": plate,
+                "department": qr[6],
+                "vehicle_type": vehicle_type,
+                "valid_until": str(expiry) if expiry else "—",
+            }
 
+            # ── NOT ACTIVE (revoked / still pending approval) ──
             if qr_status == "revoked":
-                self._log(qrdata, "failed", action, department, plate)
-                return jsonify(
-                    {
-                        "status": "bad",
-                        "message": "QR code has been revoked",
-                        "scan_result": "failed",
-                        "owner_name": owner_name,
-                        "plate": plate,
-                        "vehicle_type": vehicle_type,
-                        "department": department,
-                    }
-                )
+                return finish("bad", "QR code has been revoked", "failed", "failed", info)
+            if qr_status != "active":
+                return finish("bad", "QR code is not active yet", "failed", "failed", info)
 
-            # ── EXPIRED ───────────────────────────────────
+            # ── EXPIRED ──
             if expiry and datetime.now() > expiry:
-                self._log(qrdata, "expired", action, department, plate)
-                return jsonify(
-                    {
-                        "status": "expired",
-                        "message": "QR code has expired",
-                        "scan_result": "expired",
-                        "owner_name": owner_name,
-                        "plate": plate,
-                        "valid_until": str(expiry),
-                        "vehicle_type": vehicle_type,
-                        "department": department,
-                    }
-                )
+                return finish("expired", "QR code has expired", "expired", "expired", info)
 
-            # ── DUPLICATE ACTION ──────────────────────────
+            # ── DUPLICATE ACTION ──
             if car_status == new_action:
-                self._log(qrdata, "failed", action, department, plate)
-                return jsonify(
-                    {
-                        "status": "Invalid",
-                        "message": f"The vehicle is already {car_status}",
-                        "scan_result": "failed",
-                        "owner_name": owner_name,
-                        "plate": plate,
-                        "valid_until": str(expiry) if expiry else "—",
-                        "vehicle_type": vehicle_type,
-                        "department": department,
-                    }
-                )
+                return finish("Invalid", f"The vehicle is already {car_status}", "failed", "failed", info)
 
-            # ── ACCEPTED ──────────────────────────────────
-            self._log(qrdata, "accepted", action, department, plate)
+            # ── CAPACITY (entry only) ──
+            if new_action == "IN":
+                parking = self.sql.getparking()
+                free_units = int(round((parking["total"] - parking["total_occupied"]) * 2))
+                if free_units < units:
+                    return finish("bad", "Parking lot has no available space", "failed", "failed", info)
 
-            try:
-                self.sql.set_car_status(qrdata, new_action)   # 'IN' / 'OUT'
-                self.sql.updateparking(qr[13], action)        # qr[13] = space_units
-            except Exception as e:
-                print("Parking update error:", e)
+            # ── ACCEPTED: update parking first, then the car status ──
+            if not self.sql.updateparking(units, action):
+                return finish("bad", "Could not update parking, please try again", "failed", "failed", info)
 
-            return jsonify(
-                {
-                    "status": "good",
-                    "message": "Access Granted",
-                    "scan_result": "accepted",
-                    "action": action,
-                    "owner_name": owner_name,
-                    "owner_email": owner_email,
-                    "plate": plate,
-                    "vehicle_type": vehicle_type,
-                    "valid_until": str(expiry) if expiry else "—",
-                }
-            )
+            if not self.sql.set_car_status(qrdata, new_action):
+                # undo the parking change so the count never drifts from the car status
+                self.sql.updateparking(units, "exit" if action == "entry" else "entry")
+                return finish("bad", "Could not update vehicle status, please try again", "failed", "failed", info)
+
+            return finish("good", "Access Granted", "accepted", "accepted", info, action=action)
 
     def _log(self, qrdata, status, action="entry", department=None, plate=None, is_authorized=None):
         """Insert a scan record into history. action is 'entry' or 'exit'."""

@@ -1051,22 +1051,27 @@ class SQL:
     # ──────────────────────────────────────────────────────────────
 
     def getparking(self) -> dict:
+        default = {"total": 0, "occupied": 0, "available": 0, "total_occupied": 0}
+        cur = None
         try:
             cur = self._cursor()
-            
             cur.execute("SELECT * FROM parking WHERE id=1")
             parking = cur.fetchone()
-           
-            data = {}
-            data["total"] = parking[3]
-            data["occupied"] = parking[2]
-            data["available"] = parking[1]
-            data["total_occupied"] = float(parking[4] or 0)
-            
-            return data
+            if not parking:
+                return default
+            return {
+                "total": parking[3],
+                "occupied": parking[2],
+                "available": parking[1],
+                "total_occupied": float(parking[4] or 0),
+            }
         except Exception as e:
             print(f"[DB] getparking error: {e}")
-            return {"total": 0, "occupied": 0, "available": 0,"total_occupied":0}
+            return default
+        finally:
+            if cur:
+                cur.close()        # consumes the pending result
+            self._rollback() 
 
     def setparkingslot(self, total):
         try:
@@ -1083,38 +1088,40 @@ class SQL:
         
 
     def updateparking(self, added, operation) -> bool:
+        cur = None
         try:
-            print("updating")
-            parking = self.getparking()
-            
-            occupied = parking.get("occupied")
-            available = parking.get("available")
-            total_occupied = parking.get("total_occupied")
-            
-            if operation == "entry":
-                total_occupied += added / 2
-                
-            else:
-                total_occupied -= added /2
-            
-            new_total_occupied = max(0, total_occupied)
-            
-            
-            new_occupied = math.ceil(new_total_occupied)
-            new_available = parking.get("total") - new_occupied
             cur = self._cursor()
-            
-            print(available, "========================")
-            cur.execute("UPDATE parking SET available = %s, occupied = %s, total_occupied = %s WHERE id = 1",( new_available, new_occupied, new_total_occupied))
-            
-            self._commit()
+            # FOR UPDATE reads the latest committed row and locks it
+            cur.execute("SELECT total, total_occupied FROM parking WHERE id=1 FOR UPDATE")
+            row = cur.fetchone()
             cur.close()
-            print("update")
-            return True
+            if not row:
+                self._rollback()
+                return False
 
+            total, total_occupied = row[0], float(row[1] or 0)
+            delta = added / 2
+            total_occupied += delta if operation == "entry" else -delta
+            total_occupied = max(0, total_occupied)
+
+            occupied = math.ceil(total_occupied)
+            available = total - occupied
+
+            cur = self._cursor()
+            cur.execute(
+                "UPDATE parking SET available=%s, occupied=%s, total_occupied=%s WHERE id=1",
+                (available, occupied, total_occupied),
+            )
+            self._commit()
+            return True
         except Exception as e:
+            self._rollback()
             print(f"[DB] updateparking error: {e}")
             return False
+        finally:
+            if cur:
+                try: cur.close()
+                except Exception: pass
         
     def change_admin_username(self, new_username, email):
         try:
