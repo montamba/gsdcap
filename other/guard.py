@@ -208,6 +208,50 @@ class Guard:
                 else "Access granted. Plate not found in registered records; marked unauthorized."
             )
             return jsonify({"status": "good", "message": message, "is_authorized": is_authorized})
+        
+        
+        @self.guard.route("/inside")
+        def inside_page():
+            return render_template("guard/inside.html")
+
+        @self.guard.route("/inside_list", methods=["GET"])
+        def inside_list():
+            rows = self.sql.get_vehicles_inside()
+            serialized = [
+                [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in r]
+                for r in rows
+            ]
+            return jsonify({"status": "good", "data": serialized, "total": len(serialized)})
+
+        @self.guard.route("/exit_vehicle", methods=["POST"])
+        def exit_vehicle():
+            data = request.get_json(silent=True) or {}
+            code = (data.get("code") or "").strip()
+            if not code:
+                return jsonify({"status": "bad", "message": "QR code is required"})
+
+            qr = self.sql.getqrbydata(code)
+            if not qr:
+                return jsonify({"status": "bad", "message": "QR code not found"})
+            if qr[11] != "IN":
+                return jsonify({"status": "bad", "message": "Vehicle is not inside"})
+
+            if not self.sql.set_car_status(code, "OUT"):
+                return jsonify({"status": "bad", "message": "Could not update vehicle"})
+            self.sql.updateparking(qr[13], "exit")
+            self._log(code, "accepted", "exit", qr[6], qr[2])
+            self.cache.deletethathas("history")
+            return jsonify({"status": "good", "message": f"{qr[2]} marked OUT"})
+
+        @self.guard.route("/exit_all", methods=["POST"])
+        def exit_all():
+            inside = self.sql.get_vehicles_inside()
+            for qr in inside:
+                self._log(qr[1], "accepted", "exit", qr[6], qr[2])
+            if not self.sql.exit_all_vehicles():
+                return jsonify({"status": "bad", "message": "Failed to exit all vehicles"})
+            self.cache.deletethathas("history")
+            return jsonify({"status": "good", "message": f"{len(inside)} vehicle(s) marked OUT"})
             
                     
 

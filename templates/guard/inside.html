@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicles Inside — GSD Parking</title>
+    <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="/../../static/css/message.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { padding:0; margin:0; box-sizing:border-box; font-family:'Syne',sans-serif; }
+        body { background:#eef4ff; color:#0f172a; min-height:100vh; display:flex; }
+
+        /* sidebar (same as other guard pages) */
+        aside { position:sticky; top:0; height:100vh; width:240px; min-width:240px; background:#1e3a8a; display:flex; flex-direction:column; z-index:100; box-shadow:4px 0 32px rgba(30,58,138,.18); }
+        .logos { padding:26px 20px; display:flex; flex-direction:column; align-items:center; gap:8px; background:#172e72; border-bottom:1px solid rgba(255,255,255,.08); text-align:center; }
+        .circle { width:60px; height:60px; display:grid; place-items:center; border-radius:16px; background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.2); font-size:20px; font-weight:800; color:#fff; font-family:'Space Mono',monospace; }
+        .logos span { font-size:10px; font-weight:700; color:rgba(148,163,184,.7); letter-spacing:.2em; text-transform:uppercase; }
+        .buttons { display:flex; flex-direction:column; padding:14px 0; flex:1; }
+        .buttons a { text-decoration:none; color:rgba(186,210,255,.75); font-size:14px; font-weight:600; padding:11px 20px; display:flex; align-items:center; gap:10px; border-left:3px solid transparent; transition:all .2s; }
+        .buttons a:hover { background:rgba(255,255,255,.07); color:#fff; border-left-color:rgba(255,255,255,.3); }
+        .buttons a.active { background:rgba(255,255,255,.12); color:#fff; border-left-color:#60a5fa; }
+        .logout { padding:16px; border-top:1px solid rgba(255,255,255,.08); }
+        .logout button { width:100%; padding:10px; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; font-size:13px; font-weight:600; cursor:pointer; border-radius:6px; }
+        .logout button:hover { background:rgba(239,68,68,.22); color:#fff; }
+
+        /* main */
+        .right { flex:1; min-width:0; overflow-x:hidden; }
+        .header { background:#fff; border-bottom:1px solid #c7d9f5; padding:22px 32px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; box-shadow:0 1px 8px rgba(37,99,235,.06); }
+        .header h1 { font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px; }
+        .header h1 i { color:#2563eb; }
+        .header p { font-size:11px; color:#94a3b8; font-family:'Space Mono',monospace; margin-top:3px; letter-spacing:.08em; text-transform:uppercase; }
+        .btn-exit-all { padding:11px 20px; background:linear-gradient(135deg,#ef4444,#f97316); border:none; color:#fff; font-size:13px; font-weight:800; cursor:pointer; border-radius:8px; display:flex; align-items:center; gap:8px; letter-spacing:.04em; box-shadow:0 3px 12px rgba(239,68,68,.3); }
+        .btn-exit-all:hover { opacity:.92; }
+        .btn-exit-all:disabled { opacity:.5; cursor:not-allowed; }
+
+        .inner { padding:28px 32px; }
+        .count-card { background:#fff; border:1px solid #c7d9f5; border-radius:12px; padding:18px 22px; margin-bottom:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .count-card .num { font-size:36px; font-weight:800; font-family:'Space Mono',monospace; color:#ef4444; line-height:1; }
+        .count-card .lbl { font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.15em; font-family:'Space Mono',monospace; }
+
+        .section { background:#fff; border:1px solid #c7d9f5; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(37,99,235,.07); }
+        .section-head { padding:14px 20px; background:#f5f9ff; border-bottom:1px solid #ddeaff; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+        .section-head h2 { font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; font-family:'Space Mono',monospace; }
+        .search-input { padding:7px 12px; border:1.5px solid #c7d9f5; border-radius:8px; font-family:'Space Mono',monospace; font-size:11px; outline:none; width:220px; }
+        .search-input:focus { border-color:#2563eb; }
+
+        .table-scroll { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; min-width:620px; }
+        th, td { padding:12px 16px; text-align:left; font-size:12px; }
+        th { background:#f5f9ff; color:#64748b; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; border-bottom:1px solid #ddeaff; }
+        td { color:#334155; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        tbody tr:hover td { background:#f8faff; }
+        .mono { font-family:'Space Mono',monospace; }
+        .empty { padding:40px; text-align:center; color:#94a3b8; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.1em; }
+
+        /* switch */
+        .switch { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; color:#10b981; }
+        .switch input { display:none; }
+        .slider { position:relative; width:44px; height:24px; background:#10b981; border-radius:20px; cursor:pointer; transition:background .2s; }
+        .slider::after { content:''; position:absolute; top:3px; left:23px; width:18px; height:18px; background:#fff; border-radius:50%; transition:left .2s; }
+        .switch input:not(:checked) + .slider { background:#ef4444; }
+        .switch input:not(:checked) + .slider::after { left:3px; }
+        .switch input:disabled + .slider { opacity:.5; cursor:not-allowed; }
+
+        @media (max-width:768px) {
+            aside { display:none; }
+            .mobile-nav { display:flex !important; position:fixed; bottom:0; left:0; right:0; background:#1e3a8a; z-index:200; border-top:1px solid rgba(255,255,255,.1); padding-bottom:env(safe-area-inset-bottom); }
+            .mobile-nav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px; text-decoration:none; color:rgba(186,210,255,.7); font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+            .mobile-nav a i { font-size:18px; }
+            .mobile-nav a.active { color:#fff; background:rgba(255,255,255,.1); }
+            .header { padding:16px 18px; }
+            .inner { padding:16px 16px 90px; }
+        }
+    </style>
+</head>
+<body>
+    {% set active_page = 'inside' %}{% include "guard/_sidebar.html" %}
+
+    <nav class="mobile-nav" style="display:none;">
+        <a href="/guard/scan"><i class="bi bi-qr-code-scan"></i> Scanner</a>
+        <a href="/guard/history"><i class="bi bi-clock-history"></i> History</a>
+        <a href="/guard/parking"><i class="bi bi-p-circle"></i> Parking</a>
+        <a href="/guard/inside" class="active"><i class="bi bi-car-front-fill"></i> Inside</a>
+        <a href="/guard/profile"><i class="bi bi-person-circle"></i> Profile</a>
+    </nav>
+
+    <div class="right">
+        <div class="header">
+            <div>
+                <h1><i class="bi bi-car-front-fill"></i> Vehicles Inside</h1>
+                <p>ALL VEHICLES CURRENTLY IN THE PARKING AREA</p>
+            </div>
+            <button class="btn-exit-all" id="btnExitAll" onclick="exitAll()">
+                <i class="bi bi-box-arrow-right"></i> Exit All Vehicles
+            </button>
+        </div>
+
+        <div class="inner">
+            <div class="count-card">
+                <div class="num" id="insideCount">—</div>
+                <div class="lbl">Vehicles currently inside</div>
+            </div>
+
+            <div class="section">
+                <div class="section-head">
+                    <h2><i class="bi bi-list-ul"></i> Inside Now</h2>
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search plate, owner, code…" oninput="renderRows()">
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th>QR Code</th><th>Plate</th><th>Owner</th><th>Dept.</th><th>Type</th><th>Status (switch to OUT)</th></tr>
+                        </thead>
+                        <tbody id="insideBody">
+                            <tr><td colspan="7" class="empty">LOADING…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vehicles = [];
+
+        async function loadInside() {
+            const res = await API.get("/guard/inside_list");
+            if (!res || res.status !== "good") {
+                vehicles = [];
+            } else {
+                vehicles = res.data;
+            }
+            document.getElementById("insideCount").textContent = vehicles.length;
+            document.getElementById("btnExitAll").disabled = vehicles.length === 0;
+            renderRows();
+        }
+
+        function renderRows() {
+            const q = document.getElementById("searchInput").value.trim().toLowerCase();
+            const rows = vehicles.filter(v =>
+                !q ||
+                (v[1] || "").toLowerCase().includes(q) ||
+                (v[2] || "").toLowerCase().includes(q) ||
+                (v[3] || "").toLowerCase().includes(q)
+            );
+
+            const tbody = document.getElementById("insideBody");
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty">🅿️ NO VEHICLES INSIDE</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map((v, i) => `
+                <tr>
+                    <td class="mono" style="color:#94a3b8;">${i + 1}</td>
+                    <td class="mono" style="color:#2563eb;font-weight:700;font-size:11px;">${escapeHTML(v[1])}</td>
+                    <td class="mono" style="color:#1e3a8a;font-weight:700;">${escapeHTML(v[2])}</td>
+                    <td>${escapeHTML(v[3])}</td>
+                    <td>${escapeHTML(v[6])}</td>
+                    <td>${escapeHTML(v[12])}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" checked data-code="${escapeHTML(v[1])}" onchange="exitOne(this)">
+                            <span class="slider"></span>
+                            <span>IN</span>
+                        </label>
+                    </td>
+                </tr>`).join("");
+        }
+
+        async function exitOne(el) {
+            const code = el.dataset.code;
+            if (!confirm("Mark this vehicle as OUT?")) {
+                el.checked = true;
+                return;
+            }
+            el.disabled = true;
+            const res = await API.post("/guard/exit_vehicle", { code });
+            showMessageModal(res.message, res.status);
+            loadInside();
+        }
+
+        async function exitAll() {
+            if (!vehicles.length) return;
+            if (!confirm(`Exit ALL ${vehicles.length} vehicle(s)? This also resets parking occupancy to 0.`)) return;
+            const btn = document.getElementById("btnExitAll");
+            btn.disabled = true;
+            const res = await API.post("/guard/exit_all", {});
+            showMessageModal(res.message, res.status);
+            loadInside();
+        }
+
+        loadInside();
+        setInterval(loadInside, 20000);
+    </script>
+</body>
+</html>

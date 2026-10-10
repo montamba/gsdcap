@@ -1086,6 +1086,38 @@ class SQL:
             print(f"[DB] setparkingslot error: {e}")
             return False
         
+    def get_vehicles_inside(self):
+        """All QR vehicles currently marked IN."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT {QR_COLS} {QR_FROM}
+                    WHERE q.car_status = 'IN'
+                    ORDER BY q.id DESC"""
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_vehicles_inside error: {e}")
+            return []
+
+    def exit_all_vehicles(self) -> bool:
+        """Mark every vehicle OUT and reset parking occupancy to zero."""
+        try:
+            cur = self._cursor()
+            cur.execute("UPDATE qrcode SET car_status='OUT' WHERE car_status='IN'")
+            cur.execute(
+                "UPDATE parking SET available = total, occupied = 0, total_occupied = 0 WHERE id = 1"
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            self._rollback()
+            print(f"[DB] exit_all_vehicles error: {e}")
+            return False
+        
 
     def updateparking(self, added, operation) -> bool:
         cur = None
