@@ -112,6 +112,9 @@
         .pg-btn.active { background:#2563eb; border-color:#000000; color:#fff; }
         .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
 
+        #other-department { display: none; }
+#other-department.show { display: block; }
+
         @media print {
             body * { visibility:hidden; }
             .qr-box, .qr-box * { visibility:visible; }
@@ -159,7 +162,7 @@
                     </div>
                     <div class="form-group">
                         <label>Department</label>
-                        <select id="department">
+                        <select id="department" onchange="dechange(event)">
                             <option value="VISITOR">Visitor</option>
                             <option value="STUDENT">Student</option>
                             <option value="EMPLOYEE">Employee</option>
@@ -171,7 +174,10 @@
                             <option value="COED">COED</option>
                             <option value="COME">COME</option>
                             <option value="CBA">CBA</option>
+                            <option value="OTHERS">Others</option>
                         </select>
+                        <input id="other-department" type="text" maxlength="50" placeholder="Type department / group">
+                        
                     </div>
                     <div class="form-group">
                         <label>Valid Until</label>
@@ -265,6 +271,13 @@
         let myPage  = 1;
         let myPages = 1;
 
+        function dechange(e) {
+            const other = document.getElementById("other-department");
+            const isOthers = e.target.value === "OTHERS";
+            other.classList.toggle("show", isOthers);
+            if (isOthers) other.focus();
+            else other.value = "";
+        }
     
 
         async function makeCode() {
@@ -315,6 +328,17 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
 
+            let depa = document.getElementById("department").value.trim();
+
+            if (depa === "OTHERS") {
+                depa = document.getElementById("other-department").value.trim();
+                if (!depa) {
+                    showMessageModal("Please type the department name.", "Missing Department");
+                    return;
+                }
+            }
+
+
             const payload = {
                 data: code,
                 plate: document.getElementById("plate").value.trim(),
@@ -323,7 +347,7 @@
                 owner_number: document.getElementById("owner_number").value.trim(),
                 owner_email: document.getElementById("owner_email").value.trim(),
                 vehicle_type: document.getElementById("vehicle_type").value,
-                department: document.getElementById("department").value.trim()
+                department: depa
             };
 
             const res = await API.post("/staff/save_qr", payload);
@@ -338,7 +362,11 @@
                 document.getElementById("ownerCard").classList.remove("show");
                 document.getElementById("qrcode").innerHTML = `<span class="placeholder-text">CLICK<br>PREVIEW<br>TO SEE QR</span>`;
                 document.getElementById("qrLabel").style.display = "none";
-            }
+                document.getElementById("department").value = "VISITOR";
+                const other = document.getElementById("other-department");
+                other.value = "";
+                other.classList.remove("show");
+                            }
 
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-floppy"></i> Save';
