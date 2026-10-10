@@ -7,6 +7,10 @@
     <title>QR Status — GSD Parking</title>
     <link rel="stylesheet" href="/../../static/css/style.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
+    <link rel="stylesheet" href="/../../static/css/qrcard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/../../static/scripts/qrcard.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -572,71 +576,13 @@
 
         /* ── MODAL LOGIC FOR ROW CLICK ── */
         function onMyQrRowClick(encodedData) {
-            try {
-                const val = JSON.parse(decodeURIComponent(encodedData));
-                
-                // Mappings requested:
-                // data[0] = id
-                // data[1] = code (Only data encoded into QR)
-                // data[2] = plate
-                // data[3] = name
-                // data[4] = email
-                // data[5] = phone
-                // data[6] = department
-                // data[12] = vehicle_type
-                const qrId = val[0] || "";
-                const qrCodeValue = val[1] || "";
-                const plate = val[2] || "—";
-                const name = val[3] || "—";
-                const email = val[4] || "—";
-                const phone = val[5] || "—";
-                const department = val[6] || "—";
-                const vehicleType = val[12] || "—";
-                const status = val[8] || "Active";
-                const expDate = val[7] ? new Date(val[7]).toLocaleDateString() : "No Expiry";
-
-                // Renewal needs the QR's *code*, not its numeric id — the backend
-                // looks the row up by the `data` column.
-                const renewBtn = document.getElementById("btnModalRenewal");
-                if (qrCodeValue && qrCodeValue !== "pending") {
-                    renewBtn.setAttribute("data-code", qrCodeValue);
-                    renewBtn.disabled = false;
-                    renewBtn.title = "";
-                } else {
-                    renewBtn.removeAttribute("data-code");
-                    renewBtn.disabled = true;
-                    renewBtn.title = "This QR code hasn't been issued yet";
-                }
-
-                document.getElementById("mdPlate").textContent = plate;
-                document.getElementById("mdName").textContent = name;
-                document.getElementById("mdEmail").textContent = email;
-                document.getElementById("mdPhone").textContent = phone;
-                document.getElementById("mdDept").textContent = department;
-                document.getElementById("mdVType").textContent = vehicleType;
-                document.getElementById("mdStatus").textContent = status;
-                document.getElementById("mdExp").textContent = expDate;
-
-                // Render QR code containing ONLY data[1]
-                const qrContainer = document.getElementById("modalQrCode");
-                qrContainer.innerHTML = "";
-                
-                if (qrCodeValue && qrCodeValue !== "pending") {
-                    new QRCode(qrContainer, {
-                        text: String(qrCodeValue),
-                        width: 180,
-                        height: 180,
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } else {
-                    qrContainer.innerHTML = `<span style="color:#94a3b8; font-size:12px;">No QR Code Available</span>`;
-                }
-
-                document.getElementById("qrModal").classList.add("active");
-            } catch (err) {
-                console.error("Failed to display QR details:", err);
-            }
+            const val = JSON.parse(decodeURIComponent(encodedData));
+            QrCard.open(val, {
+                mode: "user",
+                onRequestRenewal: (row) => handleRequestRenewal(row[1])
+            });
         }
+
 
         function closeQrModal(e) {
             if (!e || e.target.id === "qrModal" || e.target.classList.contains("modal-close")) {
@@ -650,28 +596,13 @@
                 showMessageModal("This QR code hasn't been issued yet, so it can't be renewed.", "Not Available");
                 return;
             }
-
-            const btn = document.getElementById("btnModalRenewal");
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
-
-            try {
-                const res = await API.post("/users/request_renewal", { qrcode: code });
-                showMessageModal(res.message, res.status);
-                if (res.status === "good") {
-                    closeQrModal();
-                    await fetchMyQR();
-                }
-            } catch (err) {
-                console.error("Renewal request error:", err);
-                showMessageModal("Something went wrong. Please try again.", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
+            const res = await API.post("/users/request_renewal", { qrcode: code });
+            showMessageModal(res.message, res.status);
+            if (res.status === "good") {
+                QrCard.close();
+                await fetchMyQR();
             }
         }
-
         /* ── SUBMIT REQUEST ── */
         async function requestqr(event) {
             event.preventDefault();

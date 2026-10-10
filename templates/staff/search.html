@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="/../../static/css/staff.css">
     <link rel="stylesheet" href="/../../static/css/message.css">
     <script src="/../../static/scripts/scrit.js"></script>
+    <link rel="stylesheet" href="/../../static/css/qrcard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/../../static/scripts/qrcard.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <title>Search — GSD Parking</title>
@@ -902,38 +906,39 @@
         }
 
         function openDetail(d) {
-            activeQrId = d[ 0 ];
+        QrCard.open(d, {
+            mode: "staff",
 
-            const status = effectiveStatus(d[ 8 ], d[ 7 ]);
+            onRenew: async (row, expiry) => {
+                const res = await API.put(`/staff/renew_qr/${row[0]}`, { expiry });
+                showMessageModal(res.message, res.status);
+                if (res.status === "good") { QrCard.close(); loadPage(currentPage); }
+            },
 
-            // Secure assignment using textContent preventing script execution
-            document.getElementById("dData").textContent = d[ 1 ] || "—";
-            document.getElementById("dPlate").textContent = d[ 2 ] || "—";
-            document.getElementById("dOwner").textContent = d[ 3 ] || "—";
-            document.getElementById("dEmail").textContent = d[ 4 ] || "—";
-            document.getElementById("dPhone").textContent = d[ 5 ] || "—";
-            document.getElementById("dDepartment").textContent = d[ 6 ] || "—";
-            document.getElementById("dStatus").textContent = status.toUpperCase();
-            document.getElementById("dCarStatus").textContent = d[ 11 ] || "NOT SCANNED";
-            document.getElementById("dExpiry").textContent = d[ 7 ] || "No expiry set";
-            document.getElementById("dCreatedAt").textContent = d[ 10 ] || "—";
-            document.getElementById("dCreatedBy").textContent = d[ 14 ] || "—";
+            onRevoke: async (row) => {
+                const res = await API.put(`/staff/revoke_qr?qrcode=${encodeURIComponent(row[1])}&plate=${encodeURIComponent(row[2])}`);
+                showMessageModal(res?.message || "Failed to revoke QR code.", res?.status);
+                if (res?.status === "good") { QrCard.close(); loadPage(currentPage); }
+            },
 
-            if (d[ 7 ] && d[ 7 ] !== "None") {
-                document.getElementById("renewDate").value = d[ 7 ].split(" ")[ 0];
-            } else {
-                document.getElementById("renewDate").value = "";
+            onEmail: async (row) => {
+                const res = await API.post("/staff/send_qr_email", {
+                    data: row[1],
+                    owner_name: row[3] || "",
+                    owner_email: row[4],
+                    plate: row[2] || "",
+                    valid_until: row[7] && row[7] !== "None" ? row[7] : ""
+                });
+                showMessageModal(res.message, res.status);
+            },
+
+            // page 4 — connect later
+            onEmailRequirements: (row, addressTag) => {
+                console.log("email requirements", row[4], addressTag);
+                showMessageModal("Requirements email isn't connected yet.", "Not Ready");
             }
-
-            const emailBtn = document.getElementById("btnSendEmail");
-            const hasEmail = d[ 4 ] && d[ 4 ] !== "—" && d[ 4 ] !== "None" && d[ 4 ].trim() !== "";
-            emailBtn.disabled = !hasEmail;
-            emailBtn.title = hasEmail ? "" : "No owner email on record";
-
-            document.getElementById("renewSection").classList.remove("show");
-            document.getElementById("detailModal").classList.add("show");
-        }
-
+        });
+    }
         function closeModal() {
             document.getElementById("detailModal").classList.remove("show");
             activeQrId = null;

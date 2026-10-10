@@ -1,0 +1,443 @@
+/* QR card viewer — shared by staff/search.html and users/userqr.html */
+.qc-overlay, .qc-overlay * {
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif !important;
+}
+
+.qc-overlay {
+    --qc-ink: #0f172a;
+    --qc-muted: #64748b;
+    --qc-faint: #94a3b8;
+    --qc-blue: #2563eb;
+    --qc-line: #000000;
+    --qc-soft: #f5f9ff;
+    --qc-green: #14532d;
+
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    padding: 16px;
+    overflow-y: auto;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, .45);
+    backdrop-filter: blur(4px);
+    color: var(--qc-ink);
+}
+
+.qc-overlay.show { display: flex; }
+
+.qc-holder {
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    margin: auto;
+    background: #fff;
+    border: 1px solid var(--qc-line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .25);
+}
+
+.qc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--qc-soft);
+    border-bottom: 1px solid var(--qc-line);
+}
+
+.qc-title {
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qc-title i { color: var(--qc-blue); }
+
+.qc-head-right { display: flex; align-items: center; gap: 12px; }
+
+.qc-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--qc-faint);
+    letter-spacing: .06em;
+}
+
+.qc-close {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    border: 1px solid var(--qc-line);
+    border-radius: 50%;
+    color: var(--qc-muted);
+    cursor: pointer;
+}
+
+.qc-close:hover { background: #ef4444; color: #fff; }
+
+/* ─── carousel ─── */
+.qc-pages { overflow: hidden; background: #f8faff; }
+.qc-track { display: flex; transition: transform .35s ease; }
+
+.qc-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    min-height: 400px;
+    padding: 24px 12px;
+    display: grid;
+    place-items: center;
+}
+
+.qc-slide[aria-hidden="true"] { visibility: hidden; }
+
+/* ─── page 1 ─── */
+.qc-page1 {
+    display: grid;
+    grid-template-columns: 38% 1fr;
+    width: 500px;
+    max-width: 100%;
+    min-height: 300px;
+    background: #fff;
+    border: 2px solid var(--qc-line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.qc-qr-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 12px;
+    background: var(--qc-soft);
+    border-right: 1px solid var(--qc-line);
+}
+
+.qc-qrholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--qc-line);
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    color: var(--qc-faint);
+    text-align: center;
+}
+
+.qc-qrholder canvas, .qc-qrholder img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    display: block;
+}
+
+.qc-code {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--qc-blue);
+    letter-spacing: .04em;
+    text-align: center;
+    word-break: break-all;
+}
+
+.qc-info-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-content: center;
+    gap: 18px 12px;
+    padding: 20px;
+}
+
+.qc-field p {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--qc-faint);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+
+.qc-field h3 { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+
+.qc-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid var(--qc-line);
+    border-radius: 20px;
+}
+
+.qc-badge.active  { background: #d1fae5; color: #065f46; }
+.qc-badge.expired { background: #fef3c7; color: #92400e; }
+.qc-badge.revoked { background: #fee2e2; color: #991b1b; }
+.qc-badge.pending { background: #fef3c7; color: #92400e; }
+.qc-badge.in      { background: #dbeafe; color: #1e40af; }
+.qc-badge.out     { background: #e2e8f0; color: #334155; }
+
+/* ─── page 2 · portrait card ─── */
+.qc-page2 {
+    position: absolute;
+    width: 250px;
+    height: 350px;
+    border: 2px solid var(--qc-line);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--qc-green);
+    color: #fff;
+}
+
+/* header is only the image you provide — 30% of the card */
+.qc-page2 .qc-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background: #0f3d22;
+}
+
+.qc-top img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.qc-page2 .qc-body {
+    position: absolute;
+    top: 20%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px 14px;
+}
+
+.qc-page2 .qc-qrimage {
+    width: 132px;
+    height: 132px;
+    padding: 7px;
+    background: #fff;
+    border: 2px solid var(--qc-line);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+}
+
+.qc-qrimage canvas, .qc-qrimage img { width: 100% !important; height: auto !important; display: block; }
+
+.qc-plate { font-size: 19px; font-weight: 900; letter-spacing: .12em; }
+.qc-owner { font-size: 12px; opacity: .9; text-align: center; }
+
+.qc-expiry-box {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+    padding: 6px;
+    background: rgba(255, 255, 255, .12);
+    border-radius: 6px;
+}
+
+.qc-expiry-box p { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+.qc-expiry-box h3 { font-size: 14px; font-weight: 700; }
+
+/* ─── pages 3 & 4 ─── */
+.qc-page3, .qc-page4 {
+    width: 500px;
+    max-width: 100%;
+    background: #fff;
+    border: 2px solid var(--qc-line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.qc-sheet-head {
+    padding: 12px 18px;
+    background: var(--qc-soft);
+    border-bottom: 1px solid var(--qc-line);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--qc-muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qc-sheet-head i { color: var(--qc-blue); }
+
+.qc-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.qc-detail-row:last-child { border-bottom: none; }
+
+.qc-detail-row .qc-lbl {
+    min-width: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--qc-faint);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+}
+
+.qc-detail-row .qc-val { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+
+.qc-req-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+.qc-attach-box {
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    padding: 16px;
+    text-align: center;
+    background: #f8faff;
+    border: 1.5px dashed var(--qc-line);
+    border-radius: 8px;
+    color: var(--qc-faint);
+    font-size: 12px;
+}
+
+.qc-attach-box i { font-size: 28px; }
+.qc-attach-box img { max-width: 100%; max-height: 220px; border-radius: 6px; }
+
+.qc-tag-group { display: flex; flex-direction: column; gap: 6px; }
+
+.qc-tag-group label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--qc-faint);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+}
+
+.qc-tag-group input, .qc-renew-input {
+    padding: 10px 14px;
+    background: #f8faff;
+    border: 1.5px solid var(--qc-line);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+}
+
+.qc-tag-group input:focus, .qc-renew-input:focus { background: #fff; box-shadow: 0 0 0 3px rgba(0, 0, 0, .1); }
+
+/* ─── controls ─── */
+.qc-controls {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--qc-soft);
+    border-top: 1px solid var(--qc-line);
+}
+
+.qc-nav {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    border: 1.5px solid var(--qc-line);
+    border-radius: 50%;
+    color: var(--qc-muted);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.qc-nav:hover:not(:disabled) { color: var(--qc-blue); background: #eff6ff; }
+.qc-nav:disabled { opacity: .35; cursor: not-allowed; }
+
+.qc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+}
+
+.qc-dots { grid-column: 1 / -1; display: flex; justify-content: center; gap: 8px; }
+
+.qc-dot {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    border: 1px solid var(--qc-line);
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+.qc-dot.on { background: var(--qc-blue); }
+
+.qc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    border: 1px solid var(--qc-line);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.qc-btn:hover { opacity: .9; }
+.qc-btn:disabled { opacity: .45; cursor: not-allowed; }
+.qc-btn.renew  { background: linear-gradient(135deg, #2563eb, #0ea5e9); }
+.qc-btn.revoke { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.qc-btn.email  { background: linear-gradient(135deg, #10b981, #059669); }
+.qc-btn.ghost  { background: #fff; color: var(--qc-muted); }
+
+.qc-nav:focus-visible, .qc-btn:focus-visible, .qc-dot:focus-visible, .qc-close:focus-visible {
+    outline: 3px solid var(--qc-blue);
+    outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+    .qc-page1 { grid-template-columns: 1fr; }
+    .qc-qr-side { border-right: none; border-bottom: 1px solid var(--qc-line); }
+    .qc-page1 .qc-qrholder { max-width: 150px; }
+    .qc-detail-row .qc-lbl { min-width: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .qc-track { transition: none; } }
+
+/* print only the portrait card */
+@media print {
+    body * { visibility: hidden !important; }
+    #qcPage2, #qcPage2 * { visibility: visible !important; }
+    #qcPage2 {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
