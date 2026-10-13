@@ -16,6 +16,7 @@
  */
 const QrCard = (() => {
     const config = {
+        // the header image of the portrait card (page 2) — put your file here
         topImage: "/static/img/bg.png"
     };
 
@@ -130,8 +131,12 @@ const QrCard = (() => {
                     <div class="qc-page4">
                         <div class="qc-sheet-head"><i class="bi bi-card-checklist"></i> Requirements</div>
                         <div class="qc-req-body">
-                            
-                           
+                            <div class="qc-attach-box" id="qcAttachBox">
+                                <div><i class="bi bi-image"></i><br>No image attached yet</div>
+                            </div>
+                            <div class="qc-tag-group" id="qcTagGroup">
+                                
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -194,6 +199,7 @@ const QrCard = (() => {
         $("qcD-byRow").style.display = mode === "staff" ? "flex" : "none";
 
         // page 4: staff sets the address tag, users only see the attach area
+        $("qcTagGroup").style.display = mode === "staff" ? "flex" : "none";
     }
 
     // ─── buttons ───
@@ -261,7 +267,12 @@ const QrCard = (() => {
         if (fn && confirm(message)) fn(row);
     }
 
-   
+    function emailRequirements() {
+        const tag = $("qcAddressTag").value.trim();
+        if (!tag) { showMessageModal("Type an address tag first.", "Missing Address Tag"); return; }
+        opts.onEmailRequirements && opts.onEmailRequirements(row, tag);
+    }
+
     async function saveImage(btn) {
         const original = btn.innerHTML;
         btn.disabled = true;
