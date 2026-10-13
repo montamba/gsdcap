@@ -12,6 +12,7 @@ import bcrypt
 import os
 from dotenv import load_dotenv
 import secrets
+import time
 from datetime import datetime, timedelta
 import base64
 import re
@@ -23,16 +24,30 @@ load_dotenv()
 class Main:
     def __init__(self):
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY", "gsd-parking-secret-key")
+        secret = os.environ.get("SECRET_KEY")
+        if not secret:
+            print("[WARN] SECRET_KEY is not set - using a random key (sessions reset on restart)")
+            secret = secrets.token_hex(32)
+        self.app.secret_key = secret
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
         self.app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=1)
 
         self.sql = SQL()
+        self._login_fails = {}
 
         self.blueprints()
         self.routes()
 
+
+    def _login_locked(self, key, limit=5, window=900):
+        now = time.time()
+        hits = [t for t in self._login_fails.get(key, []) if now - t < window]
+        self._login_fails[key] = hits
+        return len(hits) >= limit
+
+    def _login_failed(self, key):
+        self._login_fails.setdefault(key, []).append(time.time())
 
     def routes(self):
         def reply(status, message, code=None):
@@ -74,6 +89,9 @@ class Main:
 
             if not email or not password or role not in ("admin", "user", "guard", "staff"):
                 return reply("failed", "Missing or invalid fields")
+            key = (request.remote_addr, email.lower())
+            if self._login_locked(key):
+                return reply("failed", "Too many failed attempts. Try again in 15 minutes.", 429)
             cur = self.sql.sql.cursor()
             if role == "admin":
                 cur.execute("SELECT id, email, password FROM admin WHERE email=%s", (email,))
@@ -81,7 +99,8 @@ class Main:
                 cur.execute("SELECT id, email, password, role FROM users WHERE email=%s AND role=%s", (email, role))
             user = cur.fetchone()
             if not user:
-                return reply("failed", "Invalid email or password ")
+                self._login_failed(key)
+                return reply("failed", "Invalid email or password")
             if role == "admin":
                 user += ("admin",)
             cur.close()
@@ -94,6 +113,7 @@ class Main:
             except Exception:
                 password_matches = password == hashed_pw
             if not password_matches:
+                self._login_failed(key)
                 return reply("failed", "Invalid email or password")
 
             if role != "admin":
@@ -110,6 +130,7 @@ class Main:
             session.clear()
             session.update(user_id=user_id, email=user_email, role=user_role, token={})
             session.permanent = False
+            self._login_fails.pop(key, None)
             return jsonify(status="Success", message="Login successful", role=user_role)
             
        

@@ -11,6 +11,7 @@
         <button {% if active_page == 'users' %}class="active-nav"{% endif %} onclick="window.location.href='/admin/users'"><i class="bi bi-people-fill"></i> Manage Users</button>
         <p class="sml">Analytics</p>
         <button {% if active_page == 'reports' %}class="active-nav"{% endif %} onclick="window.location.href='/admin/reports'"><i class="bi bi-graph-up-arrow"></i> Reports & Logs</button>
+        <button {% if active_page == 'guard_history' %}class="active-nav"{% endif %} onclick="window.location.href='/admin/guard_history'"><i class="bi bi-shield-check"></i> Guard History</button>
         <p class="sml">Account</p>
         <button {% if active_page == 'profile' %}class="active-nav"{% endif %} onclick="window.location.href='/admin/profile'"><i class="bi bi-person-circle"></i> Profile</button>
     </div>

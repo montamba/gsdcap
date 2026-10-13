@@ -1,23 +1,72 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect
-import json, os
+from flask import Blueprint, render_template, request, jsonify, session, redirect, Response
+import csv, hmac, io, os, re
+from datetime import datetime, date, timedelta
 from other.cache import cache
 from other.mysql_ import SQL
 
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "parking.json")
 
-def _paging():
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _paging(default_limit=5):
     try: page = max(1, int(request.args.get("page", 1)))
     except ValueError: page = 1
-    try: limit = min(100, max(1, int(request.args.get("limit", 5))))
-    except ValueError: limit = 5
+    try: limit = min(100, max(1, int(request.args.get("limit", default_limit))))
+    except ValueError: limit = default_limit
     return page, limit, (page - 1) * limit
+
+
+def _ser(rows):
+    return [
+        [str(v) if not isinstance(v, (int, str, float, type(None))) else v for v in r]
+        for r in (rows or [])
+    ]
+
+
+def _scan_filters():
+    """Read and validate the guard-history filters from the query string.
+    Raises ValueError on a bad date."""
+    a = request.args
+    f = {}
+    guard = (a.get("guard") or "").strip()
+    if guard.isdigit():
+        f["guard_id"] = int(guard)
+    status = (a.get("status") or "").strip().lower()
+    if status in ("accepted", "failed", "expired"):
+        f["status"] = status
+    action = (a.get("action") or "").strip().lower()
+    if action in ("entry", "exit"):
+        f["action"] = action
+    auth = (a.get("auth") or "").strip()
+    if auth in ("0", "1"):
+        f["authorized"] = int(auth)
+    for key in ("date_from", "date_to"):
+        value = (a.get(key) or "").strip()
+        if value:
+            datetime.strptime(value, "%Y-%m-%d")  # ValueError if invalid
+            f[key] = value
+    if f.get("date_from") and f.get("date_to") and f["date_from"] > f["date_to"]:
+        raise ValueError("date range")
+    q = (a.get("q") or "").strip()[:50]
+    if q:
+        f["q"] = q
+    return f
+
+
+def _csv_safe(v):
+    """Stop spreadsheet apps from running cell contents as formulas."""
+    if v is None:
+        return ""
+    v = str(v)
+    return "'" + v if v[:1] in ("=", "+", "-", "@", "\t", "\r") else v
 
 
 class Admin:
     def __init__(self, sql):
         self.admin = Blueprint("admin", __name__, url_prefix="/admin")
-        self.sql:SQL = sql
+        self.sql: SQL = sql
         self.cache = cache
 
         self.routes()
@@ -35,6 +84,26 @@ class Admin:
                 jsonify({"status": "forbidden", "message": "Admin access required"}),
                 403,
             )
+        # CSRF: browsers can't add a custom header on a cross-site request
+        # without a CORS preflight, so requiring one blocks forged writes.
+        if (
+            request.method not in ("GET", "HEAD", "OPTIONS")
+            and request.headers.get("X-Requested-With") != "XMLHttpRequest"
+        ):
+            return (
+                jsonify({"status": "forbidden", "message": "Missing request header"}),
+                403,
+            )
+
+    def _password_ok(self, password, stored):
+        """Check an admin password (bcrypt, with the same plain-text legacy
+        fallback the login route uses)."""
+        if not password or stored is None:
+            return False
+        if self.sql._check(password, stored):
+            return True
+        stored_s = stored.decode() if isinstance(stored, bytes) else str(stored)
+        return hmac.compare_digest(password.encode(), stored_s.encode())
 
     def routes(self):
         self.admin.before_request(self._protect)
@@ -52,6 +121,10 @@ class Admin:
         @self.admin.route("/reports")
         def reports():
             return render_template("admin/reports.html")
+
+        @self.admin.route("/guard_history")
+        def guard_history():
+            return render_template("admin/guard_history.html")
 
         @self.admin.route("/users")
         def users():
@@ -90,14 +163,7 @@ class Admin:
             self.sql.purge_expired_deletions()
             self.cache.deletethathas("users")
             rows = self.sql.get_pending_deletions()
-            serialized = [
-                [
-                    str(v) if not isinstance(v, (int, str, float, type(None))) else v
-                    for v in r
-                ]
-                for r in rows
-            ]
-            return jsonify({"status": "good", "data": serialized})
+            return jsonify({"status": "good", "data": _ser(rows)})
 
         @self.admin.route("/user_counts")
         def user_counts():
@@ -135,17 +201,10 @@ class Admin:
                 total = self.sql.countallusers()
                 self.cache.add(keyname2, total)
 
-            serialized = [
-                [
-                    str(v) if not isinstance(v, (int, str, float, type(None))) else v
-                    for v in u
-                ]
-                for u in users
-            ]
             return jsonify(
                 {
                     "status": "good",
-                    "data": serialized,
+                    "data": _ser(users),
                     "total": total,
                     "page": page,
                     "limit": limit,
@@ -161,11 +220,11 @@ class Admin:
 
         @self.admin.route("/add_user", methods=["POST"])
         def add_user():
-            data = request.get_json()
-            username = data.get("username", "").strip()
-            email = data.get("email", "").strip()
-            password = data.get("password", "")
-            role = data.get("role", "")
+            data = request.get_json(silent=True) or {}
+            username = (data.get("username") or "").strip()
+            email = (data.get("email") or "").strip()
+            password = data.get("password") or ""
+            role = data.get("role") or ""
 
             if not all([username, email, password, role]):
                 return jsonify({"status": "bad", "message": "All fields are required"})
@@ -205,7 +264,7 @@ class Admin:
             name = "admin_qrcode"
             page, limit, offset = _paging()
 
-            keyname = name + str(offset)
+            keyname = f"{name}{limit}_{offset}"
             if not self.cache.check_key(keyname):
                 sqldata = self.sql.getallqr(limit=limit, offset=offset)
                 self.cache.add(keyname, sqldata)
@@ -218,12 +277,45 @@ class Admin:
                 self.cache.add(keyname2, sqltotal)
 
             total = self.cache.get(keyname2)
-            ndata = [[str(d[1] or "—"), str(d[10]), str(d[14] or "—")] for d in data]
+            now = datetime.now()
+
+            def qr_status(d):
+                status = (d[8] or "active").lower()
+                if status == "active" and d[7] and d[7] < now:
+                    return "expired"
+                return status
+
+            # [code, created_at, created_by, plate, owner, status, valid_until]
+            ndata = [
+                [str(d[1] or "Pending"), str(d[10]), str(d[14] or "—"),
+                 str(d[2] or "—"), str(d[3] or "—"), qr_status(d), str(d[7] or "—")]
+                for d in data
+            ]
 
             return jsonify(
                 {
                     "status": "good",
                     "data": ndata,
+                    "total": total,
+                    "page": page,
+                    "pages": max(1, -(-total // limit)),
+                }
+            )
+
+        @self.admin.route("/recent_users")
+        def recent_users():
+            page, limit, offset = _paging()
+            rows = self.sql.get_recent_users(limit, offset)
+            total = self.sql.countallusers()
+            # [id, username, role, created_at, status]
+            data = [
+                [r[0], r[1], r[2], str(r[3]), "pending deletion" if r[4] else "active"]
+                for r in rows
+            ]
+            return jsonify(
+                {
+                    "status": "good",
+                    "data": data,
                     "total": total,
                     "page": page,
                     "pages": max(1, -(-total // limit)),
@@ -249,7 +341,7 @@ class Admin:
             name = "admin_history"
             page, limit, offset = _paging()
 
-            keyname = name + str(offset)
+            keyname = f"{name}{limit}_{offset}"
             if not self.cache.check_key(keyname):
                 sqldata = self.sql.gethistory(limit=limit, offset=offset)
                 self.cache.add(keyname, sqldata)
@@ -263,17 +355,10 @@ class Admin:
 
             total = self.cache.get(keyname1)
 
-            serialized = [
-                [
-                    str(v) if not isinstance(v, (int, str, float, type(None))) else v
-                    for v in row
-                ]
-                for row in data
-            ]
             return jsonify(
                 {
                     "status": "good",
-                    "data": serialized,
+                    "data": _ser(data),
                     "total": total,
                     "page": page,
                     "pages": max(1, -(-total // limit)),
@@ -285,7 +370,7 @@ class Admin:
             name = "admin_history"
             page, limit, offset = _paging()
 
-            keyname = name + "full" + str(offset)
+            keyname = f"{name}full{limit}_{offset}"
             if not self.cache.check_key(keyname):
                 sqldata = self.sql.gethistory_full(limit=limit, offset=offset)
                 self.cache.add(keyname, sqldata)
@@ -298,46 +383,79 @@ class Admin:
                 self.cache.add(keyname1, sqltotal)
             total = self.cache.get(keyname1)
 
-            serialized = [
-                [
-                    str(v) if not isinstance(v, (int, str, float, type(None))) else v
-                    for v in row
-                ]
-                for row in data
-            ]
             return jsonify(
                 {
                     "status": "good",
-                    "data": serialized,
+                    "data": _ser(data),
                     "total": total,
                     "page": page,
                     "pages": max(1, -(-total // limit)),
                 }
             )
 
+        # ─── GUARD SCAN HISTORY (all guards) ──────────────
+
+        @self.admin.route("/guards")
+        def guards():
+            rows = self.sql.get_guards()
+            return jsonify({"status": "good", "data": [[g[0], g[1]] for g in rows]})
+
+        @self.admin.route("/guard_scans")
+        def guard_scans():
+            try:
+                filters = _scan_filters()
+            except ValueError:
+                return jsonify({"status": "bad", "message": "Invalid date filter"}), 400
+            page, limit, offset = _paging(default_limit=15)
+            summary = self.sql.get_scan_summary(filters)
+            rows = self.sql.get_scan_history(filters, limit, offset)
+            total = summary["total"]
+            return jsonify(
+                {
+                    "status": "good",
+                    # [id, date, guard, plate, qr_code, action, result, department, authorized]
+                    "data": _ser(rows),
+                    "summary": summary,
+                    "total": total,
+                    "page": page,
+                    "limit": limit,
+                    "pages": max(1, -(-total // limit)),
+                }
+            )
+
+        @self.admin.route("/guard_scans/export")
+        def guard_scans_export():
+            try:
+                filters = _scan_filters()
+            except ValueError:
+                return jsonify({"status": "bad", "message": "Invalid date filter"}), 400
+            rows = self.sql.get_scan_history(filters, 50000, 0)
+            buf = io.StringIO()
+            buf.write("\ufeff")  # lets Excel read UTF-8
+            w = csv.writer(buf)
+            w.writerow(["ID", "Date", "Guard", "Plate", "QR Code", "Action",
+                        "Result", "Department", "Authorized"])
+            for r in rows:
+                r = list(r)
+                r[8] = "Yes" if int(r[8] or 0) == 1 else "No"
+                w.writerow([_csv_safe(v) for v in r])
+            stamp = datetime.now().strftime("%Y%m%d_%H%M")
+            return Response(
+                buf.getvalue(),
+                mimetype="text/csv",
+                headers={"Content-Disposition": f"attachment; filename=guard_scan_history_{stamp}.csv"},
+            )
+
         # ─── DASHBOARD ────────────────────────────────────
 
         @self.admin.route("/dashboard_data")
         def dashboard_data():
-            name = "admin_qrcode"
             parking = self.sql.getparking()
             entries = self.sql.get_total_entry_exit()
-
-            keyname = name + "qrcount"
-            if not self.cache.check_key(keyname):
-                sqlactive_qr = self.sql.countallqr()
-                self.cache.add(keyname, sqlactive_qr)
-
-            active_qr = self.cache.get(keyname)
-            
-            print("hi ============")
-            print({
-                                "status": "good",
-                                "parking_slots": parking.get("total", 0),
-                                "occupied": parking.get("occupied", 0),
-                                "entered_today": entries["entry"],
-                                "active_qr": active_qr,
-                            })
+            # Active = status active and not past expiry (revoked, expired and
+            # pending-request rows are excluded)
+            stats = self.sql.getqrstats()
+            active_qr = int(stats[0]) if stats else 0
 
             return jsonify(
                 {
@@ -351,7 +469,14 @@ class Admin:
 
         @self.admin.route("/activity_chart")
         def activity_chart():
-            return jsonify({"status": "good", "labels": [], "data": []})
+            counts = {str(d): int(c) for d, c in self.sql.get_weekly_entries()}
+            today = date.today()
+            labels, data = [], []
+            for i in range(6, -1, -1):
+                d = today - timedelta(days=i)
+                labels.append(d.strftime("%a %d"))
+                data.append(counts.get(str(d), 0))
+            return jsonify({"status": "good", "labels": labels, "data": data})
 
         @self.admin.route("/recent_activity")
         def recent_activity():
@@ -367,54 +492,57 @@ class Admin:
             if not row:
                 return jsonify({"status": "bad", "message": "Admin not found"})
             return jsonify({"status": "good", "username": row[0], "email": row[1]})
-        
+
         @self.admin.route("/update_username", methods=["POST"])
         def update_username():
-            data:dict = request.get_json()
+            data = request.get_json(silent=True) or {}
             username = (data.get("newusername") or "").strip()
-            password = (data.get("password") or "").strip()
-            
-            
-            
+            password = data.get("password") or ""
+
             if len(username) < 3:
                 return jsonify({"status": "bad", "message": "Invalid username"})
-            
-            valid_password = self.sql.verifyuser(session["email"], password)
-            if not valid_password:
+
+            # Admins live in the admin table, so check against that, not users.
+            stored = self.sql.getadmin_password(session["user_id"])
+            if not self._password_ok(password, stored):
                 return jsonify({"status": "bad", "message": "Wrong Credentials"})
-            
-            chg = self.sql.change_admin_username(username, session["email"])
-            
-            if chg:
+
+            if self.sql.admin_username_taken(username, session["user_id"]):
+                return jsonify({"status": "bad", "message": "Username is already taken"})
+
+            if self.sql.updateadmin_username(session["user_id"], username):
                 return jsonify({"status": "good", "message": "Username updated successfully"})
-                
+
             return jsonify({"status": "bad", "message": "Something went wrong please try again"})
-            
 
         @self.admin.route("/update_email", methods=["PUT"])
         def update_email():
-            data = request.get_json()
-            email = (data.get("email") or "").strip()
+            data = request.get_json(silent=True) or {}
+            email = (data.get("email") or "").strip().lower()
+            password = data.get("password") or ""
 
             if not email:
                 return jsonify({"status": "bad", "message": "Email is required"})
-            if "@" not in email:
+            if not EMAIL_RE.match(email):
                 return jsonify(
                     {"status": "bad", "message": "Enter a valid email address"}
                 )
 
-            try:
-                self.sql.updateadmin_email(session["user_id"], email)
-                session["email"] = email
-            except Exception as e:
-                print(e)
-                return jsonify({"status": "bad", "message": "Failed to update email"})
+            stored = self.sql.getadmin_password(session["user_id"])
+            if not self._password_ok(password, stored):
+                return jsonify({"status": "bad", "message": "Wrong Credentials"})
 
+            if self.sql.admin_email_taken(email, session["user_id"]):
+                return jsonify({"status": "bad", "message": "Email is already in use"})
+
+            if not self.sql.updateadmin_email(session["user_id"], email):
+                return jsonify({"status": "bad", "message": "Failed to update email"})
+            session["email"] = email
             return jsonify({"status": "good", "message": "Email updated successfully"})
 
         @self.admin.route("/update_password", methods=["PUT"])
         def update_password():
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             current_pw = data.get("current_password", "")
             new_pw = data.get("new_password", "")
             confirm_pw = data.get("confirm_password", "")
@@ -437,26 +565,16 @@ class Admin:
                     {"status": "bad", "message": "New passwords do not match"}
                 )
 
-            # Verify current password (supports both bcrypt and plain-text legacy)
             stored = self.sql.getadmin_password(session["user_id"])
             if stored is None:
                 return jsonify({"status": "bad", "message": "Admin not found"})
 
-            password_ok = False
-            try:
-                password_ok = self.sql._check(current_pw, stored)
-            except Exception:
-                password_ok = current_pw == stored
-
-            if not password_ok:
+            if not self._password_ok(current_pw, stored):
                 return jsonify(
                     {"status": "bad", "message": "Current password is incorrect"}
                 )
 
-            try:
-                self.sql.updateadmin_password(session["user_id"], new_pw)
-            except Exception as e:
-                print(e)
+            if not self.sql.updateadmin_password(session["user_id"], new_pw):
                 return jsonify(
                     {"status": "bad", "message": "Failed to update password"}
                 )

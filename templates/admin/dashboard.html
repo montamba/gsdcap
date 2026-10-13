@@ -228,10 +228,10 @@
                 
                 return `
                     <tr>
-                        <td style="font-family: 'Roboto', sans-serif !important;font-size:11px;color:#2563eb;">${activity.qr_code || '—'}</td>
-                        <td style="font-size:11px;color:#94a3b8;">${activity.time || '—'}</td>
+                        <td style="font-family: 'Roboto', sans-serif !important;font-size:11px;color:#2563eb;">${escapeHTML(activity.qr_code || '—')}</td>
+                        <td style="font-size:11px;color:#94a3b8;">${escapeHTML(activity.time || '—')}</td>
                         <td>${actionBadge}</td>
-                        <td class="plate">${activity.plate || '—'}</td>
+                        <td class="plate">${escapeHTML(activity.plate || '—')}</td>
                         <td style="color:#10b981;font-weight:600;">${activity.status === 'accepted' ? '✓ Accepted' : '✗ Rejected'}</td>
                     </tr>
                 `;

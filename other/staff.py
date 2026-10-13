@@ -312,7 +312,6 @@ class Staff:
                 sqlqrs = self.sql.getallqr(limit=limit, offset=offset)
                 self.cache.add(keyname, sqlqrs)
             qrs = self.cache.get(keyname)
-            print(qrs)
             
 
             keyname1 = name + "count"

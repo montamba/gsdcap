@@ -1219,7 +1219,6 @@ class SQL:
             cur.execute("SELECT * FROM admin WHERE email=%s", (email,))
             print("num2")
             admin  = cur.fetchone()
-            print(admin)
             print("num3")
             if not admin:
                 return False
@@ -1390,3 +1389,156 @@ class SQL:
             print(f"[EMAIL] send_qr_email error: {repr(e)}")
             traceback.print_exc()
             return False
+
+
+    # ──────────────────────────────────────────────────────────────
+    # ADMIN: guard scan history, weekly chart, profile helpers
+    # ──────────────────────────────────────────────────────────────
+
+    def get_guards(self):
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT id, username FROM users WHERE role='guard' ORDER BY username")
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_guards error: {e}")
+            return []
+
+    def _scan_where(self, f):
+        cond, params = ["1=1"], []
+        if f.get("guard_id") is not None:
+            cond.append("h.guard = %s"); params.append(f["guard_id"])
+        if f.get("status"):
+            cond.append("h.status = %s"); params.append(f["status"])
+        if f.get("action"):
+            cond.append("h.action = %s"); params.append(f["action"])
+        if f.get("authorized") is not None:
+            cond.append("h.is_authorized = %s"); params.append(f["authorized"])
+        if f.get("date_from"):
+            cond.append("h.created_at >= %s"); params.append(f["date_from"])
+        if f.get("date_to"):
+            cond.append("h.created_at < DATE_ADD(%s, INTERVAL 1 DAY)"); params.append(f["date_to"])
+        if f.get("q"):
+            like = "%" + f["q"].replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+            cond.append("(h.plate LIKE %s OR h.data LIKE %s)")
+            params.extend([like, like])
+        return " AND ".join(cond), params
+
+    def get_scan_history(self, filters, limit=15, offset=0):
+        """Rows: id, date, guard, plate, qr_code, action, result, department, authorized."""
+        try:
+            where, params = self._scan_where(filters)
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT h.id, h.created_at,
+                           COALESCE(u.username, 'Deleted user'),
+                           COALESCE(h.plate, '—'),
+                           COALESCE(h.data, 'MANUAL'),
+                           COALESCE(h.action, 'entry'),
+                           h.status,
+                           COALESCE(h.department, ''),
+                           COALESCE(h.is_authorized, 0)
+                    FROM history h
+                    LEFT JOIN users u ON h.guard = u.id
+                    WHERE {where}
+                    ORDER BY h.id DESC
+                    LIMIT %s OFFSET %s""",
+                tuple(params + [limit, offset]),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_scan_history error: {e}")
+            return []
+
+    def get_scan_summary(self, filters) -> dict:
+        empty = {"total": 0, "accepted": 0, "expired": 0, "failed": 0, "unauthorized": 0}
+        try:
+            where, params = self._scan_where(filters)
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT COUNT(*),
+                           COALESCE(SUM(h.status = 'accepted'), 0),
+                           COALESCE(SUM(h.status = 'expired'), 0),
+                           COALESCE(SUM(h.status = 'failed'), 0),
+                           COALESCE(SUM(COALESCE(h.is_authorized, 0) = 0), 0)
+                    FROM history h WHERE {where}""",
+                tuple(params),
+            )
+            row = cur.fetchone()
+            cur.close()
+            return {"total": int(row[0]), "accepted": int(row[1]), "expired": int(row[2]),
+                    "failed": int(row[3]), "unauthorized": int(row[4])}
+        except Exception as e:
+            print(f"[DB] get_scan_summary error: {e}")
+            return empty
+
+    def get_weekly_entries(self):
+        """(date, accepted entries) for the last 7 days including today."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT DATE(created_at), COUNT(*) FROM history
+                   WHERE status = 'accepted' AND action = 'entry'
+                     AND created_at >= CURDATE() - INTERVAL 6 DAY
+                   GROUP BY DATE(created_at)"""
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_weekly_entries error: {e}")
+            return []
+
+    def updateadmin_username(self, admin_id, username: str) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute("UPDATE admin SET username=%s WHERE id=%s", (username, admin_id))
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            print(f"[DB] updateadmin_username error: {e}")
+            return False
+
+    def admin_username_taken(self, username: str, admin_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT 1 FROM admin WHERE username=%s AND id<>%s LIMIT 1", (username, admin_id))
+            row = cur.fetchone()
+            cur.close()
+            return row is not None
+        except Exception as e:
+            print(f"[DB] admin_username_taken error: {e}")
+            return True  # fail closed
+
+    def admin_email_taken(self, email: str, admin_id) -> bool:
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT 1 FROM admin WHERE LOWER(email)=LOWER(%s) AND id<>%s LIMIT 1", (email, admin_id))
+            row = cur.fetchone()
+            cur.close()
+            return row is not None
+        except Exception as e:
+            print(f"[DB] admin_email_taken error: {e}")
+            return True  # fail closed
+
+
+    def get_recent_users(self, limit=5, offset=0):
+        """Newest users first: id, username, role, created_at, deletion_requested_at."""
+        try:
+            cur = self._cursor()
+            cur.execute(
+                """SELECT id, username, role, created_at, deletion_requested_at
+                   FROM users ORDER BY id DESC LIMIT %s OFFSET %s""",
+                (limit, offset),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] get_recent_users error: {e}")
+            return []

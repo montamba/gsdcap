@@ -178,10 +178,7 @@ class Users:
             offset = (page - 1) * limit
 
             res = self.sql.getqrbyemailandhasdata(session["email"], limit, offset)
-            print("my email ===================", session["email"])
-            print(res)
             total = self.sql.countqrbyemailandhasdata(session["email"]) or 0
-            print("================================Toootal: ", total)
             pages = max(1, -(-total // limit)) if limit else 1
 
             

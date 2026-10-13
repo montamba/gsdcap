@@ -4,10 +4,10 @@
 const API = {
     async sendData(url, data = {}, method = "GET") {
         try {
-            const options = { method };
+            const options = { method, headers: { 'X-Requested-With': 'XMLHttpRequest' } };
 
             if (method !== "GET" && method !== "DELETE") {
-                options.headers = { 'Content-Type': 'application/json' };
+                options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(data);
             }
 
