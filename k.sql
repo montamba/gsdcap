@@ -43,6 +43,41 @@ INSERT INTO `admin` VALUES (1,'montamba','mon@mon','monmonmon');
 UNLOCK TABLES;
 
 --
+-- Table structure for table `car_details`
+--
+
+DROP TABLE IF EXISTS `car_details`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `car_details` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `plate` varchar(50) NOT NULL,
+  `owner_name` varchar(255) DEFAULT NULL,
+  `owner_email` varchar(255) DEFAULT NULL,
+  `owner_phone` varchar(20) DEFAULT NULL,
+  `department` varchar(50) DEFAULT NULL,
+  `vehicle_type` varchar(20) NOT NULL DEFAULT 'car',
+  `space_units` tinyint NOT NULL DEFAULT '2',
+  `vehicle_color` varchar(20) DEFAULT NULL,
+  `vehicle_model_brand` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_plate` (`plate`),
+  KEY `idx_owner_email` (`owner_email`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `car_details`
+--
+
+LOCK TABLES `car_details` WRITE;
+/*!40000 ALTER TABLE `car_details` DISABLE KEYS */;
+INSERT INTO `car_details` VALUES (1,'123ABC','mon','monmon272005@gmail.com','09876543','visitor','car',2,NULL,NULL,'2026-08-29 08:46:37'),(2,'123ABC','monmon','monmon272005@gmail.com','123','student','car',2,NULL,NULL,'2026-08-29 09:27:24'),(3,'123ABC','teat','monmon272005@gmail.com','mon','visitor','motorcycle',1,NULL,NULL,'2026-09-02 12:42:20'),(4,'Test123','Mon','monmon272005@gmail.com',NULL,'visitor','car',2,NULL,NULL,'2026-09-04 08:32:25'),(5,'123ABC','mon','michael@michael','098876',NULL,'motorcycle',1,NULL,NULL,'2026-09-05 05:12:19'),(6,'123ABC','mon','michael@michael','0909',NULL,'car',2,NULL,NULL,'2026-09-05 05:15:03'),(7,'123ABC','mon','michael@michael','0909',NULL,'car',2,NULL,NULL,'2026-09-05 05:16:25'),(8,'123ABC','mon','michael@michael','0909',NULL,'car',2,NULL,NULL,'2026-09-05 05:17:37'),(9,'123ABC','viy','michael@michael','',NULL,'car',2,NULL,NULL,'2026-09-05 05:17:55'),(10,'123ABC','viy','michael@michael','meme',NULL,'car',2,NULL,NULL,'2026-09-05 05:24:19'),(11,'TRY123','Mob','michael@michael','0909',NULL,'car',2,NULL,NULL,'2026-09-05 06:30:14'),(12,'123ABC','kychu','michael@michael','',NULL,'car',2,NULL,NULL,'2026-09-10 08:42:52'),(13,'123ABC','Fritz','michael@michael','',NULL,'motorcycle',1,NULL,NULL,'2026-09-17 02:13:52');
+/*!40000 ALTER TABLE `car_details` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `history`
 --
 
@@ -62,7 +97,7 @@ CREATE TABLE `history` (
   PRIMARY KEY (`id`),
   KEY `guard` (`guard`),
   CONSTRAINT `history_ibfk_guard` FOREIGN KEY (`guard`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,7 +106,7 @@ CREATE TABLE `history` (
 
 LOCK TABLES `history` WRITE;
 /*!40000 ALTER TABLE `history` DISABLE KEYS */;
-INSERT INTO `history` VALUES (64,NULL,3,'accepted','entry','2026-09-06 12:17:48','123ABC','VISITOR',0),(65,NULL,3,'accepted','entry','2026-09-06 12:17:48',NULL,NULL,0),(66,NULL,3,'accepted','entry','2026-09-06 12:19:06','LLL222','COED',0);
+INSERT INTO `history` VALUES (64,NULL,3,'accepted','entry','2026-09-06 12:17:48','123ABC','VISITOR',0),(65,NULL,3,'accepted','entry','2026-09-06 12:17:48',NULL,NULL,0),(66,NULL,3,'accepted','entry','2026-09-06 12:19:06','LLL222','COED',0),(67,'GSD-YEL7-ADZV',3,'accepted','entry','2026-10-07 22:48:58','123ABC','visitor',1),(68,'GSD-YEL7-ADZV',3,'accepted','exit','2026-10-07 22:50:25','123ABC','visitor',1),(69,'GSD-YEL7-ADZV',3,'accepted','entry','2026-10-07 22:51:24','123ABC','visitor',1),(70,'GSD-YEL7-ADZV',3,'failed','entry','2026-10-07 23:30:48','123ABC','visitor',0),(71,'GSD-YEL7-ADZV',3,'accepted','exit','2026-10-07 23:31:07','123ABC','visitor',1),(72,'GSD-YEL7-ADZV',3,'accepted','entry','2026-10-07 23:32:01','123ABC','visitor',1),(73,'GSD-VK3A-AMWY',3,'accepted','exit','2026-10-10 09:53:23','123ABC','student',1);
 /*!40000 ALTER TABLE `history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -98,7 +133,7 @@ CREATE TABLE `parking` (
 
 LOCK TABLES `parking` WRITE;
 /*!40000 ALTER TABLE `parking` DISABLE KEYS */;
-INSERT INTO `parking` VALUES (1,18,2,20,1.5);
+INSERT INTO `parking` VALUES (1,19,1,20,1);
 /*!40000 ALTER TABLE `parking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -111,26 +146,22 @@ DROP TABLE IF EXISTS `qrcode`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `qrcode` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `data` varchar(200) DEFAULT NULL,
-  `plate` varchar(50) NOT NULL,
-  `owner_name` varchar(255) DEFAULT NULL,
-  `owner_email` varchar(255) DEFAULT NULL,
-  `owner_phone` varchar(20) DEFAULT NULL,
-  `department` varchar(50) DEFAULT NULL,
+  `code` varchar(200) DEFAULT NULL,
+  `car_details_id` int NOT NULL,
   `expiry` datetime DEFAULT NULL,
   `status` varchar(20) DEFAULT 'active',
   `created_by` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `car_status` enum('IN','OUT') DEFAULT NULL,
+  `requirements` int DEFAULT NULL,
   `vehicle_type` varchar(20) NOT NULL DEFAULT 'car',
   `space_units` tinyint NOT NULL DEFAULT '2',
-  `vehicle_color` varchar(20) DEFAULT NULL,
-  `vehicle_model_brand` varchar(20) DEFAULT NULL,
-  `requirements` int DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `data` (`data`),
+  UNIQUE KEY `data` (`code`),
   KEY `fk_user` (`created_by`),
   KEY `requirements` (`requirements`),
+  KEY `fk_qrcode_car_details` (`car_details_id`),
+  CONSTRAINT `fk_qrcode_car_details` FOREIGN KEY (`car_details_id`) REFERENCES `car_details` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `qrcode_ibfk_1` FOREIGN KEY (`requirements`) REFERENCES `vehicle_requirements` (`id`),
   CONSTRAINT `qrcode_ibfk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -142,7 +173,7 @@ CREATE TABLE `qrcode` (
 
 LOCK TABLES `qrcode` WRITE;
 /*!40000 ALTER TABLE `qrcode` DISABLE KEYS */;
-INSERT INTO `qrcode` VALUES (1,'GSD-CPAB-7SFX','123ABC','mon','monmon272005@gmail.com','09876543','visitor','2026-09-05 00:00:00','active',1,'2026-08-29 08:46:37',NULL,'car',2,NULL,NULL,NULL),(2,'GSD-VK3A-AMWY','123ABC','monmon','monmon272005@gmail.com','123','student','2026-09-05 00:00:00','active',1,'2026-08-29 09:27:24','IN','car',2,NULL,NULL,NULL),(3,'GSD-YEL7-ADZV','123ABC','teat','monmon272005@gmail.com','mon','visitor','2026-10-10 00:00:00','active',1,'2026-09-02 12:42:20','OUT','motorcycle',1,NULL,NULL,NULL),(4,'GSD-UFG5-AXTS','Test123','Mon','monmon272005@gmail.com',NULL,'visitor','2026-10-02 00:00:00','active',1,'2026-09-04 08:32:25',NULL,'car',2,NULL,NULL,NULL),(5,NULL,'123ABC','mon','michael@michael','098876',NULL,NULL,'active',7,'2026-09-05 05:12:19',NULL,'motorcycle',1,NULL,NULL,NULL),(6,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:15:03',NULL,'car',2,NULL,NULL,NULL),(7,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:16:25',NULL,'car',2,NULL,NULL,NULL),(8,NULL,'123ABC','mon','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 05:17:37',NULL,'car',2,NULL,NULL,NULL),(9,NULL,'123ABC','viy','michael@michael','',NULL,NULL,'active',7,'2026-09-05 05:17:55',NULL,'car',2,NULL,NULL,NULL),(10,NULL,'123ABC','viy','michael@michael','meme',NULL,NULL,'active',7,'2026-09-05 05:24:19',NULL,'car',2,NULL,NULL,NULL),(11,'GSD-W3PG0-ZXJLB','TRY123','Mob','michael@michael','0909',NULL,NULL,'active',7,'2026-09-05 06:30:14',NULL,'car',2,NULL,NULL,NULL),(12,NULL,'123ABC','kychu','michael@michael','',NULL,NULL,'active',7,'2026-09-10 08:42:52',NULL,'car',2,NULL,NULL,NULL),(13,'GSD-VNPXD-GQT3Z','123ABC','Fritz','michael@michael','',NULL,NULL,'active',7,'2026-09-17 02:13:52',NULL,'motorcycle',1,NULL,NULL,NULL);
+INSERT INTO `qrcode` VALUES (1,'GSD-CPAB-7SFX',1,'2026-09-05 00:00:00','active',1,'2026-08-29 08:46:37',NULL,NULL,'car',2),(2,'GSD-VK3A-AMWY',2,'2026-09-05 00:00:00','active',1,'2026-08-29 09:27:24','OUT',NULL,'car',2),(3,'GSD-YEL7-ADZV',3,'2026-10-10 00:00:00','active',1,'2026-09-02 12:42:20','IN',NULL,'car',2),(4,'GSD-UFG5-AXTS',4,'2026-10-02 00:00:00','active',1,'2026-09-04 08:32:25',NULL,NULL,'car',2),(5,NULL,5,NULL,'active',7,'2026-09-05 05:12:19',NULL,NULL,'car',2),(6,NULL,6,NULL,'active',7,'2026-09-05 05:15:03',NULL,NULL,'car',2),(7,NULL,7,NULL,'active',7,'2026-09-05 05:16:25',NULL,NULL,'car',2),(8,NULL,8,NULL,'active',7,'2026-09-05 05:17:37',NULL,NULL,'car',2),(9,NULL,9,NULL,'active',7,'2026-09-05 05:17:55',NULL,NULL,'car',2),(10,NULL,10,NULL,'active',7,'2026-09-05 05:24:19',NULL,NULL,'car',2),(11,'GSD-W3PG0-ZXJLB',11,NULL,'active',7,'2026-09-05 06:30:14',NULL,NULL,'car',2),(12,NULL,12,NULL,'active',7,'2026-09-10 08:42:52',NULL,NULL,'car',2),(13,'GSD-VNPXD-GQT3Z',13,NULL,'active',7,'2026-09-17 02:13:52',NULL,NULL,'car',2);
 /*!40000 ALTER TABLE `qrcode` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -276,4 +307,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-07 17:09:03
+-- Dump completed on 2026-10-14 12:26:47

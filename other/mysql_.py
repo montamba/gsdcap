@@ -467,7 +467,10 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                "SELECT 1 FROM qrcode WHERE UPPER(TRIM(plate)) = %s LIMIT 1",
+                """SELECT 1 FROM car_details c
+                JOIN qrcode q ON q.car_details_id = c.id
+                WHERE UPPER(TRIM(c.plate)) = %s AND q.code IS NOT NULL
+                LIMIT 1""",
                 (plate.strip().upper(),),
             )
             result = cur.fetchone()
