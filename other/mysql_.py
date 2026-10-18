@@ -551,6 +551,51 @@ class SQL:
         except Exception as e:
             print(f"[DB] countallqr error: {e}")
             return 0
+        
+    def _qr_search_where(self, q, status):
+        cond, params = ["1=1"], []
+        if q:
+            like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+            cond.append("(q.code LIKE %s OR c.plate LIKE %s OR c.owner_name LIKE %s)")
+            params.extend([like, like, like])
+        if status == "active":
+            cond.append("(q.status = 'active' AND (q.expiry IS NULL OR q.expiry >= NOW()))")
+        elif status == "expired":
+            cond.append("(q.status <> 'revoked' AND q.expiry < NOW())")
+        elif status == "revoked":
+            cond.append("q.status = 'revoked'")
+        return " AND ".join(cond), params
+
+    def searchqr(self, q="", status="", limit=5, offset=0):
+        """Search every QR. Exact code/plate matches come first, then newest."""
+        try:
+            where, params = self._qr_search_where(q, status)
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                    WHERE {where}
+                    ORDER BY (q.code = %s OR c.plate = %s) DESC, q.created_at DESC
+                    LIMIT %s OFFSET %s""",
+                tuple(params + [q, q, limit, offset]),
+            )
+            result = cur.fetchall()
+            cur.close()
+            return result
+        except Exception as e:
+            print(f"[DB] searchqr error: {e}")
+            return []
+
+    def countsearchqr(self, q="", status="") -> int:
+        try:
+            where, params = self._qr_search_where(q, status)
+            cur = self._cursor()
+            cur.execute(f"SELECT COUNT(*) {QR_FROM} WHERE {where}", tuple(params))
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] countsearchqr error: {e}")
+            return 0
 
     def countqrbyuser(self, user_id) -> int:
         try:

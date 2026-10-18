@@ -304,8 +304,26 @@ class Staff:
         def all_qr():
             name = "staff_qrcode"
             page = max(1, int(request.args.get("page", 1)))
-            limit = int(request.args.get("limit", 5))
+            limit = min(100, max(1, int(request.args.get("limit", 5))))
             offset = (page - 1) * limit
+            q = (request.args.get("q") or "").strip()[:50]
+            status = (request.args.get("status") or "").strip().lower()
+            if status not in ("active", "expired", "revoked"):
+                status = ""
+
+            if q or status:
+                qrs = self.sql.searchqr(q, status, limit, offset)
+                total = self.sql.countsearchqr(q, status)
+                return jsonify({
+                    "status": "good",
+                    "data": _ser(qrs),
+                    "total": total,
+                    "page": page,
+                    "limit": limit,
+                    "pages": max(1, -(-total // limit)),
+                })
+
+            keyname = name + str(offset)
 
             keyname = name + str(offset)
             if not self.cache.check_key(keyname):

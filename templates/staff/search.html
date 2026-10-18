@@ -666,13 +666,14 @@
                     <h2>Search & Filter</h2>
                 </div>
                 <div class="search-body">
-                    <input type="text" id="searchInput" placeholder="Search by data, plate, or owner…">
+                    <input type="text" id="searchInput" maxlength="50" placeholder="Search by data, plate, or owner… (press Enter)">
                     <select class="filter-select" id="statusFilter">
                         <option value="">All Statuses</option>
                         <option value="active">Active</option>
                         <option value="expired">Expired</option>
                         <option value="revoked">Revoked</option>
                     </select>
+                    <button class="btn-search" id="btnSearch"><i class="bi bi-search"></i> Search</button>
                     <button class="btn-clear" id="btnClear"><i class="bi bi-x-lg"></i> Clear</button>
                 </div>
             </div>
@@ -777,8 +778,8 @@
         let totalPages = 1;
         let totalRecords = 0;
         let activeQrId = null;
-        let filterTimer = null;
-
+        let appliedQ = "";        // the search that was actually submitted
+        let appliedStatus = "";
 
         function effectiveStatus(dbStatus, expiryStr) {
             if (dbStatus && dbStatus !== 'active') return dbStatus;
@@ -791,34 +792,28 @@
 
         async function loadPage(page = 1) {
             currentPage = page;
-            const q = document.getElementById("searchInput").value.trim();
-            const status = document.getElementById("statusFilter").value;
+            const params = new URLSearchParams({ page, limit: LIMIT });
+            if (appliedQ) params.set("q", appliedQ);
+            if (appliedStatus) params.set("status", appliedStatus);
 
-            const url = `/staff/all_qr?page=${page}&limit=${LIMIT}`;
-            const res = await API.get(url);
+            const res = await API.get(`/staff/all_qr?${params}`);
 
             if (!res || res.status !== "good") {
                 setEmpty("📭 NO RESULTS FOUND");
-                updatePager(0, 0, 1);
+                updatePager(0, 1, 1);
                 return;
-            }
-
-            let rows = res.data;
-            if (q) {
-                rows = rows.filter(d =>
-                    (d[ 1 ] || "None").toLowerCase().includes(q.toLowerCase()) ||
-                    (d[ 2 ] || "").toLowerCase().includes(q.toLowerCase()) ||
-                    (d[ 3 ] || "").toLowerCase().includes(q.toLowerCase())
-                );
-            }
-            if (status) {
-                rows = rows.filter(d => effectiveStatus(d[ 8 ], d[ 7 ]) === status);
             }
 
             totalRecords = res.total;
             totalPages = res.pages;
-            renderRows(rows, (page - 1) * LIMIT);
+            renderRows(res.data, (page - 1) * LIMIT);
             updatePager(res.total, page, res.pages);
+        }
+
+        function submitSearch() {
+            appliedQ = document.getElementById("searchInput").value.trim();
+            appliedStatus = document.getElementById("statusFilter").value;
+            loadPage(1);
         }
 
         function renderRows(data, offset) {
@@ -841,7 +836,6 @@
                 const tr = document.createElement("tr");
                 tr.className = "clickable";
 
-                // Safe text insertion into cells
                 tr.innerHTML = `
                     <td style="color:#94a3b8;">${offset + i + 1}</td>
                     <td style="color:#2563eb;font-weight:700;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(d[ 1 ] || "none")}</td>
@@ -851,7 +845,6 @@
                     <td style="font-size:11px;color:#64748b;">${escapeHTML(createdAt)}</td>
                 `;
 
-                // Secure Event Binding directly attached without inline quotes/eval
                 tr.addEventListener("click", () => openDetail(d));
                 tbody.appendChild(tr);
             });
@@ -894,51 +887,49 @@
             loadPage(p);
         }
 
-        function onFilterChange() {
-            clearTimeout(filterTimer);
-            filterTimer = setTimeout(() => loadPage(1), 320);
-        }
-
         function clearSearch() {
             document.getElementById("searchInput").value = "";
             document.getElementById("statusFilter").value = "";
+            appliedQ = "";
+            appliedStatus = "";
             loadPage(1);
         }
 
         function openDetail(d) {
-        QrCard.open(d, {
-            mode: "staff",
+            QrCard.open(d, {
+                mode: "staff",
 
-            onRenew: async (row, expiry) => {
-                const res = await API.put(`/staff/renew_qr/${row[0]}`, { expiry });
-                showMessageModal(res.message, res.status);
-                if (res.status === "good") { QrCard.close(); loadPage(currentPage); }
-            },
+                onRenew: async (row, expiry) => {
+                    const res = await API.put(`/staff/renew_qr/${row[0]}`, { expiry });
+                    showMessageModal(res.message, res.status);
+                    if (res.status === "good") { QrCard.close(); loadPage(currentPage); }
+                },
 
-            onRevoke: async (row) => {
-                const res = await API.put(`/staff/revoke_qr?qrcode=${encodeURIComponent(row[1])}&plate=${encodeURIComponent(row[2])}`);
-                showMessageModal(res?.message || "Failed to revoke QR code.", res?.status);
-                if (res?.status === "good") { QrCard.close(); loadPage(currentPage); }
-            },
+                onRevoke: async (row) => {
+                    const res = await API.put(`/staff/revoke_qr?qrcode=${encodeURIComponent(row[1])}&plate=${encodeURIComponent(row[2])}`);
+                    showMessageModal(res?.message || "Failed to revoke QR code.", res?.status);
+                    if (res?.status === "good") { QrCard.close(); loadPage(currentPage); }
+                },
 
-            onEmail: async (row) => {
-                const res = await API.post("/staff/send_qr_email", {
-                    data: row[1],
-                    owner_name: row[3] || "",
-                    owner_email: row[4],
-                    plate: row[2] || "",
-                    valid_until: row[7] && row[7] !== "None" ? row[7] : ""
-                });
-                showMessageModal(res.message, res.status);
-            },
+                onEmail: async (row) => {
+                    const res = await API.post("/staff/send_qr_email", {
+                        data: row[1],
+                        owner_name: row[3] || "",
+                        owner_email: row[4],
+                        plate: row[2] || "",
+                        valid_until: row[7] && row[7] !== "None" ? row[7] : ""
+                    });
+                    showMessageModal(res.message, res.status);
+                },
 
-            // page 4 — connect later
-            onEmailRequirements: (row, addressTag) => {
-                console.log("email requirements", row[4], addressTag);
-                showMessageModal("Requirements email isn't connected yet.", "Not Ready");
-            }
-        });
-    }
+                // page 4 — connect later
+                onEmailRequirements: (row, addressTag) => {
+                    console.log("email requirements", row[4], addressTag);
+                    showMessageModal("Requirements email isn't connected yet.", "Not Ready");
+                }
+            });
+        }
+
         function closeModal() {
             document.getElementById("detailModal").classList.remove("show");
             activeQrId = null;
@@ -1023,10 +1014,13 @@
             btn.disabled = false;
         }
 
-        // Attach Event Listeners safely without inline HTML string bindings
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("searchInput").addEventListener("input", onFilterChange);
-            document.getElementById("statusFilter").addEventListener("change", onFilterChange);
+            // search runs only on Enter / Search button / status change
+            document.getElementById("searchInput").addEventListener("keydown", (e) => {
+                if (e.key === "Enter") { e.preventDefault(); submitSearch(); }
+            });
+            document.getElementById("btnSearch").addEventListener("click", submitSearch);
+            document.getElementById("statusFilter").addEventListener("change", submitSearch);
             document.getElementById("btnClear").addEventListener("click", clearSearch);
 
             document.getElementById("btnPrev").addEventListener("click", () => changePage(currentPage - 1));
