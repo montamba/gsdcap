@@ -23,7 +23,15 @@ QR_COLS = """q.id, q.code, c.plate, c.owner_name, c.owner_email, c.owner_phone,
              c.department, q.expiry, q.status, q.created_by, q.created_at,
              q.car_status, c.vehicle_type, c.space_units"""
 QR_FROM = "FROM qrcode q JOIN car_details c ON c.id = q.car_details_id"
-QR_FROM_USER = QR_FROM + " LEFT JOIN users u ON q.created_by = u.id"
+QR_FROM_USER = (
+    QR_FROM
+    + " LEFT JOIN users u ON q.created_by = u.id"
+    + " LEFT JOIN vehicle_requirements r ON r.id = q.requirements"
+)
+# 1 when the QR has at least one requirement image on file, else 0 (appended as the last column)
+HAS_REQ = """(r.OR_path IS NOT NULL OR r.CR_path IS NOT NULL OR r.driver_license_path IS NOT NULL
+              OR r.employee_id_path IS NOT NULL OR r.registration_form_path IS NOT NULL
+              OR r.affidavit IS NOT NULL) AS has_req"""
 
 PENDING_SELECT = """
     SELECT p.id, p.request_type, p.actions, p.request_by,
@@ -508,7 +516,7 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                f"""SELECT {QR_COLS}, u.username, {HAS_REQ} {QR_FROM_USER}
                     WHERE q.created_by = %s
                     ORDER BY q.created_at DESC
                     LIMIT %s OFFSET %s""",
@@ -525,7 +533,7 @@ class SQL:
         try:
             cur = self._cursor()
             cur.execute(
-                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                f"""SELECT {QR_COLS}, u.username, {HAS_REQ} {QR_FROM_USER}
                     ORDER BY q.created_at DESC
                     LIMIT %s OFFSET %s""",
                 (limit, offset),
@@ -568,7 +576,7 @@ class SQL:
             where, params = self._qr_search_where(q, status)
             cur = self._cursor()
             cur.execute(
-                f"""SELECT {QR_COLS}, u.username {QR_FROM_USER}
+                f"""SELECT {QR_COLS}, u.username, {HAS_REQ} {QR_FROM_USER}
                     WHERE {where}
                     ORDER BY (q.code = %s OR c.plate = %s) DESC, q.created_at DESC
                     LIMIT %s OFFSET %s""",

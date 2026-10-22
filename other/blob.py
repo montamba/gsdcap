@@ -40,8 +40,9 @@ def _sniff(head: bytes):
     return None
 
 
-def read_requirements(files):
-    """files = request.files. Returns ({kind: (bytes, content_type)}, error)."""
+def read_requirements(files, required=True):
+    """files = request.files. Returns ({kind: (bytes, content_type)}, error).
+    required=False allows an empty upload (used on renewal when files already exist)."""
     out, total = {}, 0
     for kind in KINDS:
         f = files.get(kind)
@@ -54,6 +55,8 @@ def read_requirements(files):
         total += len(data)
         out[kind] = (data, ctype)
     if not out:
+        if not required:
+            return {}, None
         return None, "Upload at least one requirement image."
     if total > MAX_TOTAL:
         return None, "Images are too large (max about 4 MB in total)."

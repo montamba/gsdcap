@@ -9,6 +9,7 @@ except ModuleNotFoundError as e:
     print("===")
 from other.mysql_ import SQL
 from other import blob
+from other.cache import cache
 import bcrypt
 import os
 from dotenv import load_dotenv
@@ -206,7 +207,9 @@ class Main:
             if not result:
                 return reply("bad", "Could not submit the request. Please try again.", 500)
 
-            if blob.save_images(self.sql, result, images):
+            failed = blob.save_images(self.sql, result, images)
+            cache.deletethathas("qrcode")
+            if failed:
                 return reply("good", "Request submitted, but some images failed to upload. Staff may contact you.")
             return reply("good", "Request submitted for staff review.")
 

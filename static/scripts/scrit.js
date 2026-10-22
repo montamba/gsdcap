@@ -152,7 +152,7 @@ const REQ_KINDS = {
     affidavit: "Affidavit"
 };
 
-function renderReqFields(containerId) {
+function renderReqFields(containerId, prefix = "req_") {
     const box = document.getElementById(containerId);
     if (!box) return;
     box.innerHTML = "";
@@ -161,12 +161,12 @@ function renderReqFields(containerId) {
         wrap.className = "form-group full field";
 
         const lab = document.createElement("label");
-        lab.htmlFor = "req_" + k;
+        lab.htmlFor = prefix + k;
         lab.textContent = label;
 
         const input = document.createElement("input");
         input.type = "file";
-        input.id = "req_" + k;
+        input.id = prefix + k;
         input.accept = "image/jpeg,image/png,image/webp";
 
         wrap.appendChild(lab);
@@ -175,10 +175,10 @@ function renderReqFields(containerId) {
     }
 }
 
-function appendReqFiles(fd) {
+function appendReqFiles(fd, prefix = "req_") {
     let count = 0;
     for (const k of Object.keys(REQ_KINDS)) {
-        const f = document.getElementById("req_" + k)?.files[0];
+        const f = document.getElementById(prefix + k)?.files[0];
         if (f) { fd.append(k, f); count++; }
     }
     return count;

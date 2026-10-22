@@ -199,6 +199,25 @@
             color: #2563eb;
         }
 
+        /* legend for the yellow "no requirements" rows */
+        .legend-noreq {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #713f12;
+        }
+
+        .legend-noreq::before {
+            content: '';
+            width: 14px;
+            height: 14px;
+            background: #fef08a;
+            border: 1px solid #000000;
+            border-radius: 3px;
+        }
+
         .table-box {
             background: #fff;
             border: 1px solid #000000;
@@ -280,6 +299,19 @@
 
         tbody tr.clickable:hover td:first-child {
             border-left: 3px solid #2563eb;
+        }
+
+        /* QR has no requirement images on file -> yellow row */
+        tbody tr.clickable.no-req td {
+            background: #fef9c3;
+        }
+
+        tbody tr.clickable.no-req:hover td {
+            background: #fef08a;
+        }
+
+        tbody tr.clickable.no-req:hover td:first-child {
+            border-left: 3px solid #ca8a04;
         }
 
         .badge {
@@ -681,6 +713,7 @@
             <div class="meta-row">
                 <div class="results-count">Showing <span id="countDisplay">0</span> of <span id="totalDisplay">0</span>
                     QR codes</div>
+                <span class="legend-noreq">Yellow row = no requirements (OR/CR) on file</span>
                 <div class="pg-info" id="pgInfo">Page 1 of 1</div>
             </div>
 
@@ -833,8 +866,12 @@
                 const expiry = d[ 7 ] || "—";
                 const createdAt = d[ 10 ] || "—";
 
+                // d[15] = 1 when the QR has at least one requirement image on file, 0 when none
+                const noReq = d[ 15 ] !== undefined && Number(d[ 15 ]) === 0;
+
                 const tr = document.createElement("tr");
-                tr.className = "clickable";
+                tr.className = "clickable" + (noReq ? " no-req" : "");
+                if (noReq) tr.title = "No requirements (OR/CR) on file";
 
                 tr.innerHTML = `
                     <td style="color:#94a3b8;">${offset + i + 1}</td>

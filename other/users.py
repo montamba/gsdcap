@@ -1,6 +1,7 @@
 from flask import Blueprint, session, request, redirect, jsonify, render_template
 from other.mysql_ import SQL
 from other import blob
+from other.cache import cache
 
 
 class Users:
@@ -223,6 +224,7 @@ class Users:
 
             if res:
                 failed = blob.save_images(self.sql, res, images)
+                cache.deletethathas("qrcode")
                 if failed:
                     return jsonify(
                         {
@@ -238,7 +240,8 @@ class Users:
 
         @self.users.route("/request_renewal", methods=["POST"])
         def request_renewal():
-            data: dict = request.get_json()
+            # multipart/form-data: qrcode + optional requirement images
+            data = request.form
             code = (data.get("qrcode") or "").strip()
 
             if not code:
@@ -253,8 +256,25 @@ class Users:
                     {"status": "bad", "message": "A renewal request for this QR is already pending"}
                 )
 
+            # No requirements on file -> the owner must attach at least one.
+            # Already on file -> optional (lets them replace an expired OR/CR).
+            current = self.sql.get_requirements(qr[0])
+            has_files = bool(current and current[1])
+            images, err = blob.read_requirements(request.files, required=not has_files)
+            if err:
+                return jsonify({"status": "bad", "message": err})
+
             ok = self.sql.requestrenewal(code, session["user_id"])
             if ok:
+                failed = blob.save_images(self.sql, qr[0], images) if images else 0
+                cache.deletethathas("qrcode")
+                if failed:
+                    return jsonify(
+                        {
+                            "status": "good",
+                            "message": "Renewal request submitted, but some images failed to upload",
+                        }
+                    )
                 return jsonify(
                     {"status": "good", "message": "Renewal request submitted"}
                 )
