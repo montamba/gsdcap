@@ -7,8 +7,13 @@ const API = {
             const options = { method, headers: { 'X-Requested-With': 'XMLHttpRequest' } };
 
             if (method !== "GET" && method !== "DELETE") {
-                options.headers['Content-Type'] = 'application/json';
-                options.body = JSON.stringify(data);
+                if (data instanceof FormData) {
+                    // let the browser set the multipart boundary header
+                    options.body = data;
+                } else {
+                    options.headers['Content-Type'] = 'application/json';
+                    options.body = JSON.stringify(data);
+                }
             }
 
             const resdata = await fetch(url, options);
@@ -132,4 +137,49 @@ function hideLoading() {
     if (loading) {
         loading.style.display = "none";
     }
+}
+
+/**
+ * Requirement image upload helpers (OR / CR / etc.)
+ * Keys must match KINDS in other/blob.py
+ */
+const REQ_KINDS = {
+    or: "OR (Official Receipt)",
+    cr: "CR (Certificate of Registration)",
+    driver_license: "Driver's license",
+    employee_id: "Employee / school ID",
+    registration_form: "Registration form",
+    affidavit: "Affidavit"
+};
+
+function renderReqFields(containerId) {
+    const box = document.getElementById(containerId);
+    if (!box) return;
+    box.innerHTML = "";
+    for (const [k, label] of Object.entries(REQ_KINDS)) {
+        const wrap = document.createElement("div");
+        wrap.className = "form-group full field";
+
+        const lab = document.createElement("label");
+        lab.htmlFor = "req_" + k;
+        lab.textContent = label;
+
+        const input = document.createElement("input");
+        input.type = "file";
+        input.id = "req_" + k;
+        input.accept = "image/jpeg,image/png,image/webp";
+
+        wrap.appendChild(lab);
+        wrap.appendChild(input);
+        box.appendChild(wrap);
+    }
+}
+
+function appendReqFiles(fd) {
+    let count = 0;
+    for (const k of Object.keys(REQ_KINDS)) {
+        const f = document.getElementById("req_" + k)?.files[0];
+        if (f) { fd.append(k, f); count++; }
+    }
+    return count;
 }

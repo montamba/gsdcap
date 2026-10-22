@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, session, redirect, url_for
+from flask import Flask, request, render_template, jsonify, session, redirect, url_for, Response
 from other.admin import Admin
 from other.staff import Staff
 from other.guard import Guard
@@ -8,6 +8,7 @@ try:
 except ModuleNotFoundError as e:
     print("===")
 from other.mysql_ import SQL
+from other import blob
 import bcrypt
 import os
 from dotenv import load_dotenv
@@ -32,6 +33,8 @@ class Main:
         self.app.config["SESSION_COOKIE_HTTPONLY"] = True
         self.app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
         self.app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=1)
+        # Vercel functions reject bodies over ~4.5 MB anyway
+        self.app.config["MAX_CONTENT_LENGTH"] = 4_500_000
 
         self.sql = SQL()
         self._login_fails = {}
@@ -53,6 +56,10 @@ class Main:
         def reply(status, message, code=None):
             response = jsonify(status=status, message=message)
             return (response, code) if code else response
+
+        @self.app.errorhandler(413)
+        def too_big(e):
+            return reply("bad", "Images are too large (max about 4 MB in total).", 413)
 
         @self.app.after_request
         def limit_search_indexing(response):
@@ -167,7 +174,8 @@ class Main:
 
         @self.app.route("/public/qr-request", methods=["POST"])
         def public_qr_request():
-            data = request.get_json(silent=True) or {}
+            # multipart/form-data: text fields + requirement images
+            data = request.form
             # A filled honeypot means this was likely submitted by a bot.
             if (data.get("website") or "").strip():
                 return reply("good", "Request submitted for staff review.")
@@ -187,12 +195,58 @@ class Main:
                 return reply("bad", "Choose a valid vehicle type.", 400)
             if department not in ("VISITOR", "STUDENT", "EMPLOYEE", "GSD", "CITE", "CAS", "CAHS", "COE", "COED", "COME", "CBA"):
                 return reply("bad", "Choose a valid department or group.", 400)
+
+            images, err = blob.read_requirements(request.files)
+            if err:
+                return reply("bad", err, 400)
+
             result = self.sql.add_public_qr_request(plate, name, email, phone, vehicle_type, department)
             if result == "duplicate":
                 return reply("bad", "A request for this plate and email is already awaiting review.", 409)
             if not result:
                 return reply("bad", "Could not submit the request. Please try again.", 500)
+
+            if blob.save_images(self.sql, result, images):
+                return reply("good", "Request submitted, but some images failed to upload. Staff may contact you.")
             return reply("good", "Request submitted for staff review.")
+
+        # REQUIREMENT IMAGES (admin, staff, and the owner only) --------
+        def can_view(owner_email):
+            role = session.get("role")
+            if role in ("admin", "staff"):
+                return True
+            return role == "user" and (owner_email or "").lower() == (session.get("email") or "").lower()
+
+        @self.app.route("/files/by_qr/<int:qr_id>")
+        def files_by_qr(qr_id):
+            if "user_id" not in session:
+                return reply("unauthenticated", "Please log in", 401)
+            got = self.sql.get_requirements(qr_id)
+            if not got:
+                return reply("bad", "Not found", 404)
+            if not can_view(got[0]):
+                return reply("forbidden", "Not allowed", 403)
+            return jsonify(status="good", data=list(got[1].keys()))
+
+        @self.app.route("/files/<int:qr_id>/<kind>")
+        def serve_file(qr_id, kind):
+            if "user_id" not in session:
+                return reply("unauthenticated", "Please log in", 401)
+            got = self.sql.get_requirements(qr_id)
+            if not got or kind not in got[1]:
+                return reply("bad", "Not found", 404)
+            if not can_view(got[0]):
+                return reply("forbidden", "Not allowed", 403)
+            try:
+                content = blob.download(got[1][kind])
+            except Exception as e:
+                print("[BLOB] download error:", e)
+                return reply("bad", "Could not load file", 502)
+            return Response(
+                content,
+                mimetype=blob._sniff(content[:12]) or "application/octet-stream",
+                headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
+            )
         
         
         @self.app.route("/user/signin")

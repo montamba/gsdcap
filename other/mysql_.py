@@ -15,6 +15,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
+from other.blob import KINDS
+
 load_dotenv()
 
 QR_COLS = """q.id, q.code, c.plate, c.owner_name, c.owner_email, c.owner_phone,
@@ -114,8 +116,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] restore_user error: {e}")
             return False
-        
-    
 
     def get_pending_deletions(self):
         """Return all users who have requested account deletion."""
@@ -209,7 +209,7 @@ class SQL:
 
     def _commit(self):
         self.sql.commit()
-        
+
     def _rollback(self):
         try:
             self.sql.rollback()
@@ -245,7 +245,6 @@ class SQL:
             print(f"[DB] getalluser error: {e}")
             return []
 
-
     def countqrbyemailandhasdata(self, email):
         try:
             cur = self._cursor()
@@ -261,7 +260,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] countqrbyemailandhasdata error: {e}")
             return 0
-        
 
     def countallusers(self) -> int:
         try:
@@ -306,8 +304,8 @@ class SQL:
         except Exception as e:
             print(f"[DB] getuserbyemail error: {e}")
             return None
-        
-    def getuserbyemailandrole(self, email: str, role:str):
+
+    def getuserbyemailandrole(self, email: str, role: str):
         try:
             cur = self._cursor()
             cur.execute("SELECT * FROM users WHERE email=%s AND role=%s", (email, role,))
@@ -449,7 +447,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] codeindata error: {e}")
             return False
-        
 
     def getqrbydata(self, data: str):
         try:
@@ -479,8 +476,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] isplateauthorized error: {e}")
             return False
-        
-        
+
     def getqrbyemailandhasdata(self, email, limit, offset):
         try:
             cur = self._cursor()
@@ -524,7 +520,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] getqrbyuser error: {e}")
             return []
-        
+
     def getallqr(self, limit=5, offset=0):
         try:
             cur = self._cursor()
@@ -551,7 +547,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] countallqr error: {e}")
             return 0
-        
+
     def _qr_search_where(self, q, status):
         cond, params = ["1=1"], []
         if q:
@@ -626,7 +622,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] getqrstats error: {e}")
             return []
-        
+
     def saveqr(self, code: str, plate: str, expiry, created_by,
                owner_name: str = "", owner_email: str = "", owner_number: str = "",
                vehicle_type: str = "car", department: str = "Null") -> bool:
@@ -701,7 +697,7 @@ class SQL:
             self._rollback()
             print(f"[DB] deleteqr error: {e}")
             return False
-        
+
     def set_car_status(self, code, status) -> bool:
         """status = 'IN' or 'OUT'"""
         try:
@@ -714,7 +710,7 @@ class SQL:
             self._rollback()
             print(f"[DB] set_car_status error: {e}")
             return False
-        
+
     def revoke_qr(self, code, plate) -> bool:
         try:
             cur = self._cursor()
@@ -732,7 +728,59 @@ class SQL:
             self._rollback()
             print(f"[DB] revoke_qr error: {e}")
             return False
-        
+
+    # REQUIREMENT IMAGES (vehicle_requirements) -------------------------------
+
+    def save_requirements(self, qr_id, urls):
+        """urls = {kind: blob_url}. Creates the vehicle_requirements row if missing."""
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT requirements FROM qrcode WHERE id=%s", (qr_id,))
+            row = cur.fetchone()
+            if not row:
+                cur.close()
+                return False
+            rid = row[0]
+            if not rid:
+                cur.execute("INSERT INTO vehicle_requirements () VALUES ()")
+                rid = cur.lastrowid
+                cur.execute("UPDATE qrcode SET requirements=%s WHERE id=%s", (rid, qr_id))
+            # column names come from the KINDS whitelist, never from user input
+            sets = ", ".join(f"{KINDS[k]}=%s" for k in urls)
+            cur.execute(
+                f"UPDATE vehicle_requirements SET {sets} WHERE id=%s",
+                (*urls.values(), rid),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            self._rollback()
+            print(f"[DB] save_requirements error: {e}")
+            return False
+
+    def get_requirements(self, qr_id):
+        """Returns (owner_email, {kind: blob_url}) or None if the QR doesn't exist."""
+        try:
+            cols = ", ".join(f"r.{c}" for c in KINDS.values())
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT c.owner_email, {cols}
+                    FROM qrcode q
+                    JOIN car_details c ON c.id = q.car_details_id
+                    LEFT JOIN vehicle_requirements r ON r.id = q.requirements
+                    WHERE q.id=%s""",
+                (qr_id,),
+            )
+            row = cur.fetchone()
+            cur.close()
+            if not row:
+                return None
+            return row[0], {k: v for k, v in zip(KINDS, row[1:]) if v}
+        except Exception as e:
+            print(f"[DB] get_requirements error: {e}")
+            return None
+
     #------------------------Request
     def has_pending_request(self, data: str, request_type: str) -> bool:
         try:
@@ -749,8 +797,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] has_pending_request error: {e}")
             return False
-        
-        
+
     def getqrrequestwithusersandqrcode(self, limit=10, offset=0):
         try:
             cur = self._cursor()
@@ -766,7 +813,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] getqrrequestwithusersandqrcode error: {e}")
             return []
-        
 
     def getqrrenewalwithusersandqrcode(self, limit=10, offset=0):
         try:
@@ -808,7 +854,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] get_qr_pending_detail error: {e}")
             return None
-
 
     def approve_qr_request(self, pending_id, qr_id, code, reviewer_id) -> bool:
         try:
@@ -876,26 +921,24 @@ class SQL:
         except Exception as e:
             print(f"[DB] fetchselfrequest error: {e}")
             return None
-        
+
     def countallselfrequest(self, id):
         try:
             cur = self._cursor()
-                    
+
             cur.execute("""SELECT COUNT(*) FROM qrpending WHERE request_by=%s""", (id,))
-                    
+
             data = cur.fetchone()[0]
-                    
+
             cur.close()
             return data
         except Exception as e:
             print(f"[DB] countallselfrequest error: {e}")
             return None
-        
-        
-        
-    
+
     def addqrrequest(self, plate, owner_name, owner_email, owner_phone,
                      created_by, vehicle_type, department=None):
+        """Returns the new qrcode id on success, False on failure."""
         try:
             cur = self._cursor()
             car_id = self._insert_car(cur, plate, owner_name, owner_email,
@@ -911,7 +954,7 @@ class SQL:
             )
             self._commit()
             cur.close()
-            return True
+            return qr_id
         except Exception as e:
             self._rollback()
             print(f"[DB] addqrrequest error: {e}")
@@ -919,6 +962,7 @@ class SQL:
 
     def add_public_qr_request(self, plate, owner_name, owner_email, owner_phone,
                               vehicle_type, department):
+        """Returns the new qrcode id, "duplicate", or False on failure."""
         try:
             cur = self._cursor()
             cur.execute(
@@ -946,13 +990,12 @@ class SQL:
             )
             self._commit()
             cur.close()
-            return True
+            return qr_id
         except Exception as e:
             self._rollback()
             print(f"[DB] add_public_qr_request error: {e}")
             return False
-        
-    
+
     def requestrenewal(self, id, data):
         try:
             cur = self._cursor()
@@ -972,14 +1015,13 @@ class SQL:
             self._rollback()
             print(f"[DB] requestrenewal error: {e}")
             return False
-     
 
     # ──────────────────────────────────────────────────────────────
     # HISTORY QUERIES
     # ──────────────────────────────────────────────────────────────
 
     def inserthistory(
-        self, data: str, guard, status: str, action: str = "entry", plate:str= None, department=None, is_authorized: bool = False
+        self, data: str, guard, status: str, action: str = "entry", plate: str = None, department=None, is_authorized: bool = False
     ) -> bool:
         try:
             cur = self._cursor()
@@ -1119,7 +1161,7 @@ class SQL:
         finally:
             if cur:
                 cur.close()        # consumes the pending result
-            self._rollback() 
+            self._rollback()
 
     def setparkingslot(self, total):
         try:
@@ -1133,7 +1175,7 @@ class SQL:
         except Exception as e:
             print(f"[DB] setparkingslot error: {e}")
             return False
-        
+
     def get_vehicles_inside(self):
         """All QR vehicles currently marked IN."""
         try:
@@ -1165,7 +1207,6 @@ class SQL:
             self._rollback()
             print(f"[DB] exit_all_vehicles error: {e}")
             return False
-        
 
     def updateparking(self, added, operation) -> bool:
         cur = None
@@ -1200,15 +1241,17 @@ class SQL:
             return False
         finally:
             if cur:
-                try: cur.close()
-                except Exception: pass
-        
+                try:
+                    cur.close()
+                except Exception:
+                    pass
+
     def change_admin_username(self, new_username, email):
         try:
             cur = self._cursor()
-            
-            cur.execute("UPDATE admin SET username=%s WHERE email=%s",(new_username,email,))
-            
+
+            cur.execute("UPDATE admin SET username=%s WHERE email=%s", (new_username, email,))
+
             self._commit()
             cur.close()
             return True
@@ -1244,55 +1287,53 @@ class SQL:
         except Exception as e:
             print(f"[DB] get_total_scan error: {e}")
             return 0
-        
+
     #===================================main admin
     def getadminbyemail(self, email):
         try:
             cur = self._cursor()
             cur.execute("SELECT * FROM admin WHERE email=%s", (email,))
-            admin  = cur.fetchone()[0]
+            admin = cur.fetchone()[0]
             if admin:
                 return True
-                    
+
             return False
         except Exception as e:
             print(f"[DB] check_magic error: {e}")
             return False
-        
+
     def check_magic(self, email, password):
-        
+
         try:
             cur = self._cursor()
             print("num1")
             cur.execute("SELECT * FROM admin WHERE email=%s", (email,))
             print("num2")
-            admin  = cur.fetchone()
+            admin = cur.fetchone()
             print("num3")
             if not admin:
                 return False
-            
+
             print("num4")
             check = self._check(password, admin[3])
             print("num5")
             passmathc = password == admin[3]
-            
+
             cur.close()
             if check or passmathc:
                 return True
-            
+
             return False
         except Exception as e:
             print(f"[DB] check_magic error: {e}")
             return False
-    
-    
-        
+
     def add_admin(self, username, email, password):
         try:
             cur = self._cursor()
-            
+
             passhash = self._hash(password)
-            
+
             cur.execute(
                 "INSERT INTO admin(username, email, password) VALUES (%s,%s,%s)",
                 (username, email, passhash,),
@@ -1303,8 +1344,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] add_admin error: {e}")
             return False
-        
-        
 
     # ──────────────────────────────────────────────────────────────
     # EMAIL
@@ -1403,7 +1442,6 @@ class SQL:
             </div>
             """
 
-
             alt_part = MIMEMultipart("alternative")
             alt_part.attach(MIMEText(html_body, "html"))
             msg.attach(alt_part)
@@ -1412,7 +1450,7 @@ class SQL:
             img_part.add_header("Content-ID", "<qrimage>")
             img_part.add_header("Content-Disposition", "inline", filename="qr_code.png")
             msg.attach(img_part)
-            
+
             print("[EMAIL] SMTP host:", smtp_host)
             print("[EMAIL] SMTP port:", smtp_port)
             print("[EMAIL] SMTP user:", smtp_user)
@@ -1420,12 +1458,12 @@ class SQL:
 
             with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
                 print("[EMAIL] SMTP connected")
-                
+
                 server.starttls()
                 print("[EMAIL] TLS started")
                 server.login(smtp_user, smtp_pass)
                 print("[EMAIL] Login successful")
-                
+
                 server.sendmail(smtp_user, to_email, msg.as_string())
                 print("[EMAIL] Message sent")
 
@@ -1437,7 +1475,6 @@ class SQL:
             print(f"[EMAIL] send_qr_email error: {repr(e)}")
             traceback.print_exc()
             return False
-
 
     # ──────────────────────────────────────────────────────────────
     # ADMIN: guard scan history, weekly chart, profile helpers
@@ -1573,7 +1610,6 @@ class SQL:
         except Exception as e:
             print(f"[DB] admin_email_taken error: {e}")
             return True  # fail closed
-
 
     def get_recent_users(self, limit=5, offset=0):
         """Newest users first: id, username, role, created_at, deletion_requested_at."""

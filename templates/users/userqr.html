@@ -10,11 +10,10 @@
     <link rel="stylesheet" href="/../../static/css/qrcard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/../../static/scripts/scrit.js"></script>
     <script src="/../../static/scripts/qrcard.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/../../static/scripts/scrit.js"></script>
     <style>
         * { font-family: 'Roboto', sans-serif; box-sizing: border-box; }
 
@@ -62,6 +61,10 @@
         }
         .form-group input[readonly] { color: #94a3b8; background: #f1f5f9; }
         .form-group input::placeholder { color: #cbd5e1; }
+
+        .req-intro { grid-column: span 2; border-top: 1px solid #000000; padding-top: 14px; }
+        .req-intro h3 { font-size: 12px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+        .req-intro p { font-size: 12px; color: #64748b; }
 
         .btn-save {
             grid-column: span 2;
@@ -206,6 +209,7 @@
 
             .form-body { grid-template-columns: 1fr; padding: 18px; }
             .form-group.full { grid-column: span 1; }
+            .req-intro { grid-column: span 1; }
             .btn-save { grid-column: span 1; width: 100%; justify-content: center; }
 
             /* Table layouts on mobile */
@@ -266,6 +270,14 @@
                             <option value="motorcycle">Motorcycle — uses half a parking space</option>
                         </select>
                     </div>
+
+                    <div class="req-intro">
+                        <h3>Requirements</h3>
+                        <p>Upload at least one image (JPG, PNG or WEBP, about 4 MB in total). Only you and GSD Parking staff can view them.</p>
+                    </div>
+                    <!-- display:contents lets the generated fields use the form grid -->
+                    <div id="reqFields" style="display:contents;"></div>
+
                     <button type="submit" class="btn-save" id="btnRequest">
                         <i class="bi bi-send"></i> Submit Request
                     </button>
@@ -488,7 +500,7 @@
                 renderMyQr(res.data || []);
                 updateMyQrPager(res.total || 0, res.page || MYQR_PAGE, res.pages || 1);
             } catch (err) {
-                console.error("Fetch MyQR error:", err);
+                console.error("Fetch MyQr error:", err);
                 renderMyQr([]);
                 updateMyQrPager(0, 1, 1);
             }
@@ -603,24 +615,29 @@
                 await fetchMyQR();
             }
         }
-        /* ── SUBMIT REQUEST ── */
+
+        /* ── SUBMIT REQUEST (multipart: text fields + requirement images) ── */
         async function requestqr(event) {
             event.preventDefault();
 
-            const payload = {
-                plate: document.getElementById("plate").value.trim(),
-                user_name: document.getElementById("username").value.trim(),
-                email: document.getElementById("email").value.trim(),
-                phone: document.getElementById("number").value.trim(),
-                vtype: document.getElementById("vehicle_type").value
-            };
+            const plate = document.getElementById("plate").value.trim();
+            const userName = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
 
-            if (!payload.plate || !payload.user_name || !payload.email) {
-                if (typeof showMessageModal === "function") {
-                    showMessageModal("Please fill in plate, owner name, and email.", "Missing Fields");
-                } else {
-                    alert("Please fill in plate, owner name, and email.");
-                }
+            if (!plate || !userName || !email) {
+                showMessageModal("Please fill in plate, owner name, and email.", "Missing Fields");
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append("plate", plate);
+            fd.append("user_name", userName);
+            fd.append("email", email);
+            fd.append("phone", document.getElementById("number").value.trim());
+            fd.append("vtype", document.getElementById("vehicle_type").value);
+
+            if (appendReqFiles(fd) === 0) {
+                showMessageModal("Please upload at least one requirement image (OR, CR, etc.).", "Missing Requirements");
                 return;
             }
 
@@ -629,15 +646,11 @@
             btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
 
             try {
-                const res = await API.post("/users/add_request", payload);
-                if (typeof showMessageModal === "function") {
-                    showMessageModal(res.message, res.status);
-                } else {
-                    alert(res.message);
-                }
+                const res = await API.post("/users/add_request", fd);
+                showMessageModal(res.message, res.status);
 
                 if (res.status === "good") {
-                    document.getElementById("requestqr").reset();
+                    document.getElementById("requestqr").reset();   // also clears the file inputs
                     await MyEmail();
                     PAGE = 1;
                     await fetchData();
@@ -652,6 +665,7 @@
 
         /* ── INIT ── */
         async function init() {
+            renderReqFields("reqFields");
             await MyEmail();
             await fetchMyQR();
             await fetchData();

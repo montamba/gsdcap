@@ -1,5 +1,6 @@
 from flask import Blueprint, session, request, redirect, jsonify, render_template
 from other.mysql_ import SQL
+from other import blob
 
 
 class Users:
@@ -56,9 +57,6 @@ class Users:
         @self.users.route("/myemail", methods=["GET"])
         def myemail():
             return jsonify({"data": {"email": session["email"]}})
-        
-        
-            
 
         @self.users.route("/update_username", methods=["POST"])
         def update_username():
@@ -170,7 +168,7 @@ class Users:
                     "pages": pages,
                 }
             )
-            
+
         @self.users.route("/myqr", methods=["GET"])
         def myqr():
             limit = int(request.args.get("limit", 5))
@@ -180,8 +178,6 @@ class Users:
             res = self.sql.getqrbyemailandhasdata(session["email"], limit, offset)
             total = self.sql.countqrbyemailandhasdata(session["email"]) or 0
             pages = max(1, -(-total // limit)) if limit else 1
-
-            
 
             return jsonify(
                 {
@@ -194,10 +190,10 @@ class Users:
                 }
             )
 
-
         @self.users.route("/add_request", methods=["POST"])
         def add_request():
-            data: dict = request.get_json()
+            # multipart/form-data: text fields + requirement images
+            data = request.form
             plate = (data.get("plate") or "").strip()
             owner = (data.get("user_name") or "").strip()
             email = (data.get("email") or "").strip().lower()
@@ -217,11 +213,23 @@ class Users:
                     }
                 )
 
+            images, err = blob.read_requirements(request.files)
+            if err:
+                return jsonify({"status": "bad", "message": err})
+
             res = self.sql.addqrrequest(
                 plate, owner, session["email"], phone, session["user_id"], vtype
             )
 
             if res:
+                failed = blob.save_images(self.sql, res, images)
+                if failed:
+                    return jsonify(
+                        {
+                            "status": "good",
+                            "message": "Request added, but some images failed to upload",
+                        }
+                    )
                 return jsonify(
                     {"status": "good", "message": "successfully added the request"}
                 )
@@ -253,6 +261,3 @@ class Users:
             return jsonify(
                 {"status": "bad", "message": "Failed to submit renewal request"}
             )
-            
-        
-            

@@ -1,7 +1,7 @@
 /**
  * QR card viewer — shared by staff/search.html and users/userqr.html
  *
- * Needs on the page: qrcode.min.js, html2canvas.min.js, bootstrap-icons, qrcard.css
+ * Needs on the page: qrcode.min.js, html2canvas.min.js, bootstrap-icons, qrcard.css, scrit.js
  *
  * QrCard.open(row, {
  *   mode: "staff" | "user",
@@ -170,6 +170,45 @@ const QrCard = (() => {
         img.addEventListener("load", () => { img.style.display = "block"; });
     }
 
+    // ─── requirement images (OR / CR / ...) from /files/... ───
+    // Only admin, staff and the owner get a 200 from those routes.
+    async function loadRequirements(d) {
+        const box = $("qcAttachBox");
+        const placeholder = '<div><i class="bi bi-image"></i><br>No image attached yet</div>';
+        box.style.cssText = "";
+        box.innerHTML = placeholder;
+        if (!d[0]) return;
+
+        const qrId = d[0];
+        const res = await API.get(`/files/by_qr/${encodeURIComponent(qrId)}`);
+        if (row !== d) return;                       // another card was opened meanwhile
+        if (!res || res.status !== "good" || !res.data.length) return;
+
+        box.innerHTML = "";
+        box.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-start";
+        res.data.forEach((kind) => {
+            const src = `/files/${encodeURIComponent(qrId)}/${encodeURIComponent(kind)}`;
+
+            const a = document.createElement("a");
+            a.href = src;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#64748b;text-decoration:none";
+
+            const img = document.createElement("img");
+            img.src = src;
+            img.alt = kind;
+            img.style.cssText = "max-width:130px;max-height:130px;border-radius:6px;border:1px solid #000";
+
+            const label = document.createElement("span");
+            label.textContent = (typeof REQ_KINDS !== "undefined" && REQ_KINDS[kind]) || kind;
+
+            a.appendChild(img);
+            a.appendChild(label);
+            box.appendChild(a);
+        });
+    }
+
     // ─── fill from one row ───
     function fill(d, mode) {
         const status = effectiveStatus(d[8], d[7]);
@@ -200,6 +239,8 @@ const QrCard = (() => {
 
         // page 4: staff sets the address tag, users only see the attach area
         $("qcTagGroup").style.display = mode === "staff" ? "flex" : "none";
+
+        loadRequirements(d);
     }
 
     // ─── buttons ───
@@ -268,7 +309,8 @@ const QrCard = (() => {
     }
 
     function emailRequirements() {
-        const tag = $("qcAddressTag").value.trim();
+        const tagInput = $("qcAddressTag");
+        const tag = tagInput ? tagInput.value.trim() : "";
         if (!tag) { showMessageModal("Type an address tag first.", "Missing Address Tag"); return; }
         opts.onEmailRequirements && opts.onEmailRequirements(row, tag);
     }
