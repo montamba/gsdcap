@@ -24,6 +24,17 @@ class Users:
                 jsonify({"status": "forbidden", "message": "Staff access required"}),
                 403,
             )
+            
+    @staticmethod
+    def _ser(rows):
+        return [[str(v) if not isinstance(v, (int, str, float, type(None))) else v
+                 for v in r] for r in (rows or [])]
+
+    def _own_qr(self, qr_id):
+        qr = self.sql.getqrbyid(qr_id)
+        if not qr or (qr[4] or "").lower() != session["email"].lower():
+            return None
+        return qr
 
     def routes(self):
         self.users.before_request(self._protect)
@@ -146,51 +157,39 @@ class Users:
             limit = int(request.args.get("limit", 5))
             page = int(request.args.get("page", 1))
             offset = (page - 1) * limit
+            rtype = request.args.get("type")
+            if rtype not in ("request_qr", "qr_renewal"):
+                rtype = None
 
-            res = self.sql.fetchselfrequest(session["email"], limit, offset)
-            total = self.sql.countallselfrequest(session["user_id"]) or 0
+            res = self.sql.fetchselfrequest(session["email"], limit, offset, rtype)
+            total = self.sql.countselfrequest(session["email"], rtype) or 0
             pages = max(1, -(-total // limit)) if limit else 1
 
-            serialized = [
-                [
-                    str(v) if not isinstance(v, (int, str, float, type(None))) else v
-                    for v in row
-                ]
-                for row in (res or [])
-            ]
-
-            return jsonify(
-                {
-                    "status": "good",
-                    "data": serialized,
-                    "total": total,
-                    "page": page,
-                    "limit": limit,
-                    "pages": pages,
-                }
-            )
+            return jsonify({
+                "status": "good",
+                "data": self._ser(res),
+                "total": total, "page": page, "limit": limit, "pages": pages,
+            })
 
         @self.users.route("/myqr", methods=["GET"])
         def myqr():
             limit = int(request.args.get("limit", 5))
             page = int(request.args.get("page", 1))
             offset = (page - 1) * limit
+            scope = request.args.get("scope", "")
+            if scope not in ("active", "renewable"):
+                scope = ""
 
-            res = self.sql.getqrbyemailandhasdata(session["email"], limit, offset)
-            total = self.sql.countqrbyemailandhasdata(session["email"]) or 0
+            res = self.sql.getqrbyemailandhasdata(session["email"], limit, offset, scope)
+            total = self.sql.countqrbyemailandhasdata(session["email"], scope) or 0
             pages = max(1, -(-total // limit)) if limit else 1
 
-            return jsonify(
-                {
-                    "status": "good",
-                    "data": res,
-                    "total": total,
-                    "page": page,
-                    "limit": limit,
-                    "pages": pages,
-                }
-            )
-
+            return jsonify({
+                "status": "good",
+                "data": self._ser(res),
+                "total": total, "page": page, "limit": limit, "pages": pages,
+            })
+            
         @self.users.route("/add_request", methods=["POST"])
         def add_request():
             # multipart/form-data: text fields + requirement images

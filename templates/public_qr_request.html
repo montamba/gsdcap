@@ -6,7 +6,11 @@
   <link rel="stylesheet" href="/../../static/css/message.css">
   <script src="/../../static/scripts/scrit.js"></script>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#0f172a;font:15px Arial,sans-serif}.card{max-width:560px;margin:40px auto;padding:28px;background:#fff;border:1px solid #dbe2ea;border-radius:12px;box-shadow:0 8px 28px #0f172a12}h1{font-size:23px;margin:0 0 8px}p{color:#64748b;line-height:1.5}.field{margin:17px 0}label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}input,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:7px;font-size:15px;background:white}button{width:100%;padding:13px;border:0;border-radius:7px;background:#2563eb;color:white;font-size:15px;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.notice{margin-top:16px;padding:13px;border-radius:7px;display:none}.notice.show{display:block}.notice.good{background:#dcfce7;color:#166534}.notice.bad{background:#fee2e2;color:#991b1b}.hp{position:absolute;left:-10000px}.req-title{margin:26px 0 4px;font-size:15px}.req-hint{margin:0 0 6px;font-size:13px}
+    *{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#0f172a;font:15px Arial,sans-serif}.card{max-width:560px;margin:40px auto;padding:28px;background:#fff;border:1px solid #dbe2ea;border-radius:12px;box-shadow:0 8px 28px #0f172a12}h1{font-size:23px;margin:0 0 8px}p{color:#64748b;line-height:1.5}.field{margin:17px 0}label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}input,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:7px;font-size:15px;background:white}button{width:100%;padding:13px;border:0;border-radius:7px;background:#2563eb;color:white;font-size:15px;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.notice{margin-top:16px;padding:13px;border-radius:7px;display:none}.notice.show{display:block}.notice.good{background:#dcfce7;color:#166534}.notice.bad{background:#fee2e2;color:#991b1b}.hp{position:absolute;left:-10000px}.req-title{margin:26px 0 4px;font-size:15px}.req-hint{margin:0 0 6px;font-size:13px;
+    .req-preview{display:none;margin-top:8px;align-items:center;gap:10px}
+.req-preview.show{display:flex}
+.req-preview img{width:90px;height:90px;object-fit:cover;border:1px solid #cbd5e1;border-radius:7px}
+.req-preview button{width:auto;padding:6px 10px;background:#ef4444;font-size:12px}}
   </style>
 </head>
 <body>
@@ -32,6 +36,36 @@
   </main>
   <script>
     renderReqFields("reqFields");
+
+    // preview each attached image so the user can review it before submitting
+    document.getElementById("reqFields").addEventListener("change", (e) => {
+      const input = e.target;
+      if (input.type !== "file") return;
+      const wrap = input.parentElement;
+      let box = wrap.querySelector(".req-preview");
+      if (!box) {
+        box = document.createElement("div");
+        box.className = "req-preview";
+        wrap.appendChild(box);
+      }
+      box.innerHTML = "";
+      box.classList.remove("show");
+      const file = input.files[0];
+      if (!file) return;
+
+      const img = document.createElement("img");
+      img.alt = "Preview";
+      img.src = URL.createObjectURL(file);
+      img.onload = () => URL.revokeObjectURL(img.src);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.onclick = () => { input.value = ""; box.innerHTML = ""; box.classList.remove("show"); };
+
+      box.append(img, remove);
+      box.classList.add("show");
+    });
 
     document.getElementById("requestForm").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -60,7 +94,10 @@
         const result = await response.json();
         notice.textContent = result.message || "Unable to submit your request.";
         notice.className = `notice show ${result.status === "good" ? "good" : "bad"}`;
-        if (result.status === "good") { document.getElementById("requestForm").reset(); }
+        if (result.status === "good") {
+          document.getElementById("requestForm").reset();
+          document.querySelectorAll(".req-preview").forEach(b => { b.innerHTML = ""; b.classList.remove("show"); });
+        }
       } catch (_) {
         notice.textContent = "Unable to connect. Please try again.";
         notice.className = "notice show bad";

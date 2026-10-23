@@ -253,21 +253,7 @@ class SQL:
             print(f"[DB] getalluser error: {e}")
             return []
 
-    def countqrbyemailandhasdata(self, email):
-        try:
-            cur = self._cursor()
-            cur.execute(
-                """SELECT COUNT(*) FROM qrcode q
-                   JOIN car_details c ON c.id = q.car_details_id
-                   WHERE c.owner_email=%s AND q.code IS NOT NULL""",
-                (email,),
-            )
-            count = cur.fetchone()[0]
-            cur.close()
-            return count
-        except Exception as e:
-            print(f"[DB] countqrbyemailandhasdata error: {e}")
-            return 0
+    
 
     def countallusers(self) -> int:
         try:
@@ -485,12 +471,36 @@ class SQL:
             print(f"[DB] isplateauthorized error: {e}")
             return False
 
-    def getqrbyemailandhasdata(self, email, limit, offset):
+    def _qr_scope(self, scope):
+        if scope == "active":
+            return " AND q.status='active' AND (q.expiry IS NULL OR q.expiry >= NOW())"
+        if scope == "renewable":   # expired, or expiring within 30 days
+            return (" AND q.status<>'revoked' AND q.expiry IS NOT NULL"
+                    " AND q.expiry < DATE_ADD(NOW(), INTERVAL 30 DAY)")
+        return ""
+
+    def countqrbyemailandhasdata(self, email, scope=""):
+        try:
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT COUNT(*) FROM qrcode q
+                   JOIN car_details c ON c.id = q.car_details_id
+                   WHERE c.owner_email=%s AND q.code IS NOT NULL{self._qr_scope(scope)}""",
+                (email,),
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] countqrbyemailandhasdata error: {e}")
+            return 0
+
+    def getqrbyemailandhasdata(self, email, limit, offset, scope=""):
         try:
             cur = self._cursor()
             cur.execute(
                 f"""SELECT {QR_COLS} {QR_FROM}
-                    WHERE q.code IS NOT NULL AND c.owner_email=%s
+                    WHERE q.code IS NOT NULL AND c.owner_email=%s{self._qr_scope(scope)}
                     ORDER BY q.id DESC LIMIT %s OFFSET %s""",
                 (email, limit, offset),
             )
@@ -913,15 +923,21 @@ class SQL:
             return False
 
     # ========================================================================================================= users
-    def fetchselfrequest(self, email, limit, offset):
+    def fetchselfrequest(self, email, limit, offset, request_type=None):
+        # row: 0 id, 1 qrid, 2 type, 3 request_by, 4 actions, 5 review_by,
+        #      6 created_at, 7 plate, 8 code
         try:
+            where, params = "c.owner_email=%s", [email]
+            if request_type:
+                where += " AND p.request_type=%s"
+                params.append(request_type)
             cur = self._cursor()
             cur.execute(
-                """SELECT p.*, q.created_at FROM qrpending p
+                f"""SELECT p.*, q.created_at, c.plate, q.code FROM qrpending p
                    JOIN qrcode q ON p.qrid = q.id
                    JOIN car_details c ON q.car_details_id = c.id
-                   WHERE c.owner_email=%s LIMIT %s OFFSET %s""",
-                (email, limit, offset),
+                   WHERE {where} ORDER BY p.id DESC LIMIT %s OFFSET %s""",
+                tuple(params + [limit, offset]),
             )
             data = cur.fetchall()
             cur.close()
@@ -929,6 +945,48 @@ class SQL:
         except Exception as e:
             print(f"[DB] fetchselfrequest error: {e}")
             return None
+
+    def countselfrequest(self, email, request_type=None):
+        try:
+            where, params = "c.owner_email=%s", [email]
+            if request_type:
+                where += " AND p.request_type=%s"
+                params.append(request_type)
+            cur = self._cursor()
+            cur.execute(
+                f"""SELECT COUNT(*) FROM qrpending p
+                   JOIN qrcode q ON p.qrid = q.id
+                   JOIN car_details c ON q.car_details_id = c.id
+                   WHERE {where}""",
+                tuple(params),
+            )
+            count = cur.fetchone()[0]
+            cur.close()
+            return count
+        except Exception as e:
+            print(f"[DB] countselfrequest error: {e}")
+            return 0
+
+    def clear_requirement(self, qr_id, kind):
+        """Set one requirement column to NULL. kind must be a KINDS key."""
+        try:
+            cur = self._cursor()
+            cur.execute("SELECT requirements FROM qrcode WHERE id=%s", (qr_id,))
+            row = cur.fetchone()
+            if not row or not row[0]:
+                cur.close()
+                return False
+            cur.execute(
+                f"UPDATE vehicle_requirements SET {KINDS[kind]}=NULL WHERE id=%s",
+                (row[0],),
+            )
+            self._commit()
+            cur.close()
+            return True
+        except Exception as e:
+            self._rollback()
+            print(f"[DB] clear_requirement error: {e}")
+            return False
 
     def countallselfrequest(self, id):
         try:

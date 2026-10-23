@@ -177,6 +177,8 @@ class Main:
         def public_qr_request():
             # multipart/form-data: text fields + requirement images
             data = request.form
+            
+            print(data)
             # A filled honeypot means this was likely submitted by a bot.
             if (data.get("website") or "").strip():
                 return reply("good", "Request submitted for staff review.")
